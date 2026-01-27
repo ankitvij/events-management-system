@@ -15,7 +15,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        $query = Event::with('user')->latest();
+        $query = Event::with(['user', 'organisers'])->latest();
 
         $current = auth()->user();
         if (! $current || ! $current->is_super_admin) {
@@ -35,12 +35,46 @@ class EventController extends Controller
             $query->where('active', false);
         }
 
+        // Apply optional sort parameter
+        $sort = request('sort');
+        switch ($sort) {
+            case 'start_asc':
+                $query->orderBy('start_at', 'asc');
+                break;
+            case 'start_desc':
+                $query->orderBy('start_at', 'desc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'title_asc':
+                $query->orderBy('title', 'asc');
+                break;
+            default:
+                // keep default ordering (latest)
+                break;
+        }
+
         // For public views, cache paginated results per page + search for 5 minutes
+        // Collect available cities and countries for filter selects (based on visible events)
+        try {
+            $cities = (clone $query)->whereNotNull('city')->where('city', '!=', '')->distinct()->orderBy('city')->pluck('city')->values()->all();
+            $countries = (clone $query)->whereNotNull('country')->where('country', '!=', '')->distinct()->orderBy('country')->pluck('country')->values()->all();
+        } catch (\Throwable $e) {
+            $cities = [];
+            $countries = [];
+        }
+
         if (! auth()->check()) {
             $page = request('page', 1);
             $search = request('search', '');
             $cacheKey = "events.public.page.{$page}.search.".md5($search);
-            $events = Cache::remember($cacheKey, now()->addMinutes(5), fn () => $query->paginate(10)->withQueryString());
+            $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
+                $res = $query->paginate(10)->withQueryString();
+                $this->addPublicEventsCacheKey($cacheKey);
+
+                return $res;
+            });
         } else {
             $events = $query->paginate(10)->withQueryString();
         }
@@ -50,6 +84,9 @@ class EventController extends Controller
 
         return Inertia::render('Events/Index', [
             'events' => $events,
+            'showHomeHeader' => request()->routeIs('home'),
+            'cities' => $cities,
+            'countries' => $countries,
         ]);
     }
 
@@ -92,17 +129,21 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load('user');
+        $event->load('user', 'organisers');
         $current = auth()->user();
         if ($event->user && $event->user->is_super_admin && ! ($current && ($current->is_super_admin || $current->id === $event->user->id))) {
             abort(404);
         }
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+
         if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event]);
+            return response()->json(['event' => $event, 'organisers' => $organisers]);
         }
 
         return Inertia::render('Events/Show', [
             'event' => $event,
+            'organisers' => $organisers,
+            'showHomeHeader' => ! auth()->check(),
         ]);
     }
 
@@ -248,17 +289,45 @@ class EventController extends Controller
     protected function clearPublicEventsCache(): void
     {
         try {
-            // Attempt targeted cache clearing for first 20 pages assuming
+            // If we have tracked cache keys, forget them precisely.
+            $keys = Cache::get('events.public.keys', []);
+            if (is_array($keys) && count($keys) > 0) {
+                foreach ($keys as $k) {
+                    Cache::forget($k);
+                }
+                Cache::forget('events.public.keys');
+
+                return;
+            }
+
+            // Fallback: Attempt targeted cache clearing for first 20 pages assuming
             // the index caches pages with keys like events.public.page.{n}.search.{hash}
             for ($page = 1; $page <= 20; $page++) {
                 $key = "events.public.page.{$page}.search.".md5('');
                 Cache::forget($key);
             }
-
-            // Also attempt to flush full cache as a fallback if necessary
-            // (some cache stores may not support deleting by arbitrary keys).
         } catch (\Exception $e) {
             Cache::flush();
+        }
+    }
+
+    /**
+     * Track a public events cache key so it can be invalidated precisely.
+     */
+    protected function addPublicEventsCacheKey(string $key): void
+    {
+        try {
+            $keys = Cache::get('events.public.keys', []);
+            if (! is_array($keys)) {
+                $keys = [];
+            }
+            if (! in_array($key, $keys, true)) {
+                $keys[] = $key;
+                // Keep the list longer than individual page TTL so invalidation works.
+                Cache::put('events.public.keys', $keys, now()->addDays(1));
+            }
+        } catch (\Exception $e) {
+            // Non-fatal; we can still rely on fallback clearing.
         }
     }
 }

@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
 
         // Create some sample events
         $this->call(EventsTableSeeder::class);
+        // Populate cities and countries for existing events
+        $this->call(EventsCityCountrySeeder::class);
         // Create sample organisers and customers
         $this->call(CustomersOrganisersSeeder::class);
     }

@@ -16,6 +16,9 @@ export default function Create() {
         start_at: '',
         end_at: '',
         location: '',
+        city: '',
+        address: '',
+        country: '',
         active: true,
         image: null,
         organiser_ids: [],
@@ -42,6 +45,21 @@ export default function Create() {
                 <div>
                     <label className="block text-sm font-medium">Location</label>
                     <input value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">City</label>
+                    <input value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Country</label>
+                    <input value={form.data.country} onChange={e => form.setData('country', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Address</label>
+                    <input value={form.data.address} onChange={e => form.setData('address', e.target.value)} className="input" />
                 </div>
 
                 <div>

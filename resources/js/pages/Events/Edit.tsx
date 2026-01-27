@@ -19,6 +19,9 @@ export default function Edit({ event }: Props) {
         start_at: event.start_at || '',
         end_at: event.end_at || '',
         location: event.location || '',
+        city: event.city || '',
+        country: event.country || '',
+        address: event.address || '',
         active: event.active ?? true,
         image: null,
         organiser_ids: event.organisers ? event.organisers.map((o: any) => o.id) : [],
@@ -46,6 +49,21 @@ export default function Edit({ event }: Props) {
                 <div>
                     <label className="block text-sm font-medium">Location</label>
                     <input value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">City</label>
+                    <input value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Country</label>
+                    <input value={form.data.country} onChange={e => form.setData('country', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Address</label>
+                    <input value={form.data.address} onChange={e => form.setData('address', e.target.value)} className="input" />
                 </div>
 
                 <div>

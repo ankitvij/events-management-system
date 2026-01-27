@@ -6,6 +6,10 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
+    if (! auth()->check()) {
+        return app()->call([app(App\Http\Controllers\EventController::class), 'index']);
+    }
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
