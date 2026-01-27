@@ -17,7 +17,29 @@ class CustomerController extends Controller
     {
         $this->authorize('viewAny', Customer::class);
 
-        $customers = Customer::orderBy('name')->paginate(20);
+        $query = Customer::query();
+
+        $q = request('q') ?? request('search');
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $sort = request('sort');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('name');
+                break;
+        }
+
+        $customers = $query->paginate(20)->withQueryString();
 
         return Inertia::render('Customers/Index', ['customers' => $customers]);
     }

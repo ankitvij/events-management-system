@@ -14,7 +14,30 @@ class UserController
 {
     public function index()
     {
-        $query = User::orderBy('name');
+        $query = User::query();
+
+        // apply search
+        $q = request('q') ?? request('search');
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        // apply sort
+        $sort = request('sort');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('name');
+                break;
+        }
 
         $current = auth()->user();
         if (! $current) {

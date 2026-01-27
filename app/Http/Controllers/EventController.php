@@ -65,9 +65,21 @@ class EventController extends Controller
             $countries = [];
         }
 
+        // apply global search (q or search)
+        $searchParam = request('q') ?? request('search');
+        if ($searchParam) {
+            $query->where(function ($sub) use ($searchParam) {
+                $sub->where('title', 'like', "%{$searchParam}%")
+                    ->orWhere('description', 'like', "%{$searchParam}%")
+                    ->orWhere('location', 'like', "%{$searchParam}%")
+                    ->orWhere('city', 'like', "%{$searchParam}%")
+                    ->orWhere('country', 'like', "%{$searchParam}%");
+            });
+        }
+
         if (! auth()->check()) {
             $page = request('page', 1);
-            $search = request('search', '');
+            $search = $searchParam ?? '';
             $cacheKey = "events.public.page.{$page}.search.".md5($search);
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
                 $res = $query->paginate(10)->withQueryString();

@@ -20,7 +20,29 @@ class OrganiserController extends Controller
     {
         $this->authorize('viewAny', Organiser::class);
 
-        $organisers = Organiser::orderBy('name')->paginate(20);
+        $query = Organiser::query();
+
+        $q = request('q') ?? request('search');
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $sort = request('sort');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('name');
+                break;
+        }
+
+        $organisers = $query->paginate(20)->withQueryString();
 
         return Inertia::render('Organisers/Index', ['organisers' => $organisers]);
     }
