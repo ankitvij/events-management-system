@@ -14,6 +14,22 @@ export default function RolesIndex({ roles, users }: Props) {
 
     const page = usePage();
     const currentId = page.props?.auth?.user?.id;
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const sort = params?.get('sort') ?? '';
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/roles${q ? `?${q}` : ''}`);
+    }
 
     function changeRole(userId: number, role: string) {
         // confirmation
@@ -29,7 +45,15 @@ export default function RolesIndex({ roles, users }: Props) {
             <Head title="Roles" />
 
             <div className="p-4">
-
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
+                            <option value="">Sort: Default</option>
+                            <option value="name_asc">Sort: Name (A–Z)</option>
+                            <option value="created_desc">Sort: Newest</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div className="grid gap-2">
                     {users.map((u) => (

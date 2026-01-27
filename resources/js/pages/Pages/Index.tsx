@@ -12,6 +12,7 @@ export default function Index({ pages }: Props) {
 
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const initial = params?.get('search') ?? '';
+    const sort = params?.get('sort') ?? '';
     const [search, setSearch] = useState(initial);
 
     useEffect(() => {
@@ -28,8 +29,12 @@ export default function Index({ pages }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pages..." className="input" />
+                        <select value={sort} onChange={e => router.get(`/pages?search=${encodeURIComponent(search)}&sort=${e.target.value}`)} className="input">
+                            <option value="">Sort: Latest</option>
+                            <option value="title_asc">Sort: Title (A–Z)</option>
+                            <option value="created_desc">Sort: Newest</option>
+                        </select>
                     </div>
                     <Link href="/pages/create" className="btn-primary">New Page</Link>
                 </div>

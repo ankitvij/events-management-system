@@ -14,6 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function OrganisersIndex({ organisers }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const q = params?.get('q') ?? '';
+    const sort = params?.get('sort') ?? '';
 
     const [search, setSearch] = useState<string>(q);
     const timeoutRef = useRef<number | null>(null);
@@ -25,6 +26,20 @@ export default function OrganisersIndex({ organisers }: Props) {
 
     function onSearch(value: string) {
         setSearch(value);
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/organisers${q ? `?${q}` : ''}`);
     }
 
     useEffect(() => {
@@ -59,6 +74,11 @@ export default function OrganisersIndex({ organisers }: Props) {
                     <div className="flex items-center gap-4">
 
                         <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search organisers..." className="input" />
+                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
+                            <option value="">Sort: Latest</option>
+                            <option value="name_asc">Sort: Name (A–Z)</option>
+                            <option value="created_desc">Sort: Newest</option>
+                        </select>
                     </div>
                     <Link href="/organisers/create" className="btn-primary">New Organiser</Link>
                 </div>

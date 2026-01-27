@@ -12,6 +12,24 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function CustomersIndex({ customers }: Props) {
     const page = usePage();
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const activeFilter = params?.get('active') ?? 'all';
+    const sort = params?.get('sort') ?? '';
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/customers${q ? `?${q}` : ''}`);
+    }
+
 
     function toggleActive(id: number, value: boolean) {
         router.put(`/customers/${id}`, { active: value });
@@ -24,6 +42,18 @@ export default function CustomersIndex({ customers }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
 
+                    <div className="flex items-center gap-4">
+                        <select value={activeFilter} onChange={e => applyFilters({ active: e.target.value === 'all' ? null : e.target.value, page: null })} className="input">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
+                            <option value="">Sort: Latest</option>
+                            <option value="name_asc">Sort: Name (A–Z)</option>
+                            <option value="created_desc">Sort: Newest</option>
+                        </select>
+                    </div>
                     <Link href="/customers/create" className="btn-primary">New Customer</Link>
                 </div>
 
