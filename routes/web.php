@@ -7,7 +7,27 @@ use Laravel\Fortify\Features;
 
 Route::get('/', function () {
     if (! auth()->check()) {
-        return app()->call([app(App\Http\Controllers\EventController::class), 'index']);
+        // Build a public events query for the guest landing page
+        $query = \App\Models\Event::with(['user', 'organisers'])->latest();
+
+        // Only show active events to guests
+        $query->where('active', true);
+
+        try {
+            $cities = (clone $query)->whereNotNull('city')->where('city', '!=', '')->distinct()->orderBy('city')->pluck('city')->values()->all();
+            $countries = (clone $query)->whereNotNull('country')->where('country', '!=', '')->distinct()->orderBy('country')->pluck('country')->values()->all();
+        } catch (\Throwable $e) {
+            $cities = [];
+            $countries = [];
+        }
+
+        $events = $query->paginate(10)->withQueryString();
+
+        return Inertia::render('Guest/Landing', [
+            'events' => $events,
+            'cities' => $cities,
+            'countries' => $countries,
+        ]);
     }
 
     return Inertia::render('welcome', [
@@ -34,8 +54,8 @@ Route::get('dashboard', function () {
 require __DIR__.'/settings.php';
 
 // Public listing and show for events
-Route::get('events', [EventController::class, 'index'])->name('events.index');
-Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+Route::get('events', [EventController::class, 'index'])->middleware(['auth'])->name('events.index');
+Route::get('events/{event}', [EventController::class, 'show'])->middleware(['auth'])->name('events.show');
 
 // Protect create/update/delete routes
 Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show']);

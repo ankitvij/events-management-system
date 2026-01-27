@@ -18,12 +18,17 @@ class EventController extends Controller
         $query = Event::with(['user', 'organisers'])->latest();
 
         $current = auth()->user();
-        if (! $current || ! $current->is_super_admin) {
-            // hide events created by super admin users from regular users
-            $query->whereHas('user', function ($q) {
-                $q->where('is_super_admin', false);
-            });
-            // only show active events to non-super users
+        if ($current) {
+            // For authenticated non-super-admin users, hide events created by super-admins
+            if (! $current->is_super_admin) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('is_super_admin', false);
+                });
+                // only show active events to non-super users
+                $query->where('active', true);
+            }
+        } else {
+            // Guests should see public (active) events
             $query->where('active', true);
         }
 
