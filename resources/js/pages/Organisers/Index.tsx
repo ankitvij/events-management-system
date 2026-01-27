@@ -131,6 +131,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                         )
                     ))}
                 </div>
+                </div>
             </div>
         </AppLayout>
     );

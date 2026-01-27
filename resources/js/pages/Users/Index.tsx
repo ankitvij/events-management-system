@@ -105,6 +105,7 @@ export default function UsersIndex({ users }: Props) {
                         )
                     ))}
                 </div>
+                </div>
             </div>
         </AppLayout>
     );

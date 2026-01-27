@@ -78,6 +78,7 @@ export default function Index({ pages }: Props) {
                         )
                     ))}
                 </div>
+                </div>
             </div>
         </AppLayout>
     );

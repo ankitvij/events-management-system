@@ -95,6 +95,7 @@ export default function CustomersIndex({ customers }: Props) {
                         )
                     ))}
                 </div>
+                </div>
             </div>
         </AppLayout>
     );

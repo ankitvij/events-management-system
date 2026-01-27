@@ -194,6 +194,7 @@ export default function EventsIndex({ events }: Props) {
                         )
                     ))}
                 </div>
+                </div>
             </div>
         </AppLayout>
     );
