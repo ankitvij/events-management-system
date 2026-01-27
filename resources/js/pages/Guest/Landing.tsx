@@ -36,7 +36,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                                             />
                                         </div>
                                         <div>
-                                            <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                            <Link href={`/e/${event.id}`} className="text-lg font-medium">{event.title}</Link>
                                             <div className="text-sm text-muted">{event.location}{event.city ? ` · ${event.city}` : ''}{event.country ? `, ${event.country}` : ''}</div>
                                             <div className="text-sm text-muted mt-1">{event.start_at ? `Starts: ${new Date(event.start_at).toLocaleString()}` : 'Starts: —'}</div>
                                         </div>
@@ -47,6 +47,19 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                             <div className="text-sm text-muted">No public events available.</div>
                         )}
                     </div>
+                    {events?.links && (
+                        <nav className="mt-6 flex items-center justify-center gap-2">
+                            {events.links.map((l: any, idx: number) => (
+                                l.url ? (
+                                    <Link key={idx} href={l.url} className={`px-3 py-1 rounded ${l.active ? 'bg-gray-900 text-white' : 'bg-white border'}`}>
+                                        <span dangerouslySetInnerHTML={{ __html: l.label }} />
+                                    </Link>
+                                ) : (
+                                    <span key={idx} className="px-3 py-1 rounded text-muted" dangerouslySetInnerHTML={{ __html: l.label }} />
+                                )
+                            ))}
+                        </nav>
+                    )}
                 </section>
 
                 <section className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">

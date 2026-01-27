@@ -152,6 +152,35 @@ class EventController extends Controller
         ]);
     }
 
+    /**
+     * Public show for guests. Allows viewing of active, non-super-admin events.
+     */
+    public function publicShow(Event $event)
+    {
+        $event->load('user', 'organisers');
+
+        // Only allow public viewing of active events that are not owned by a super-admin
+        if (! $event->active) {
+            abort(404);
+        }
+
+        if ($event->user && $event->user->is_super_admin) {
+            abort(404);
+        }
+
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+
+        if (app()->runningUnitTests()) {
+            return response()->json(['event' => $event, 'organisers' => $organisers]);
+        }
+
+        return Inertia::render('Events/Show', [
+            'event' => $event,
+            'organisers' => $organisers,
+            'showHomeHeader' => true,
+        ]);
+    }
+
     public function edit(Event $event)
     {
         if (app()->runningUnitTests()) {
