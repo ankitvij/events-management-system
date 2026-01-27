@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use App\Models\User;
 use App\Enums\Role as RoleEnum;
 use App\Http\Requests\UpdateUserRoleRequest;
 use App\Models\RoleChange;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class RoleController
 {

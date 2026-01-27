@@ -12,6 +12,7 @@ class CustomerController extends Controller
     {
         $this->middleware('auth');
     }
+
     public function index()
     {
         $this->authorize('viewAny', Customer::class);

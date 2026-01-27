@@ -12,7 +12,15 @@ export default function Show({ event }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={event.title} />
+            <Head>
+                <title>{event.title}</title>
+                <meta name="description" content={event.description || ''} />
+                <meta property="og:title" content={event.title} />
+                <meta property="og:description" content={event.description || ''} />
+                {event.image_thumbnail || event.image ? (
+                    <meta property="og:image" content={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : `/storage/${event.image}`} />
+                ) : null}
+            </Head>
 
             <div className="p-4">
                 {(() => {

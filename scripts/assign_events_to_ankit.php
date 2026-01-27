@@ -1,12 +1,12 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\User;
 use App\Models\Event;
-use Illuminate\Support\Str;
+use App\Models\User;
 
 // Create or fetch Ankit
 $ankit = User::firstWhere('email', 'ankit@example.com');

@@ -2,17 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Customer;
+use App\Models\Organiser;
+use App\Models\User;
+use App\Policies\CustomerPolicy;
+use App\Policies\OrganiserPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Illuminate\Support\Facades\Gate;
-use App\Models\User;
-use App\Models\Organiser;
-use App\Models\Customer;
-use App\Policies\OrganiserPolicy;
-use App\Policies\CustomerPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +57,4 @@ class AppServiceProvider extends ServiceProvider
             : null
         );
     }
-
-
 }

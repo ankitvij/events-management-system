@@ -14,7 +14,7 @@ class CustomersOrganisersSeeder extends Seeder
 
         // Create 5 organisers
         for ($i = 1; $i <= 5; $i++) {
-            $name = $faker->company . ' ' . $i;
+            $name = $faker->company.' '.$i;
             Organiser::firstOrCreate([
                 'email' => $faker->unique()->companyEmail,
             ], [

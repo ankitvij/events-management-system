@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\EventController;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
@@ -29,7 +29,12 @@ Route::get('dashboard', function () {
 
 require __DIR__.'/settings.php';
 
-Route::resource('events', EventController::class)->middleware(['auth']);
+// Public listing and show for events
+Route::get('events', [EventController::class, 'index'])->name('events.index');
+Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+
+// Protect create/update/delete routes
+Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\UserController;
 
