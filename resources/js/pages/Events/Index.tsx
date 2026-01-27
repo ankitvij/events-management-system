@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import PublicHeader from '@/components/public-header';
 import type { BreadcrumbItem } from '@/types';
@@ -21,6 +22,32 @@ export default function EventsIndex({ events }: Props) {
     const sort = params?.get('sort') ?? '';
     const cityFilter = params?.get('city') ?? '';
     const countryFilter = params?.get('country') ?? '';
+    const initial = params?.get('q') ?? '';
+    const [search, setSearch] = useState(initial);
+    const timeoutRef = useRef<number | null>(null);
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+
+        const delay = 300;
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = window.setTimeout(() => {
+            const qs = new URLSearchParams(window.location.search);
+            if (search) qs.set('q', search); else qs.delete('q');
+            router.get(`/events?${qs.toString()}`);
+        }, delay);
+
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [search]);
     const cities: string[] = page.props?.cities ?? [];
     const countries: string[] = page.props?.countries ?? [];
 
@@ -89,6 +116,8 @@ export default function EventsIndex({ events }: Props) {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events..." className="input" />
+
                             <select value={cityFilter} onChange={e => applyFilters({ city: e.target.value || null, page: null })} className="input">
                                 <option value="">All cities</option>
                                 {cities.map((c: string) => (

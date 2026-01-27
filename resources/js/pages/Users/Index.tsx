@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -13,6 +14,30 @@ export default function UsersIndex({ users }: Props) {
     const current = page.props?.auth?.user;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const activeFilter = params?.get('active') ?? 'all';
+    const initial = params?.get('q') ?? '';
+    const [search, setSearch] = useState(initial);
+    const timeoutRef = useRef<number | null>(null);
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+
+        const delay = 300;
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = window.setTimeout(() => {
+            router.get(`/users?q=${encodeURIComponent(search)}`);
+        }, delay);
+
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [search]);
 
     function toggleActive(userId: number, value: boolean) {
         router.put(`/users/${userId}`, { active: value });
@@ -25,6 +50,7 @@ export default function UsersIndex({ users }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
+                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users..." className="input" />
 
                         <select value={activeFilter} onChange={e => router.get(`/users?active=${e.target.value}`)} className="input">
                             <option value="all">All</option>
