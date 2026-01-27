@@ -1,6 +1,6 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import PublicHeader from '@/components/public-header';
+import GuestHeader from '@/components/guest-header';
 import type { BreadcrumbItem } from '@/types';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 
@@ -56,7 +56,7 @@ export default function Show({ event }: Props) {
                 />
             </Head>
 
-            {showHomeHeader && <PublicHeader />}
+            {showHomeHeader && <GuestHeader />}
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 {(() => {
