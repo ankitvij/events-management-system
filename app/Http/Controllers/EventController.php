@@ -60,6 +60,10 @@ class EventController
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('events', 'public');
+            $thumb = $this->generateThumbnail($data['image']);
+            if ($thumb) {
+                $data['image_thumbnail'] = $thumb;
+            }
         }
 
         Event::create($data);
@@ -102,7 +106,14 @@ class EventController
             if ($event->image) {
                 Storage::disk('public')->delete($event->image);
             }
+            if ($event->image_thumbnail) {
+                Storage::disk('public')->delete($event->image_thumbnail);
+            }
             $data['image'] = $request->file('image')->store('events', 'public');
+            $thumb = $this->generateThumbnail($data['image']);
+            if ($thumb) {
+                $data['image_thumbnail'] = $thumb;
+            }
         }
 
         $event->update($data);
@@ -115,5 +126,77 @@ class EventController
         $event->delete();
 
         return redirect()->route('events.index');
+    }
+
+    protected function generateThumbnail(string $imagePath): ?string
+    {
+        try {
+            $full = Storage::disk('public')->path($imagePath);
+            if (! file_exists($full)) {
+                return null;
+            }
+
+            $info = getimagesize($full);
+            $mime = $info['mime'] ?? '';
+
+            switch ($mime) {
+                case 'image/jpeg':
+                    $src = imagecreatefromjpeg($full);
+                    break;
+                case 'image/png':
+                    $src = imagecreatefrompng($full);
+                    break;
+                case 'image/gif':
+                    $src = imagecreatefromgif($full);
+                    break;
+                default:
+                    $src = imagecreatefromstring(file_get_contents($full));
+                    break;
+            }
+
+            if (! $src) {
+                return null;
+            }
+
+            $width = imagesx($src);
+            $height = imagesy($src);
+            $maxWidth = 300;
+
+            if ($width <= $maxWidth) {
+                imagedestroy($src);
+                return null;
+            }
+
+            $ratio = $width / $height;
+            $newWidth = $maxWidth;
+            $newHeight = (int) floor($maxWidth / $ratio);
+
+            $thumb = imagecreatetruecolor($newWidth, $newHeight);
+            if ($mime === 'image/png' || $mime === 'image/gif') {
+                imagecolortransparent($thumb, imagecolorallocatealpha($thumb, 0, 0, 0, 127));
+                imagealphablending($thumb, false);
+                imagesavealpha($thumb, true);
+            }
+
+            imagecopyresampled($thumb, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            ob_start();
+            imagejpeg($thumb, null, 80);
+            $contents = ob_get_clean();
+
+            imagedestroy($src);
+            imagedestroy($thumb);
+
+            $dir = 'events/thumbnails';
+            Storage::disk('public')->makeDirectory($dir);
+
+            $name = pathinfo($imagePath, PATHINFO_FILENAME);
+            $thumbPath = $dir.'/'.$name.'-thumb.jpg';
+            Storage::disk('public')->put($thumbPath, $contents);
+
+            return $thumbPath;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

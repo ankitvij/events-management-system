@@ -41,14 +41,23 @@ export default function EventsIndex({ events }: Props) {
                     {events.data?.map((event: any) => (
                         <div key={event.id} className="border rounded p-3">
                             <div className="flex justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
-                                        {!event.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
-                                        )}
+                                <div className="flex items-center gap-3">
+                                    <div className="w-20 h-12 flex-shrink-0">
+                                        <img
+                                            src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
+                                            alt={event.title}
+                                            className="w-full h-full object-cover rounded"
+                                        />
                                     </div>
-                                    <div className="text-sm text-muted">{event.location}</div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                            {!event.active && (
+                                                <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            )}
+                                        </div>
+                                        <div className="text-sm text-muted">{event.location}</div>
+                                    </div>
                                 </div>
                                 <div className="flex gap-2 items-center">
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) && (

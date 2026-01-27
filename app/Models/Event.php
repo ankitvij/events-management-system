@@ -17,6 +17,7 @@ class Event extends Model
         'end_at',
         'location',
         'image',
+        'image_thumbnail',
         'user_id',
         'active',
         'organiser_id',
