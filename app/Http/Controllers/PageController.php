@@ -8,7 +8,7 @@ use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 
-class PageController
+class PageController extends Controller
 {
     public function __construct()
     {
@@ -18,10 +18,20 @@ class PageController
 
     public function index()
     {
-        $pages = Page::latest()->paginate(10)->withQueryString();
+        $query = Page::query()->latest();
+        $search = request('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $pages = $query->paginate(10)->withQueryString();
         if (app()->runningUnitTests()) {
             return response()->json(['pages' => $pages]);
         }
+
         return Inertia::render('Pages/Index', ['pages' => $pages]);
     }
 
@@ -30,6 +40,7 @@ class PageController
         if (app()->runningUnitTests()) {
             return response()->json(['ok' => true]);
         }
+
         return Inertia::render('Pages/Create');
     }
 
@@ -38,6 +49,7 @@ class PageController
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
         Page::create($data);
+
         return redirect()->route('pages.index');
     }
 
@@ -46,6 +58,7 @@ class PageController
         if (app()->runningUnitTests()) {
             return response()->json(['page' => $page]);
         }
+
         return Inertia::render('Pages/Show', ['page' => $page]);
     }
 
@@ -54,6 +67,7 @@ class PageController
         if (app()->runningUnitTests()) {
             return response()->json(['page' => $page]);
         }
+
         return Inertia::render('Pages/Edit', ['page' => $page]);
     }
 
@@ -61,12 +75,14 @@ class PageController
     {
         $data = $request->validated();
         $page->update($data);
+
         return redirect()->route('pages.show', $page);
     }
 
     public function destroy(Page $page): RedirectResponse
     {
         $page->delete();
+
         return redirect()->route('pages.index');
     }
 }

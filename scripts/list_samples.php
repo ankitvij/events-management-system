@@ -1,13 +1,13 @@
 <?php
 
-$dbFile = __DIR__ . '/../database/database.sqlite';
-if (!file_exists($dbFile)) {
+$dbFile = __DIR__.'/../database/database.sqlite';
+if (! file_exists($dbFile)) {
     echo "Database file not found: $dbFile\n";
     exit(1);
 }
 
 try {
-    $pdo = new PDO('sqlite:' . $dbFile);
+    $pdo = new PDO('sqlite:'.$dbFile);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $res = $pdo->query('SELECT COUNT(*) as c FROM organisers');
@@ -30,6 +30,6 @@ try {
         echo "{$row['id']} | {$row['name']} | {$row['email']} | {$row['phone']} | active={$row['active']}\n";
     }
 } catch (Exception $e) {
-    echo 'Error: ' . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
     exit(1);
 }

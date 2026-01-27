@@ -15,4 +15,4 @@ if (! $user) {
     exit(0);
 }
 
-echo "User: {$user->id} {$user->email} is_super_admin=" . ($user->is_super_admin ? '1' : '0') . "\n";
+echo "User: {$user->id} {$user->email} is_super_admin=".($user->is_super_admin ? '1' : '0')."\n";

@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Organiser;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Http\Requests\StoreOrganiserRequest;
 use App\Http\Requests\UpdateOrganiserRequest;
+use App\Models\Organiser;
+use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 
 class OrganiserController extends Controller
 {
@@ -16,6 +15,7 @@ class OrganiserController extends Controller
         // resource-style authorization
         $this->middleware('auth');
     }
+
     public function index()
     {
         $this->authorize('viewAny', Organiser::class);

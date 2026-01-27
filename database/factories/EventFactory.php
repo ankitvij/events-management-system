@@ -13,7 +13,7 @@ class EventFactory extends Factory
     public function definition(): array
     {
         $start = $this->faker->dateTimeBetween('now', '+1 month');
-        $end = (clone $start)->modify('+'. $this->faker->numberBetween(1,48) .' hours');
+        $end = (clone $start)->modify('+'.$this->faker->numberBetween(1, 48).' hours');
 
         return [
             'title' => $this->faker->sentence(6),

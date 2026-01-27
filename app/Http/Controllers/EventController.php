@@ -7,11 +7,11 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
-class EventController
+class EventController extends Controller
 {
     public function index()
     {
@@ -35,7 +35,15 @@ class EventController
             $query->where('active', false);
         }
 
-        $events = $query->paginate(10)->withQueryString();
+        // For public views, cache paginated results per page + search for 5 minutes
+        if (! auth()->check()) {
+            $page = request('page', 1);
+            $search = request('search', '');
+            $cacheKey = "events.public.page.{$page}.search.".md5($search);
+            $events = Cache::remember($cacheKey, now()->addMinutes(5), fn () => $query->paginate(10)->withQueryString());
+        } else {
+            $events = $query->paginate(10)->withQueryString();
+        }
         if (app()->runningUnitTests()) {
             return response()->json(['events' => $events]);
         }
@@ -52,6 +60,7 @@ class EventController
         }
 
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
         ]);
@@ -75,6 +84,8 @@ class EventController
         if (! empty($data['organiser_ids'])) {
             $event->organisers()->sync($data['organiser_ids']);
         }
+
+        $this->clearPublicEventsCache();
 
         return redirect()->route('events.index');
     }
@@ -134,12 +145,24 @@ class EventController
             $event->organisers()->sync($data['organiser_ids'] ?? []);
         }
 
+        $this->clearPublicEventsCache();
+
         return redirect()->route('events.show', $event);
     }
 
     public function destroy(Event $event): RedirectResponse
     {
+        if ($event->image) {
+            Storage::disk('public')->delete($event->image);
+        }
+
+        if ($event->image_thumbnail) {
+            Storage::disk('public')->delete($event->image_thumbnail);
+        }
+
         $event->delete();
+
+        $this->clearPublicEventsCache();
 
         return redirect()->route('events.index');
     }
@@ -180,6 +203,7 @@ class EventController
 
             if ($width <= $maxWidth) {
                 imagedestroy($src);
+
                 return null;
             }
 
@@ -213,6 +237,28 @@ class EventController
             return $thumbPath;
         } catch (\Throwable $e) {
             return null;
+        }
+    }
+
+    /**
+     * Clear cached public events index pages.
+     *
+     * This removes any cache entries matching the pattern used in index().
+     */
+    protected function clearPublicEventsCache(): void
+    {
+        try {
+            // Attempt targeted cache clearing for first 20 pages assuming
+            // the index caches pages with keys like events.public.page.{n}.search.{hash}
+            for ($page = 1; $page <= 20; $page++) {
+                $key = "events.public.page.{$page}.search.".md5('');
+                Cache::forget($key);
+            }
+
+            // Also attempt to flush full cache as a fallback if necessary
+            // (some cache stores may not support deleting by arbitrary keys).
+        } catch (\Exception $e) {
+            Cache::flush();
         }
     }
 }

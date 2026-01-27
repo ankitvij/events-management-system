@@ -22,7 +22,10 @@ export default function EventsIndex({ events }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Events" />
+            <Head>
+                <title>Events</title>
+                <meta name="description" content="Browse upcoming events." />
+            </Head>
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">

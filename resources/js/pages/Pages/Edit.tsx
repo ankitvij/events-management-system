@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { FormEvent } from 'react';
@@ -36,7 +37,7 @@ export default function Edit({ page }: Props) {
 
                 <div>
                     <label className="block text-sm font-medium">Content</label>
-                    <textarea value={form.data.content} onChange={e => form.setData('content', e.target.value)} className="input" />
+                    <RichEditor value={form.data.content} onChange={v => form.setData('content', v)} />
                 </div>
 
                 <div>
