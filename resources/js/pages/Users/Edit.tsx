@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { FormEvent } from 'react';
@@ -14,7 +14,13 @@ export default function Edit({ user }: any) {
         name: user.name || '',
         email: user.email || '',
         password: '',
+        role: user.role || 'user',
+        active: user.active ?? true,
     });
+
+    const page = usePage();
+    const isSuper = !!page.props?.auth?.user?.is_super_admin;
+    const current = page.props?.auth?.user;
 
     function submit(e: FormEvent) {
         e.preventDefault();
@@ -29,17 +35,40 @@ export default function Edit({ user }: any) {
                 <div>
                     <label className="block text-sm font-medium">Name</label>
                     <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
+                    {form.errors.name && <div className="text-sm text-destructive mt-1">{form.errors.name}</div>}
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Email</label>
                     <input value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
+                    {form.errors.email && <div className="text-sm text-destructive mt-1">{form.errors.email}</div>}
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Password (leave empty to keep)</label>
                     <input type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} className="input" />
                 </div>
+
+                {isSuper && (
+                    <div>
+                        <label className="block text-sm font-medium">Role</label>
+                        <select value={form.data.role} onChange={e => form.setData('role', e.target.value)} className="input">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                        {form.errors.role && <div className="text-sm text-destructive mt-1">{form.errors.role}</div>}
+                    </div>
+                )}
+
+                {(isSuper || current?.id === user.id || (current?.role === 'admin' && user.role === 'user')) && (
+                    <div>
+                        <label className="flex items-center gap-2">
+                            <input type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
+                            <span className="text-sm">Active</span>
+                        </label>
+                    </div>
+                )}
 
                 <div>
                     <button type="submit" className="btn-primary" disabled={form.processing}>Save</button>

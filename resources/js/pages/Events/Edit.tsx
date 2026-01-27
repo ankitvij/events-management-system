@@ -18,7 +18,11 @@ export default function Edit({ event }: Props) {
         start_at: event.start_at || '',
         end_at: event.end_at || '',
         location: event.location || '',
+        active: event.active ?? true,
     });
+
+    const page = usePage();
+    const current = page.props?.auth?.user;
 
     function submit(e: FormEvent) {
         e.preventDefault();

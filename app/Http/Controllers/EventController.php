@@ -21,9 +21,19 @@ class EventController
             $query->whereHas('user', function ($q) {
                 $q->where('is_super_admin', false);
             });
+            // only show active events to non-super users
+            $query->where('active', true);
         }
 
-        $events = $query->paginate(10);
+        // Apply optional active filter for super admins or when provided
+        $filter = request('active');
+        if ($filter === 'active') {
+            $query->where('active', true);
+        } elseif ($filter === 'inactive') {
+            $query->where('active', false);
+        }
+
+        $events = $query->paginate(10)->withQueryString();
         if (app()->runningUnitTests()) {
             return response()->json(['events' => $events]);
         }

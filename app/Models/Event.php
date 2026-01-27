@@ -17,15 +17,23 @@ class Event extends Model
         'end_at',
         'location',
         'user_id',
+        'active',
+        'organiser_id',
     ];
 
     protected $casts = [
         'start_at' => 'datetime',
         'end_at' => 'datetime',
+        'active' => 'boolean',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function organiser(): BelongsTo
+    {
+        return $this->belongsTo(Organiser::class);
     }
 }

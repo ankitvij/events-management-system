@@ -8,7 +8,22 @@ class UpdateEventRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $current = $this->user();
+        $event = $this->route('event');
+
+        if (! $current) {
+            return false;
+        }
+
+        if ($current->is_super_admin) {
+            return true;
+        }
+
+        if ($event && $event->user_id === $current->id) {
+            return true;
+        }
+
+        return false;
     }
 
     public function rules(): array
@@ -19,6 +34,7 @@ class UpdateEventRequest extends FormRequest
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
             'location' => ['nullable', 'string', 'max:255'],
+            'active' => ['nullable', 'boolean'],
         ];
     }
 }

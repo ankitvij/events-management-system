@@ -15,6 +15,7 @@ export default function Create() {
         start_at: '',
         end_at: '',
         location: '',
+        active: true,
     });
 
     function submit(e: FormEvent) {
@@ -50,6 +51,13 @@ export default function Create() {
                 <div>
                     <label className="block text-sm font-medium">Description</label>
                     <textarea value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="flex items-center gap-2">
+                        <input type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
+                        <span className="text-sm">Active</span>
+                    </label>
                 </div>
 
                 <div>

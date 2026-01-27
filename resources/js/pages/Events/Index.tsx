@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -11,13 +11,29 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function EventsIndex({ events }: Props) {
+    const page = usePage();
+    const current = page.props?.auth?.user;
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const activeFilter = params?.get('active') ?? 'all';
+
+    function toggleActive(eventId: number, value: boolean) {
+        router.put(`/events/${eventId}`, { active: value });
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Events" />
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-semibold">Events</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-semibold">Events</h1>
+                        <select value={activeFilter} onChange={e => router.get(`/events?active=${e.target.value}`)} className="input">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
                     <Link href="/events/create" className="btn-primary">New Event</Link>
                 </div>
 
@@ -26,15 +42,29 @@ export default function EventsIndex({ events }: Props) {
                         <div key={event.id} className="border rounded p-3">
                             <div className="flex justify-between">
                                 <div>
-                                    <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                    <div className="flex items-center gap-2">
+                                        <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                        {!event.active && (
+                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                        )}
+                                    </div>
                                     <div className="text-sm text-muted">{event.location}</div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Link href={`/events/${event.id}/edit`} className="text-sm text-blue-600">Edit</Link>
-                                    <form action={`/events/${event.id}`} method="post" className="inline">
-                                        <input type="hidden" name="_method" value="delete" />
-                                        <button className="text-sm text-red-600" type="submit">Delete</button>
-                                    </form>
+                                <div className="flex gap-2 items-center">
+                                    {current && (current.is_super_admin || (event.user && current.id === event.user.id)) && (
+                                        <label className="flex items-center mr-3">
+                                            <input type="checkbox" checked={!!event.active} onChange={e => toggleActive(event.id, e.target.checked)} />
+                                            <span className="ml-2 text-sm text-muted">Active</span>
+                                        </label>
+                                    )}
+
+                                    <div className="flex gap-2">
+                                        <Link href={`/events/${event.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                        <form action={`/events/${event.id}`} method="post" className="inline">
+                                            <input type="hidden" name="_method" value="delete" />
+                                            <button className="text-sm text-red-600" type="submit">Delete</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -15,12 +15,14 @@ if (! $user) {
     $user = User::create([
         'name' => 'Ankit',
         'email' => $email,
-        'password' => 'password',
+        'password' => bcrypt('password'),
+        'role' => 'super_admin',
         'is_super_admin' => true,
     ]);
     echo "Created user Ankit ({$user->id}) and marked as super admin\n";
 } else {
     $user->is_super_admin = true;
+    $user->role = 'super_admin';
     $user->save();
     echo "Marked existing user ({$user->id}) as super admin\n";
 }

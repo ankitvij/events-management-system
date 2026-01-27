@@ -1,5 +1,5 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Users, Shield } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -22,6 +22,12 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Events',
+        href: '/events',
+        icon: Calendar,
+    },
+
 ];
 
 const footerNavItems: NavItem[] = [
@@ -38,6 +44,27 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const page = usePage();
+    const isSuper = !!page.props?.auth?.user?.is_super_admin;
+
+    const isAdmin = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+
+    const items = [...mainNavItems];
+    // show organisers/customers to any authenticated user
+    if (page.props?.auth?.user) {
+        items.splice(2, 0, { title: 'Organisers', href: '/organisers', icon: Folder });
+        items.splice(3, 0, { title: 'Customers', href: '/customers', icon: Folder });
+    }
+
+    // show Users only to admins/super_admin
+    if (isAdmin) {
+        items.push({ title: 'Users', href: '/users', icon: Users });
+    }
+
+    if (isSuper) {
+        items.push({ title: 'Roles', href: '/roles', icon: Shield });
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -53,7 +80,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={items} />
             </SidebarContent>
 
             <SidebarFooter>

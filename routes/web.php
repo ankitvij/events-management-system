@@ -35,4 +35,26 @@ use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
 
+use App\Http\Controllers\RoleController;
+
+Route::get('roles', [RoleController::class, 'index'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('roles.index');
+
+Route::put('roles/users/{user}', [RoleController::class, 'update'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('roles.users.update');
+
+Route::post('roles/users/{user}/undo', [RoleController::class, 'undo'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('roles.users.undo');
+
 // temporary POST fallback removed — updates should use PUT/PATCH via Inertia forms
+
+use App\Http\Controllers\OrganiserController;
+
+Route::resource('organisers', OrganiserController::class)->middleware(['auth']);
+
+use App\Http\Controllers\CustomerController;
+
+Route::resource('customers', CustomerController::class)->middleware(['auth']);

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use App\Enums\Role;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'email',
         'password',
         'is_super_admin',
+        'role',
+        'active',
     ];
 
     /**
@@ -49,6 +52,35 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'is_super_admin' => 'boolean',
+            'role' => Role::class,
+            'active' => 'boolean',
         ];
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        $current = $this->role instanceof \App\Enums\Role ? $this->role->value : $this->role;
+
+        if (is_string($roles)) {
+            return $current === $roles || $this->is_super_admin === true;
+        }
+
+        foreach ($roles as $role) {
+            if ($current === $role || $this->is_super_admin === true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
+    }
+
+    public function roleChanges()
+    {
+        return $this->hasMany(RoleChange::class);
     }
 }

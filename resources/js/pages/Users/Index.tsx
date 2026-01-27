@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -9,13 +9,29 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UsersIndex({ users }: Props) {
+    const page = usePage();
+    const current = page.props?.auth?.user;
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const activeFilter = params?.get('active') ?? 'all';
+
+    function toggleActive(userId: number, value: boolean) {
+        router.put(`/users/${userId}`, { active: value });
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-semibold">Users</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-semibold">Users</h1>
+                        <select value={activeFilter} onChange={e => router.get(`/users?active=${e.target.value}`)} className="input">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
                     <Link href="/users/create" className="btn-primary">New User</Link>
                 </div>
 
@@ -24,15 +40,29 @@ export default function UsersIndex({ users }: Props) {
                         <div key={user.id} className="border rounded p-3">
                             <div className="flex justify-between">
                                 <div>
-                                    <Link href={`/users/${user.id}`} className="text-lg font-medium">{user.name}</Link>
+                                    <div className="flex items-center gap-2">
+                                        <Link href={`/users/${user.id}`} className="text-lg font-medium">{user.name}</Link>
+                                        {!user.active && (
+                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                        )}
+                                    </div>
                                     <div className="text-sm text-muted">{user.email}</div>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 items-center">
+                                    {current && (current.is_super_admin || current.id === user.id || (current.role === 'admin' && user.role === 'user' && !user.is_super_admin)) && (
+                                        <label className="flex items-center mr-3">
+                                            <input type="checkbox" checked={!!user.active} onChange={e => toggleActive(user.id, e.target.checked)} />
+                                            <span className="ml-2 text-sm text-muted">Active</span>
+                                        </label>
+                                    )}
+
+                                    <div className="flex gap-2">
                                     <Link href={`/users/${user.id}/edit`} className="text-sm text-blue-600">Edit</Link>
                                     <form action={`/users/${user.id}`} method="post" className="inline">
                                         <input type="hidden" name="_method" value="delete" />
                                         <button className="text-sm text-red-600" type="submit">Delete</button>
                                     </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>

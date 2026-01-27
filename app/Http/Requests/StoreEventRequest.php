@@ -19,6 +19,7 @@ class StoreEventRequest extends FormRequest
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
             'location' => ['nullable', 'string', 'max:255'],
+            'active' => ['nullable', 'boolean'],
         ];
     }
 }
