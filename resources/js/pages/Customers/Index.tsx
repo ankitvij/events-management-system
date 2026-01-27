@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -12,6 +13,33 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function CustomersIndex({ customers }: Props) {
     const page = usePage();
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const initial = params?.get('q') ?? '';
+    const [search, setSearch] = useState(initial);
+    const timeoutRef = useRef<number | null>(null);
+    const firstRender = useRef(true);
+
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+
+        const delay = 300;
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = window.setTimeout(() => {
+            const qs = new URLSearchParams(window.location.search);
+            if (search) qs.set('q', search); else qs.delete('q');
+            router.get(`/customers?${qs.toString()}`);
+        }, delay);
+
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [search]);
 
     function toggleActive(id: number, value: boolean) {
         router.put(`/customers/${id}`, { active: value });
@@ -23,6 +51,9 @@ export default function CustomersIndex({ customers }: Props) {
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customers..." className="input" />
+                    </div>
 
                     <Link href="/customers/create" className="btn-primary">New Customer</Link>
                 </div>
