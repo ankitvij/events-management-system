@@ -53,8 +53,8 @@ Route::get('dashboard', function () {
 
 require __DIR__.'/settings.php';
 
-// Events listing remains authenticated
-Route::get('events', [EventController::class, 'index'])->middleware(['auth'])->name('events.index');
+// Events listing (public)
+Route::get('events', [EventController::class, 'index'])->name('events.index');
 
 // Allow public viewing of individual events at /events/{event}
 Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');

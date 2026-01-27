@@ -60,7 +60,6 @@ class EventController extends Controller
                 break;
         }
 
-        // For public views, cache paginated results per page + search for 5 minutes
         // Collect available cities and countries for filter selects (based on visible events)
         try {
             $cities = (clone $query)->whereNotNull('city')->where('city', '!=', '')->distinct()->orderBy('city')->pluck('city')->values()->all();
@@ -70,9 +69,21 @@ class EventController extends Controller
             $countries = [];
         }
 
+        // Apply optional free-text search from query param `q`
+        $search = request('q', '');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $like = "%{$search}%";
+                $q->where('title', 'like', $like)
+                    ->orWhere('description', 'like', $like)
+                    ->orWhere('location', 'like', $like)
+                    ->orWhere('city', 'like', $like)
+                    ->orWhere('country', 'like', $like);
+            });
+        }
+
         if (! auth()->check()) {
             $page = request('page', 1);
-            $search = request('search', '');
             $cacheKey = "events.public.page.{$page}.search.".md5($search);
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
                 $res = $query->paginate(10)->withQueryString();
