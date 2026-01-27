@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Gate;
+use App\Models\User;
 use App\Models\Organiser;
 use App\Models\Customer;
 use App\Policies\OrganiserPolicy;
@@ -32,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(Organiser::class, OrganiserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
+
+        Gate::define('access-pages', function (User $user) {
+            return $user->hasRole(['user', 'admin']);
+        });
     }
 
     protected function configureDefaults(): void

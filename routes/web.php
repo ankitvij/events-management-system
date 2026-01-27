@@ -58,3 +58,7 @@ Route::resource('organisers', OrganiserController::class)->middleware(['auth']);
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
+
+use App\Http\Controllers\PageController;
+
+Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);

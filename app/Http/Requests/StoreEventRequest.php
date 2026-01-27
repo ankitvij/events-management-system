@@ -21,6 +21,8 @@ class StoreEventRequest extends FormRequest
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
             'location' => ['nullable', 'string', 'max:255'],
             'active' => ['nullable', 'boolean'],
+            'organiser_ids' => ['nullable', 'array'],
+            'organiser_ids.*' => ['integer', 'exists:organisers,id'],
         ];
     }
 }

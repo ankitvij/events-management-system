@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
+use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -50,7 +51,10 @@ class EventController
             return response()->json(['ok' => true]);
         }
 
-        return Inertia::render('Events/Create');
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        return Inertia::render('Events/Create', [
+            'organisers' => $organisers,
+        ]);
     }
 
     public function store(StoreEventRequest $request): RedirectResponse
@@ -66,7 +70,11 @@ class EventController
             }
         }
 
-        Event::create($data);
+        $event = Event::create($data);
+
+        if (! empty($data['organiser_ids'])) {
+            $event->organisers()->sync($data['organiser_ids']);
+        }
 
         return redirect()->route('events.index');
     }
@@ -93,8 +101,12 @@ class EventController
             return response()->json(['event' => $event]);
         }
 
+        $event->load('organisers', 'user');
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+
         return Inertia::render('Events/Edit', [
             'event' => $event,
+            'organisers' => $organisers,
         ]);
     }
 
@@ -117,6 +129,10 @@ class EventController
         }
 
         $event->update($data);
+
+        if (array_key_exists('organiser_ids', $data)) {
+            $event->organisers()->sync($data['organiser_ids'] ?? []);
+        }
 
         return redirect()->route('events.show', $event);
     }

@@ -1,4 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { FormEvent } from 'react';
@@ -20,10 +21,12 @@ export default function Edit({ event }: Props) {
         location: event.location || '',
         active: event.active ?? true,
         image: null,
+        organiser_ids: event.organisers ? event.organisers.map((o: any) => o.id) : [],
     });
 
     const page = usePage();
     const current = page.props?.auth?.user;
+    const organisers = page.props?.organisers ?? [];
 
     function submit(e: FormEvent) {
         e.preventDefault();
@@ -63,6 +66,11 @@ export default function Edit({ event }: Props) {
                 <div>
                     <label className="block text-sm font-medium">Image</label>
                     <input type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Organisers</label>
+                    <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
                 </div>
 
                 <div>
