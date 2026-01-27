@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -28,8 +30,10 @@ class EventController extends Controller
                 $query->where('active', true);
             }
         } else {
-            // Guests should see public (active) events
-            $query->where('active', true);
+            // Guests should see public (active) events by default unless an explicit `active` filter is provided
+            if (! request()->has('active')) {
+                $query->where('active', true);
+            }
         }
 
         // Apply optional active filter for super admins or when provided
@@ -54,6 +58,27 @@ class EventController extends Controller
                 break;
             case 'title_asc':
                 $query->orderBy('title', 'asc');
+                break;
+            case 'title_desc':
+                $query->orderBy('title', 'desc');
+                break;
+            case 'country_asc':
+                $query->orderBy('country', 'asc');
+                break;
+            case 'country_desc':
+                $query->orderBy('country', 'desc');
+                break;
+            case 'city_asc':
+                $query->orderBy('city', 'asc');
+                break;
+            case 'city_desc':
+                $query->orderBy('city', 'desc');
+                break;
+            case 'active_asc':
+                $query->orderBy('active', 'asc');
+                break;
+            case 'active_desc':
+                $query->orderBy('active', 'desc');
                 break;
             default:
                 // keep default ordering (latest)
@@ -82,9 +107,22 @@ class EventController extends Controller
             });
         }
 
+        // Apply optional city/country filters
+        $city = request('city');
+        if ($city) {
+            $query->where('city', $city);
+        }
+
+        $country = request('country');
+        if ($country) {
+            $query->where('country', $country);
+        }
+
         if (! auth()->check()) {
             $page = request('page', 1);
-            $cacheKey = "events.public.page.{$page}.search.".md5($search);
+            $params = request()->only(['q', 'city', 'country', 'sort', 'active']);
+            $hash = md5(http_build_query($params));
+            $cacheKey = "events.public.page.{$page}.params.{$hash}";
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
                 $res = $query->paginate(10)->withQueryString();
                 $this->addPublicEventsCacheKey($cacheKey);
@@ -222,6 +260,33 @@ class EventController extends Controller
         $this->clearPublicEventsCache();
 
         return redirect()->route('events.show', $event);
+    }
+
+    /**
+     * Toggle the active state for an event (AJAX).
+     */
+    public function toggleActive(Request $request, Event $event): JsonResponse
+    {
+        $current = $request->user();
+        if (! $current) {
+            abort(403);
+        }
+
+        // Allow super admins or the event owner to toggle active
+        if (! ($current->is_super_admin || $event->user_id === $current->id)) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $event->active = $data['active'];
+        $event->save();
+
+        $this->clearPublicEventsCache();
+
+        return response()->json(['ok' => true, 'active' => $event->active]);
     }
 
     public function destroy(Event $event): RedirectResponse

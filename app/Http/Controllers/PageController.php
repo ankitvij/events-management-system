@@ -19,12 +19,25 @@ class PageController extends Controller
     public function index()
     {
         $query = Page::query()->latest();
-        $search = request('search');
+        $search = request('q', request('search', ''));
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('content', 'like', "%{$search}%");
             });
+        }
+
+        // optional sort
+        $sort = request('sort');
+        switch ($sort) {
+            case 'title_asc':
+                $query->orderBy('title', 'asc');
+                break;
+            case 'title_desc':
+                $query->orderBy('title', 'desc');
+                break;
+            default:
+                break;
         }
 
         $pages = $query->paginate(10)->withQueryString();

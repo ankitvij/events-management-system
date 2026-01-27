@@ -1,5 +1,6 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -23,32 +24,22 @@ export default function OrganisersIndex({ organisers }: Props) {
         router.put(`/organisers/${id}`, { active: value });
     }
 
-    function onSearch(value: string) {
-        setSearch(value);
+    function applySort(key: string) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        const cur = sp.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) next = `${key}_desc`;
+        else if (cur === `${key}_desc`) next = '';
+        else next = `${key}_asc`;
+        if (next === '') sp.delete('sort'); else sp.set('sort', next);
+        sp.delete('page');
+        router.get(`/organisers${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
     useEffect(() => {
-        // Skip firing on initial render to avoid duplicate navigation
-        if (firstRender.current) {
-            firstRender.current = false;
-            return;
-        }
-
-        const delay = 300;
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = window.setTimeout(() => {
-            router.get(`/organisers?q=${encodeURIComponent(search)}`);
-        }, delay);
-
-        return () => {
-            if (timeoutRef.current) {
-                clearTimeout(timeoutRef.current);
-            }
-        };
-    }, [search]);
+        // keep local state but navigation handled by shared ListControls
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -57,10 +48,22 @@ export default function OrganisersIndex({ organisers }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-
-                        <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search organisers..." className="input" />
+                        <ListControls path="/organisers" links={organisers.links} showSearch searchPlaceholder="Search organisers..." />
                     </div>
                     <Link href="/organisers/create" className="btn-primary">New Organiser</Link>
+                </div>
+
+                <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <button
+                        onClick={() => applySort('name')}
+                        className="md:col-span-8 text-left"
+                        aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
+                    >
+                        Name
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-3">Email</div>
+                    <div className="md:col-span-1" />
                 </div>
 
                 <div>

@@ -1,5 +1,6 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -19,30 +20,21 @@ export default function CustomersIndex({ customers }: Props) {
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
 
-    useEffect(() => {
-        if (firstRender.current) {
-            firstRender.current = false;
-            return;
-        }
-
-        const delay = 300;
-        if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = window.setTimeout(() => {
-            const qs = new URLSearchParams(window.location.search);
-            if (search) qs.set('q', search); else qs.delete('q');
-            router.get(`/customers?${qs.toString()}`);
-        }, delay);
-
-        return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
-    }, [search]);
-
     function toggleActive(id: number, value: boolean) {
         router.put(`/customers/${id}`, { active: value });
+    }
+
+    function applySort(key: string) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        const cur = sp.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) next = `${key}_desc`;
+        else if (cur === `${key}_desc`) next = '';
+        else next = `${key}_asc`;
+        if (next === '') sp.delete('sort'); else sp.set('sort', next);
+        sp.delete('page');
+        router.get(`/customers${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
     return (
@@ -52,10 +44,24 @@ export default function CustomersIndex({ customers }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search customers..." className="input" />
+                        <ListControls path="/customers" links={customers.links} showSearch searchPlaceholder="Search customers..." />
                     </div>
 
                     <Link href="/customers/create" className="btn-primary">New Customer</Link>
+                </div>
+
+                <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <button
+                        onClick={() => applySort('name')}
+                        className="md:col-span-6 text-left"
+                        aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
+                    >
+                        Name
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-4">Email / Phone</div>
+                    <div className="md:col-span-1">Active</div>
+                    <div className="md:col-span-1" />
                 </div>
 
                 <div>
