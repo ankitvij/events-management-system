@@ -36,7 +36,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                                             />
                                         </div>
                                         <div>
-                                            <Link href={`/e/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                            <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
                                             <div className="text-sm text-muted">{event.location}{event.city ? ` · ${event.city}` : ''}{event.country ? `, ${event.country}` : ''}</div>
                                             <div className="text-sm text-muted mt-1">{event.start_at ? `Starts: ${new Date(event.start_at).toLocaleString()}` : 'Starts: —'}</div>
                                         </div>

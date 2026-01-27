@@ -135,10 +135,25 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $event->load('user', 'organisers');
+
         $current = auth()->user();
-        if ($event->user && $event->user->is_super_admin && ! ($current && ($current->is_super_admin || $current->id === $event->user->id))) {
-            abort(404);
+
+        // Guests may view only active, non-super-admin-owned events
+        if (! $current) {
+            if (! $event->active) {
+                abort(404);
+            }
+
+            if ($event->user && $event->user->is_super_admin) {
+                abort(404);
+            }
+        } else {
+            // For authenticated users, keep existing super-admin visibility restriction
+            if ($event->user && $event->user->is_super_admin && ! ($current->is_super_admin || $current->id === $event->user->id)) {
+                abort(404);
+            }
         }
+
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
         if (app()->runningUnitTests()) {
@@ -152,34 +167,7 @@ class EventController extends Controller
         ]);
     }
 
-    /**
-     * Public show for guests. Allows viewing of active, non-super-admin events.
-     */
-    public function publicShow(Event $event)
-    {
-        $event->load('user', 'organisers');
-
-        // Only allow public viewing of active events that are not owned by a super-admin
-        if (! $event->active) {
-            abort(404);
-        }
-
-        if ($event->user && $event->user->is_super_admin) {
-            abort(404);
-        }
-
-        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
-
-        if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event, 'organisers' => $organisers]);
-        }
-
-        return Inertia::render('Events/Show', [
-            'event' => $event,
-            'organisers' => $organisers,
-            'showHomeHeader' => true,
-        ]);
-    }
+    // publicShow removed; `show` now handles guest access.
 
     public function edit(Event $event)
     {

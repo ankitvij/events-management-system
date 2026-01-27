@@ -53,12 +53,11 @@ Route::get('dashboard', function () {
 
 require __DIR__.'/settings.php';
 
-// Public listing and show for events
+// Events listing remains authenticated
 Route::get('events', [EventController::class, 'index'])->middleware(['auth'])->name('events.index');
-Route::get('events/{event}', [EventController::class, 'show'])->middleware(['auth'])->name('events.show');
 
-// Public event pages for guests (short alias path)
-Route::get('e/{event}', [EventController::class, 'publicShow'])->name('events.public.show');
+// Allow public viewing of individual events at /events/{event}
+Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
 
 // Protect create/update/delete routes
 Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show']);
