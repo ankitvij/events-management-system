@@ -22,7 +22,6 @@ export default function GuestLanding({ events, cities, countries }: Props) {
 
             <main className="max-w-5xl mx-auto py-16 px-4">
                 <section className="mt-16">
-                    <h2 className="text-2xl font-semibold mb-4">Upcoming Public Events</h2>
                     <div className="grid gap-3">
                         {events?.data?.length ? (
                             events.data.map((event: any) => (

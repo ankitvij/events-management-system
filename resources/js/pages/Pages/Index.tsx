@@ -34,7 +34,20 @@ export default function Index({ pages }: Props) {
                     <Link href="/pages/create" className="btn-primary">New Page</Link>
                 </div>
 
-                <div className="grid gap-3">
+                <div>
+                    <div className="mb-4">
+                        {pages.links?.map((link: any) => (
+                            link.url ? (
+                                <Link key={link.label} href={link.url} className={link.active ? 'font-medium px-2' : 'text-muted px-2'} as="a" preserveScroll>
+                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                </Link>
+                            ) : (
+                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                            )
+                        ))}
+                    </div>
+
+                    <div className="grid gap-3">
                     {pages.data?.map((page: any) => (
                         <div key={page.id} className="border rounded p-3">
                             <div className="flex justify-between items-center">
