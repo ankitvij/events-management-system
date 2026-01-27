@@ -28,7 +28,7 @@ export default function Index({ pages }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-semibold">Pages</h1>
+
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pages..." className="input" />
                     </div>
                     <Link href="/pages/create" className="btn-primary">New Page</Link>

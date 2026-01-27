@@ -54,7 +54,7 @@ export default function EventsIndex({ events }: Props) {
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-semibold">Events</h1>
+
                         {!showHomeHeader && (
                             <select value={activeFilter} onChange={e => applyFilters({ active: e.target.value === 'all' ? null : e.target.value })} className="input">
                                 <option value="all">All</option>

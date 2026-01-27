@@ -57,7 +57,7 @@ export default function OrganisersIndex({ organisers }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-semibold">Organisers</h1>
+
                         <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search organisers..." className="input" />
                     </div>
                     <Link href="/organisers/create" className="btn-primary">New Organiser</Link>

@@ -25,7 +25,7 @@ export default function UsersIndex({ users }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-semibold">Users</h1>
+
                         <select value={activeFilter} onChange={e => router.get(`/users?active=${e.target.value}`)} className="input">
                             <option value="all">All</option>
                             <option value="active">Active</option>

@@ -29,7 +29,7 @@ export default function RolesIndex({ roles, users }: Props) {
             <Head title="Roles" />
 
             <div className="p-4">
-                <h1 className="text-2xl font-semibold mb-4">Roles</h1>
+
 
                 <div className="grid gap-2">
                     {users.map((u) => (
