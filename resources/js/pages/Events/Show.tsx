@@ -15,6 +15,11 @@ export default function Show({ event }: Props) {
             <Head title={event.title} />
 
             <div className="p-4">
+                {event.image && (
+                    <div className="mb-4">
+                        <img src={`/storage/${event.image}`} alt={event.title} className="max-w-full h-auto rounded" />
+                    </div>
+                )}
                 <h1 className="text-2xl font-semibold">{event.title}</h1>
                 <div className="text-sm text-muted">{event.location}</div>
                 <div className="mt-4">{event.description}</div>

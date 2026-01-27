@@ -16,11 +16,12 @@ export default function Create() {
         end_at: '',
         location: '',
         active: true,
+        image: null,
     });
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        form.post('/events');
+        form.post('/events', { forceFormData: true });
     }
 
     return (
@@ -51,6 +52,11 @@ export default function Create() {
                 <div>
                     <label className="block text-sm font-medium">Description</label>
                     <textarea value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Image</label>
+                    <input type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
                 </div>
 
                 <div>

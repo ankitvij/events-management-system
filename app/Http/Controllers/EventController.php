@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class EventController
@@ -57,6 +58,10 @@ class EventController
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
 
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('events', 'public');
+        }
+
         Event::create($data);
 
         return redirect()->route('events.index');
@@ -91,7 +96,16 @@ class EventController
 
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
-        $event->update($request->validated());
+        $data = $request->validated();
+        if ($request->hasFile('image')) {
+            // delete old image if exists
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+            $data['image'] = $request->file('image')->store('events', 'public');
+        }
+
+        $event->update($data);
 
         return redirect()->route('events.show', $event);
     }

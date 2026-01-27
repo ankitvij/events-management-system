@@ -19,6 +19,7 @@ export default function Edit({ event }: Props) {
         end_at: event.end_at || '',
         location: event.location || '',
         active: event.active ?? true,
+        image: null,
     });
 
     const page = usePage();
@@ -26,7 +27,7 @@ export default function Edit({ event }: Props) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        form.put(`/events/${event.id}`);
+        form.put(`/events/${event.id}`, { forceFormData: true });
     }
 
     return (
@@ -57,6 +58,11 @@ export default function Edit({ event }: Props) {
                 <div>
                     <label className="block text-sm font-medium">Description</label>
                     <textarea value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Image</label>
+                    <input type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
                 </div>
 
                 <div>
