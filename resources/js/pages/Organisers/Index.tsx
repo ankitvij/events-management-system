@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -71,15 +72,12 @@ export default function OrganisersIndex({ organisers }: Props) {
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-
-                        <input value={search} onChange={e => onSearch(e.target.value)} placeholder="Search organisers..." className="input" />
-                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
-                            <option value="">Sort: Latest</option>
-                            <option value="name_asc">Sort: Name (A–Z)</option>
-                            <option value="created_desc">Sort: Newest</option>
-                        </select>
-                    </div>
+                    <ListControls
+                        search={params?.get('q') ?? ''}
+                        onSearch={(v) => applyFilters({ q: v || null, page: null })}
+                        sort={sort}
+                        onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
+                    />
                     <Link href="/organisers/create" className="btn-primary">New Organiser</Link>
                 </div>
 

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = { pages: any };
@@ -28,14 +29,12 @@ export default function Index({ pages }: Props) {
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pages..." className="input" />
-                        <select value={sort} onChange={e => router.get(`/pages?search=${encodeURIComponent(search)}&sort=${e.target.value}`)} className="input">
-                            <option value="">Sort: Latest</option>
-                            <option value="title_asc">Sort: Title (A–Z)</option>
-                            <option value="created_desc">Sort: Newest</option>
-                        </select>
-                    </div>
+                    <ListControls
+                        search={initial}
+                        onSearch={(v) => router.get(`/pages?search=${encodeURIComponent(v || '')}`)}
+                        sort={sort}
+                        onSortChange={(v) => router.get(`/pages?search=${encodeURIComponent(search)}&sort=${v || ''}`)}
+                    />
                     <Link href="/pages/create" className="btn-primary">New Page</Link>
                 </div>
 

@@ -1,5 +1,6 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = { users: any };
@@ -39,19 +40,15 @@ export default function UsersIndex({ users }: Props) {
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-
-                        <select value={activeFilter} onChange={e => applyFilters({ active: e.target.value === 'all' ? null : e.target.value, page: null })} className="input">
-                            <option value="all">All</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
-                            <option value="">Sort: Latest</option>
-                            <option value="name_asc">Sort: Name (A–Z)</option>
-                            <option value="created_desc">Sort: Newest</option>
-                        </select>
-                    </div>
+                    <ListControls
+                        search={params?.get('q') ?? ''}
+                        onSearch={(v) => applyFilters({ q: v || null, page: null })}
+                        showActive
+                        active={activeFilter}
+                        onActiveChange={(v) => applyFilters({ active: v === 'all' ? null : v, page: null })}
+                        sort={sort}
+                        onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
+                    />
                     <Link href="/users/create" className="btn-primary">New User</Link>
                 </div>
 

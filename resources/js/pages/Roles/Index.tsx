@@ -1,5 +1,6 @@
 import { Head, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -45,15 +46,12 @@ export default function RolesIndex({ roles, users }: Props) {
             <Head title="Roles" />
 
             <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
-                            <option value="">Sort: Default</option>
-                            <option value="name_asc">Sort: Name (A–Z)</option>
-                            <option value="created_desc">Sort: Newest</option>
-                        </select>
-                    </div>
-                </div>
+                <ListControls
+                    search={params?.get('q') ?? ''}
+                    onSearch={(v) => applyFilters({ q: v || null, page: null })}
+                    sort={sort}
+                    onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
+                />
 
                 <div className="grid gap-2">
                     {users.map((u) => (

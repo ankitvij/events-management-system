@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import PublicHeader from '@/components/public-header';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -53,35 +54,30 @@ export default function EventsIndex({ events }: Props) {
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-
-                        {!showHomeHeader && (
-                            <select value={activeFilter} onChange={e => applyFilters({ active: e.target.value === 'all' ? null : e.target.value })} className="input">
-                                <option value="all">All</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                    <ListControls
+                        search={params?.get('q') ?? ''}
+                        onSearch={(v) => applyFilters({ q: v || null, page: null })}
+                        showActive={!showHomeHeader}
+                        active={activeFilter}
+                        onActiveChange={(v) => applyFilters({ active: v === 'all' ? null : v, page: null })}
+                        sort={sort}
+                        onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
+                    >
+                        <>
+                            <select value={cityFilter} onChange={e => applyFilters({ city: e.target.value || null, page: null })} className="input">
+                                <option value="">All cities</option>
+                                {cities.map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
                             </select>
-                        )}
-                        <select value={cityFilter} onChange={e => applyFilters({ city: e.target.value || null, page: null })} className="input">
-                            <option value="">All cities</option>
-                            {cities.map((c: string) => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <select value={countryFilter} onChange={e => applyFilters({ country: e.target.value || null, page: null })} className="input">
-                            <option value="">All countries</option>
-                            {countries.map((c: string) => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
-                            <option value="">Sort: Latest</option>
-                            <option value="start_asc">Sort: Start (soonest)</option>
-                            <option value="start_desc">Sort: Start (latest)</option>
-                            <option value="created_desc">Sort: Newest</option>
-                            <option value="title_asc">Sort: Title (A–Z)</option>
-                        </select>
-                    </div>
+                            <select value={countryFilter} onChange={e => applyFilters({ country: e.target.value || null, page: null })} className="input">
+                                <option value="">All countries</option>
+                                {countries.map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </>
+                    </ListControls>
                     {current ? (
                         <Link href="/events/create" className="btn-primary">New Event</Link>
                     ) : (
