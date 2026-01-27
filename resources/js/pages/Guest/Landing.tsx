@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import PublicHeader from '@/components/public-header';
 
@@ -11,6 +11,23 @@ type Props = {
 export default function GuestLanding({ events, cities, countries }: Props) {
     const page = usePage();
 
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const sort = params?.get('sort') ?? '';
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`${window.location.pathname}${q ? `?${q}` : ''}`);
+    }
+
     return (
         <AppLayout>
             <Head>
@@ -22,6 +39,42 @@ export default function GuestLanding({ events, cities, countries }: Props) {
 
             <main className="max-w-5xl mx-auto py-16 px-4">
                 <section className="mt-16">
+                    <div className="mb-4 flex items-center justify-between">
+                        <div>
+                            {events?.links?.map((l: any, idx: number) => (
+                                l.url ? (
+                                    <Link key={idx} href={l.url} className={`px-3 py-1 rounded ${l.active ? 'bg-gray-900 text-white' : 'bg-white border'}`}>
+                                        <span dangerouslySetInnerHTML={{ __html: l.label }} />
+                                    </Link>
+                                ) : (
+                                    <span key={idx} className="px-3 py-1 rounded text-muted" dangerouslySetInnerHTML={{ __html: l.label }} />
+                                )
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <select value={params?.get('city') ?? ''} onChange={e => applyFilters({ city: e.target.value || null, page: null })} className="input">
+                                <option value="">All cities</option>
+                                {(cities ?? []).map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <select value={params?.get('country') ?? ''} onChange={e => applyFilters({ country: e.target.value || null, page: null })} className="input">
+                                <option value="">All countries</option>
+                                {(countries ?? []).map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
+                                <option value="">Sort: Latest</option>
+                                <option value="start_asc">Sort: Start (soonest)</option>
+                                <option value="start_desc">Sort: Start (latest)</option>
+                                <option value="created_desc">Sort: Newest</option>
+                                <option value="title_asc">Sort: Title (A–Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div className="grid gap-3">
                         {events?.data?.length ? (
                             events.data.map((event: any) => (

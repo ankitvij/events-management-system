@@ -95,22 +95,46 @@ export default function EventsIndex({ events }: Props) {
                 </div>
 
                 <div>
-                    <div className="mb-4">
-                        {events.links?.map((link: any) => (
-                            link.url ? (
-                                <Link
-                                    key={link.label}
-                                    href={link.url}
-                                    className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                    as="a"
-                                    preserveScroll
-                                >
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                                </Link>
-                            ) : (
-                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
-                            )
-                        ))}
+                    <div className="mb-4 flex items-center justify-between">
+                        <div>
+                            {events.links?.map((link: any) => (
+                                link.url ? (
+                                    <Link
+                                        key={link.label}
+                                        href={link.url}
+                                        className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
+                                        as="a"
+                                        preserveScroll
+                                    >
+                                        <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    </Link>
+                                ) : (
+                                    <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                )
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <select value={cityFilter} onChange={e => applyFilters({ city: e.target.value || null, page: null })} className="input">
+                                <option value="">All cities</option>
+                                {cities.map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <select value={countryFilter} onChange={e => applyFilters({ country: e.target.value || null, page: null })} className="input">
+                                <option value="">All countries</option>
+                                {countries.map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <select value={sort} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
+                                <option value="">Sort: Latest</option>
+                                <option value="start_asc">Sort: Start (soonest)</option>
+                                <option value="start_desc">Sort: Start (latest)</option>
+                                <option value="created_desc">Sort: Newest</option>
+                                <option value="title_asc">Sort: Title (A–Z)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid gap-3">
