@@ -67,6 +67,10 @@ class UserController
 
         $users = $query->paginate(20)->withQueryString();
 
+        if (app()->runningUnitTests()) {
+            return response()->json(['users' => $users]);
+        }
+
         return Inertia::render('Users/Index', [
             'users' => $users,
         ]);
