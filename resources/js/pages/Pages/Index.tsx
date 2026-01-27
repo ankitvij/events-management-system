@@ -11,12 +11,14 @@ export default function Index({ pages }: Props) {
     ];
 
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const initial = params?.get('search') ?? '';
+    const initial = params?.get('q') ?? '';
     const [search, setSearch] = useState(initial);
 
     useEffect(() => {
         const t = setTimeout(() => {
-            router.get(`/pages?search=${encodeURIComponent(search)}`);
+            const qs = new URLSearchParams(window.location.search);
+            if (search) qs.set('q', search); else qs.delete('q');
+            router.get(`/pages?${qs.toString()}`);
         }, 300);
         return () => clearTimeout(t);
     }, [search]);
