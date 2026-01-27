@@ -18,7 +18,16 @@ class PageController
 
     public function index()
     {
-        $pages = Page::latest()->paginate(10)->withQueryString();
+        $query = Page::query()->latest();
+        $search = request('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+
+        $pages = $query->paginate(10)->withQueryString();
         if (app()->runningUnitTests()) {
             return response()->json(['pages' => $pages]);
         }

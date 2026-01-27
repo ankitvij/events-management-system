@@ -1,4 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -9,13 +10,27 @@ export default function Index({ pages }: Props) {
         { title: 'Pages', href: '/pages' },
     ];
 
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const initial = params?.get('search') ?? '';
+    const [search, setSearch] = useState(initial);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            router.get(`/pages?search=${encodeURIComponent(search)}`);
+        }, 300);
+        return () => clearTimeout(t);
+    }, [search]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Pages" />
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h1 className="text-2xl font-semibold">Pages</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-semibold">Pages</h1>
+                        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search pages..." className="input" />
+                    </div>
                     <Link href="/pages/create" className="btn-primary">New Page</Link>
                 </div>
 
