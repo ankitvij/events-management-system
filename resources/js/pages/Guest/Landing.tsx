@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import GuestHeader from '@/components/guest-header';
+import PublicHeader from '@/components/public-header';
 
 type Props = {
     events?: any;
@@ -18,7 +18,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                 <meta name="description" content="Public landing page for guests" />
             </Head>
 
-            <GuestHeader />
+            <PublicHeader />
 
             <main className="max-w-5xl mx-auto py-16 px-4">
                 <section className="mt-16">
