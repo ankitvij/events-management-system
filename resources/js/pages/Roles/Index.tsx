@@ -1,5 +1,6 @@
 import { Head, usePage, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -14,6 +15,22 @@ export default function RolesIndex({ roles, users }: Props) {
 
     const page = usePage();
     const currentId = page.props?.auth?.user?.id;
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const sort = params?.get('sort') ?? '';
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/roles${q ? `?${q}` : ''}`);
+    }
 
     function changeRole(userId: number, role: string) {
         // confirmation
@@ -29,7 +46,12 @@ export default function RolesIndex({ roles, users }: Props) {
             <Head title="Roles" />
 
             <div className="p-4">
-
+                <ListControls
+                    search={params?.get('q') ?? ''}
+                    onSearch={(v) => applyFilters({ q: v || null, page: null })}
+                    sort={sort}
+                    onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
+                />
 
                 <div className="grid gap-2">
                     {users.map((u) => (

@@ -2,6 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = { users: any };
@@ -18,6 +19,21 @@ export default function UsersIndex({ users }: Props) {
 
     function toggleActive(userId: number, value: boolean) {
         router.put(`/users/${userId}`, { active: value });
+    }
+    const sort = params?.get('sort') ?? '';
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/users${q ? `?${q}` : ''}`);
     }
 
     function applySort(key: string) {

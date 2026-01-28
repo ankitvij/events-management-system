@@ -2,6 +2,7 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
+import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -15,6 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function OrganisersIndex({ organisers }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const q = params?.get('q') ?? '';
+    const sort = params?.get('sort') ?? '';
 
     const [search, setSearch] = useState<string>(q);
     const timeoutRef = useRef<number | null>(null);
@@ -35,6 +37,20 @@ export default function OrganisersIndex({ organisers }: Props) {
         if (next === '') sp.delete('sort'); else sp.set('sort', next);
         sp.delete('page');
         router.get(`/organisers${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([k, v]) => {
+            if (v === null || v === '') {
+                sp.delete(k);
+            } else {
+                sp.set(k, v);
+            }
+        });
+        const q = sp.toString();
+        router.get(`/organisers${q ? `?${q}` : ''}`);
     }
 
     useEffect(() => {

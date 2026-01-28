@@ -18,9 +18,29 @@ class RoleController
             abort(403);
         }
 
-        $users = User::where('id', '!=', $current->id)
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'role', 'is_super_admin']);
+        $query = User::where('id', '!=', $current->id);
+
+        $q = request('q') ?? request('search');
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $sort = request('sort');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                $query->orderBy('name');
+                break;
+        }
+
+        $users = $query->get(['id', 'name', 'email', 'role', 'is_super_admin']);
 
         return Inertia::render('Roles/Index', [
             'roles' => RoleEnum::values(),
