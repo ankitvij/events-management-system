@@ -6,9 +6,9 @@ use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\Organiser;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -94,8 +94,9 @@ class EventController extends Controller
             $countries = [];
         }
 
-        // Apply optional free-text search from query param `q`
-        $search = request('q', '');
+        // Apply optional free-text search from query params `q` or `search`
+        // (some clients/tests use `search` while others use `q`).
+        $search = request('q', request('search', ''));
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $like = "%{$search}%";
@@ -120,7 +121,7 @@ class EventController extends Controller
 
         if (! auth()->check()) {
             $page = request('page', 1);
-            $params = request()->only(['q', 'city', 'country', 'sort', 'active']);
+            $params = request()->only(['q', 'search', 'city', 'country', 'sort', 'active']);
             $hash = md5(http_build_query($params));
             $cacheKey = "events.public.page.{$page}.params.{$hash}";
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
@@ -187,13 +188,9 @@ class EventController extends Controller
 
         $current = auth()->user();
 
-        // Guests may view only active, non-super-admin-owned events
+        // Guests may view only active events
         if (! $current) {
             if (! $event->active) {
-                abort(404);
-            }
-
-            if ($event->user && $event->user->is_super_admin) {
                 abort(404);
             }
         } else {

@@ -30,8 +30,8 @@ export default function Show({ event }: Props) {
                 <meta name="description" content={event.description || ''} />
                 <meta property="og:title" content={event.title} />
                 <meta property="og:description" content={event.description || ''} />
-                {event.image_thumbnail || event.image ? (
-                    <meta property="og:image" content={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : `/storage/${event.image}`} />
+                {event.image || event.image_thumbnail ? (
+                    <meta property="og:image" content={event.image ? `/storage/${event.image}` : `/storage/${event.image_thumbnail}`} />
                 ) : null}
 
                 {/* JSON-LD structured data for Event */}
@@ -45,7 +45,7 @@ export default function Show({ event }: Props) {
                         startDate: event.start_at || undefined,
                         endDate: event.end_at || undefined,
                         url: typeof window !== 'undefined' ? window.location.href : undefined,
-                        image: event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : (event.image ? `${window.location.origin}/storage/${event.image}` : undefined),
+                        image: event.image ? `${window.location.origin}/storage/${event.image}` : (event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : undefined),
                         location: {
                             '@type': 'Place',
                             name: event.location || undefined,
@@ -60,7 +60,7 @@ export default function Show({ event }: Props) {
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 {(() => {
-                    const url = event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg');
+                    const url = event.image ? `/storage/${event.image}` : (event.image_thumbnail ? `/storage/${event.image_thumbnail}` : '/images/default-event.svg');
                     return (
                         <div className="mb-4">
                             <img src={url} alt={event.title} className="max-w-full h-auto rounded" />

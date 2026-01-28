@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Event;
+use Illuminate\Database\Seeder;
 
 class UpdateEventTitlesSeeder extends Seeder
 {
@@ -52,7 +52,7 @@ class UpdateEventTitlesSeeder extends Seeder
             'Leeds Indie Carnival',
             'Bordeaux Vineyard Gala',
             'Naples Street Opera',
-            'Marseille Coastal Fest'
+            'Marseille Coastal Fest',
         ];
 
         $events = Event::orderBy('id', 'desc')->take(count($samples))->get();
