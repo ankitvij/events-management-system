@@ -62,6 +62,33 @@ class UserController
             $query->where('active', false);
         }
 
+        // Free-text search via `q`
+        $search = request('q', '');
+        if ($search) {
+            $like = "%{$search}%";
+            $query->where(function ($q) use ($like) {
+                $q->where('name', 'like', $like)
+                    ->orWhere('email', 'like', $like);
+            });
+        }
+
+        // Apply optional sort parameter
+        $sort = request('sort');
+        switch ($sort) {
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            case 'created_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            default:
+                // keep default ordering
+                break;
+        }
+
         // Exclude the authenticated user from the listing for all roles
         $query->where('id', '!=', $current->id);
 

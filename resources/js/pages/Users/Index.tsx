@@ -1,4 +1,6 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
+import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
@@ -34,25 +36,65 @@ export default function UsersIndex({ users }: Props) {
         router.get(`/users${q ? `?${q}` : ''}`);
     }
 
+    function applySort(key: string) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        const cur = sp.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) next = `${key}_desc`;
+        else if (cur === `${key}_desc`) next = '';
+        else next = `${key}_asc`;
+        if (next === '') sp.delete('sort'); else sp.set('sort', next);
+        sp.delete('page');
+        router.get(`/users${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
 
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                    <ListControls
-                        search={params?.get('q') ?? ''}
-                        onSearch={(v) => applyFilters({ q: v || null, page: null })}
-                        showActive
-                        active={activeFilter}
-                        onActiveChange={(v) => applyFilters({ active: v === 'all' ? null : v, page: null })}
-                        sort={sort}
-                        onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
-                    />
+                    <div className="flex items-center gap-4">
+                        <ListControls path="/users" links={users.links} showSearch showActive />
+                    </div>
                     <Link href="/users/create" className="btn-primary">New User</Link>
                 </div>
 
-                <div className="grid gap-3">
+                <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <button
+                        onClick={() => applySort('name')}
+                        className="md:col-span-6 text-left"
+                        aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
+                    >
+                        Name
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-4">Email</div>
+                    <div className="md:col-span-1">Active</div>
+                    <div className="md:col-span-1" />
+                </div>
+
+                <div>
+                    <div className="mb-4">
+                        {users.links?.map((link: any) => (
+                            link.url ? (
+                                <Link
+                                    key={link.label}
+                                    href={link.url}
+                                    className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
+                                    as="a"
+                                    preserveScroll
+                                >
+                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                </Link>
+                            ) : (
+                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                            )
+                        ))}
+                    </div>
+
+                    <div className="grid gap-3">
                     {users.data?.map((user: any) => (
                         <div key={user.id} className="border rounded p-3">
                             <div className="flex justify-between">
@@ -102,6 +144,7 @@ export default function UsersIndex({ users }: Props) {
                             <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
                         )
                     ))}
+                </div>
                 </div>
             </div>
         </AppLayout>

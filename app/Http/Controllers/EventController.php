@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -18,13 +20,20 @@ class EventController extends Controller
         $query = Event::with(['user', 'organisers'])->latest();
 
         $current = auth()->user();
-        if (! $current || ! $current->is_super_admin) {
-            // hide events created by super admin users from regular users
-            $query->whereHas('user', function ($q) {
-                $q->where('is_super_admin', false);
-            });
-            // only show active events to non-super users
-            $query->where('active', true);
+        if ($current) {
+            // For authenticated non-super-admin users, hide events created by super-admins
+            if (! $current->is_super_admin) {
+                $query->whereHas('user', function ($q) {
+                    $q->where('is_super_admin', false);
+                });
+                // only show active events to non-super users
+                $query->where('active', true);
+            }
+        } else {
+            // Guests should see public (active) events by default unless an explicit `active` filter is provided
+            if (! request()->has('active')) {
+                $query->where('active', true);
+            }
         }
 
         // Apply optional active filter for super admins or when provided
@@ -50,12 +59,32 @@ class EventController extends Controller
             case 'title_asc':
                 $query->orderBy('title', 'asc');
                 break;
+            case 'title_desc':
+                $query->orderBy('title', 'desc');
+                break;
+            case 'country_asc':
+                $query->orderBy('country', 'asc');
+                break;
+            case 'country_desc':
+                $query->orderBy('country', 'desc');
+                break;
+            case 'city_asc':
+                $query->orderBy('city', 'asc');
+                break;
+            case 'city_desc':
+                $query->orderBy('city', 'desc');
+                break;
+            case 'active_asc':
+                $query->orderBy('active', 'asc');
+                break;
+            case 'active_desc':
+                $query->orderBy('active', 'desc');
+                break;
             default:
                 // keep default ordering (latest)
                 break;
         }
 
-        // For public views, cache paginated results per page + search for 5 minutes
         // Collect available cities and countries for filter selects (based on visible events)
         try {
             $cities = (clone $query)->whereNotNull('city')->where('city', '!=', '')->distinct()->orderBy('city')->pluck('city')->values()->all();
@@ -65,22 +94,35 @@ class EventController extends Controller
             $countries = [];
         }
 
-        // apply global search (q or search)
-        $searchParam = request('q') ?? request('search');
-        if ($searchParam) {
-            $query->where(function ($sub) use ($searchParam) {
-                $sub->where('title', 'like', "%{$searchParam}%")
-                    ->orWhere('description', 'like', "%{$searchParam}%")
-                    ->orWhere('location', 'like', "%{$searchParam}%")
-                    ->orWhere('city', 'like', "%{$searchParam}%")
-                    ->orWhere('country', 'like', "%{$searchParam}%");
+        // Apply optional free-text search from query param `q`
+        $search = request('q', '');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $like = "%{$search}%";
+                $q->where('title', 'like', $like)
+                    ->orWhere('description', 'like', $like)
+                    ->orWhere('location', 'like', $like)
+                    ->orWhere('city', 'like', $like)
+                    ->orWhere('country', 'like', $like);
             });
+        }
+
+        // Apply optional city/country filters
+        $city = request('city');
+        if ($city) {
+            $query->where('city', $city);
+        }
+
+        $country = request('country');
+        if ($country) {
+            $query->where('country', $country);
         }
 
         if (! auth()->check()) {
             $page = request('page', 1);
-            $search = $searchParam ?? '';
-            $cacheKey = "events.public.page.{$page}.search.".md5($search);
+            $params = request()->only(['q', 'city', 'country', 'sort', 'active']);
+            $hash = md5(http_build_query($params));
+            $cacheKey = "events.public.page.{$page}.params.{$hash}";
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
                 $res = $query->paginate(10)->withQueryString();
                 $this->addPublicEventsCacheKey($cacheKey);
@@ -142,10 +184,25 @@ class EventController extends Controller
     public function show(Event $event)
     {
         $event->load('user', 'organisers');
+
         $current = auth()->user();
-        if ($event->user && $event->user->is_super_admin && ! ($current && ($current->is_super_admin || $current->id === $event->user->id))) {
-            abort(404);
+
+        // Guests may view only active, non-super-admin-owned events
+        if (! $current) {
+            if (! $event->active) {
+                abort(404);
+            }
+
+            if ($event->user && $event->user->is_super_admin) {
+                abort(404);
+            }
+        } else {
+            // For authenticated users, keep existing super-admin visibility restriction
+            if ($event->user && $event->user->is_super_admin && ! ($current->is_super_admin || $current->id === $event->user->id)) {
+                abort(404);
+            }
         }
+
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
         if (app()->runningUnitTests()) {
@@ -158,6 +215,8 @@ class EventController extends Controller
             'showHomeHeader' => ! auth()->check(),
         ]);
     }
+
+    // publicShow removed; `show` now handles guest access.
 
     public function edit(Event $event)
     {
@@ -201,6 +260,33 @@ class EventController extends Controller
         $this->clearPublicEventsCache();
 
         return redirect()->route('events.show', $event);
+    }
+
+    /**
+     * Toggle the active state for an event (AJAX).
+     */
+    public function toggleActive(Request $request, Event $event): JsonResponse
+    {
+        $current = $request->user();
+        if (! $current) {
+            abort(403);
+        }
+
+        // Allow super admins or the event owner to toggle active
+        if (! ($current->is_super_admin || $event->user_id === $current->id)) {
+            abort(403);
+        }
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $event->active = $data['active'];
+        $event->save();
+
+        $this->clearPublicEventsCache();
+
+        return response()->json(['ok' => true, 'active' => $event->active]);
     }
 
     public function destroy(Event $event): RedirectResponse

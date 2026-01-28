@@ -1,0 +1,71 @@
+name: Deploy on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, pdo_mysql, curl, zip
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run tests
+        run: php artisan test --compact
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            # Ensure we're on the production branch and up to date
+            git fetch --tags origin
+            git checkout production || git checkout -b production origin/production
+            git reset --hard $GITHUB_SHA
+            git clean -fd
+            # Install server-side deps and build assets
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+            npm ci
+            npm run build
+            php artisan migrate --force
+            php artisan storage:link || true
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            # Restart services (may require sudo privileges)
+            if command -v systemctl >/dev/null 2>&1; then
+              sudo systemctl restart php8.4-fpm || true
+              sudo systemctl reload nginx || true
+            fi
+
+# Notes:
+# - Provide these repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, SSH_PORT (optional), DEPLOY_PATH
+# - This workflow assumes the production server has Git, Node, Composer, PHP and required build tools installed.
+# - If the server cannot run npm/build, consider building assets in the workflow and rsync/upload the built `public/build` directory instead.
