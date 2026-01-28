@@ -1,10 +1,13 @@
 import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
+import type { LooseObject } from '@/types/entities';
 
-type Props = { page: any };
+type Page = { id: number; title?: string | null; slug?: string | null; content?: string | null; active?: boolean } & LooseObject;
+
+type Props = { page: Page };
 
 export default function Edit({ page }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [

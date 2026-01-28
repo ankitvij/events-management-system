@@ -1,10 +1,10 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
 import ListControls from '@/components/list-controls';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { Pagination, UserShort, PaginationLink } from '@/types/entities';
 
-type Props = { users: any };
+type Props = { users: Pagination<UserShort> };
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Users', href: '/users' },
@@ -14,26 +14,13 @@ export default function UsersIndex({ users }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const activeFilter = params?.get('active') ?? 'all';
 
     function toggleActive(userId: number, value: boolean) {
         router.put(`/users/${userId}`, { active: value });
     }
-    const sort = params?.get('sort') ?? '';
 
-    function applyFilters(updates: Record<string, string | null>) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        Object.entries(updates).forEach(([k, v]) => {
-            if (v === null || v === '') {
-                sp.delete(k);
-            } else {
-                sp.set(k, v);
-            }
-        });
-        const q = sp.toString();
-        router.get(`/users${q ? `?${q}` : ''}`);
-    }
+
+
 
     function applySort(key: string) {
         if (typeof window === 'undefined') return;
@@ -76,25 +63,25 @@ export default function UsersIndex({ users }: Props) {
 
                 <div>
                     <div className="mb-4">
-                        {users.links?.map((link: any) => (
+                        {users.links?.map((link) => (
                             link.url ? (
                                 <Link
-                                    key={link.label}
+                                    key={String(link.label)}
                                     href={link.url}
                                     className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
                                     as="a"
                                     preserveScroll
                                 >
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                                 </Link>
                             ) : (
-                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                             )
                         ))}
                     </div>
 
                     <div className="grid gap-3">
-                    {users.data?.map((user: any) => (
+                    {users.data?.map((user: UserShort) => (
                         <div key={user.id} className="border rounded p-3">
                             <div className="flex justify-between">
                                 <div>
@@ -128,7 +115,7 @@ export default function UsersIndex({ users }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {users.links?.map((link: any) => (
+                    {users.links?.map((link: PaginationLink) => (
                         link.url ? (
                             <Link
                                 key={link.label}

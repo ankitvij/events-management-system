@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -134,7 +135,7 @@ class EventController extends Controller
             $events = $query->paginate(10)->withQueryString();
         }
         if (app()->runningUnitTests()) {
-            return response()->json(['events' => $events]);
+            return response()->json(['events' => $events, 'showOrganisers' => auth()->check()]);
         }
 
         return Inertia::render('Events/Index', [
@@ -155,6 +156,7 @@ class EventController extends Controller
 
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
+            'showHomeHeader' => ! auth()->check(),
         ]);
     }
 
@@ -163,19 +165,53 @@ class EventController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('events', 'public');
-            $thumb = $this->generateThumbnail($data['image']);
-            if ($thumb) {
-                $data['image_thumbnail'] = $thumb;
+        DB::transaction(function () use ($request, $data) {
+            $local = $data;
+
+            if ($request->hasFile('image')) {
+                $local['image'] = $request->file('image')->store('events', 'public');
+                $thumb = $this->generateThumbnail($local['image']);
+                if ($thumb) {
+                    $local['image_thumbnail'] = $thumb;
+                }
             }
-        }
 
-        $event = Event::create($data);
+            $event = Event::create($local);
 
-        if (! empty($data['organiser_ids'])) {
-            $event->organisers()->sync($data['organiser_ids']);
-        }
+            $organiserIds = [];
+            if (! empty($local['organiser_ids'])) {
+                $organiserIds = array_values($local['organiser_ids']);
+            }
+
+            // Handle comma-separated organiser emails
+            $emailsRaw = $request->input('organiser_emails', '');
+            if (is_string($emailsRaw) && trim($emailsRaw) !== '') {
+                $parts = array_filter(array_map('trim', explode(',', $emailsRaw)));
+                foreach ($parts as $e) {
+                    if (! filter_var($e, FILTER_VALIDATE_EMAIL)) {
+                        continue;
+                    }
+
+                    $namePart = strstr($e, '@', true) ?: $e;
+                    $name = ucwords(str_replace(['.', '_', '-'], ' ', $namePart));
+
+                    $organiser = Organiser::firstOrCreate([
+                        'email' => $e,
+                    ], [
+                        'name' => $name,
+                        'active' => 1,
+                    ]);
+
+                    if ($organiser && $organiser->id) {
+                        $organiserIds[] = $organiser->id;
+                    }
+                }
+            }
+
+            if (! empty($organiserIds)) {
+                $event->organisers()->sync(array_values(array_unique($organiserIds)));
+            }
+        });
 
         $this->clearPublicEventsCache();
 
@@ -203,7 +239,7 @@ class EventController extends Controller
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
         if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event, 'organisers' => $organisers]);
+            return response()->json(['event' => $event, 'organisers' => $organisers, 'showOrganisers' => auth()->check()]);
         }
 
         return Inertia::render('Events/Show', [

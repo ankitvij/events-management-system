@@ -1,20 +1,13 @@
-import { Head, Link, usePage, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import PublicHeader from '@/components/public-header';
 import ListControls from '@/components/list-controls';
+import AppLayout from '@/layouts/app-layout';
+import type { Pagination, Event, PaginationLink } from '@/types/entities';
 
-type Props = {
-    events?: any;
-    cities?: string[];
-    countries?: string[];
-};
+type Props = { events?: Pagination<Event> };
 
-export default function GuestLanding({ events, cities, countries }: Props) {
-    const page = usePage();
-
+export default function GuestLanding({ events }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const sort = params?.get('sort') ?? '';
     const initial = params?.get('q') ?? '';
     const [search, setSearch] = useState(initial);
     const timeoutRef = useRef<number | null>(null);
@@ -42,19 +35,6 @@ export default function GuestLanding({ events, cities, countries }: Props) {
         };
     }, [search]);
 
-    function applyFilters(updates: Record<string, string | null>) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        Object.entries(updates).forEach(([k, v]) => {
-            if (v === null || v === '') {
-                sp.delete(k);
-            } else {
-                sp.set(k, v);
-            }
-        });
-        const q = sp.toString();
-        router.get(`${window.location.pathname}${q ? `?${q}` : ''}`);
-    }
 
     function applySort(key: string) {
         if (typeof window === 'undefined') return;
@@ -76,7 +56,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                 <meta name="description" content="Public landing page for guests" />
             </Head>
 
-            <PublicHeader />
+
 
             <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                 <section className="mt-16">
@@ -124,7 +104,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
 
                     <div className="space-y-3">
                         {events?.data?.length ? (
-                            events.data.map((event: any) => (
+                            events.data.map((event: Event) => (
                                 <div key={event.id} className="border rounded p-3">
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                         <div className="md:col-span-9 flex items-center gap-3">
@@ -153,7 +133,7 @@ export default function GuestLanding({ events, cities, countries }: Props) {
                     </div>
                     {events?.links && (
                         <nav className="mt-6 flex items-center justify-center gap-2">
-                            {events.links.map((l: any, idx: number) => (
+                            {events.links.map((l: PaginationLink, idx: number) => (
                                 l.url ? (
                                     <Link key={idx} href={l.url} className={`px-3 py-1 rounded ${l.active ? 'bg-gray-900 text-white' : 'bg-white border'}`}>
                                         <span dangerouslySetInnerHTML={{ __html: l.label }} />

@@ -3,6 +3,7 @@ import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
+import type { Event } from '@/types/entities';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -12,7 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 type Props = {
-    events?: Array<any>;
+    events?: Event[];
 };
 
 export default function Dashboard({ events = [] }: Props) {
@@ -44,7 +45,7 @@ export default function Dashboard({ events = [] }: Props) {
                             <div className="text-sm text-muted mt-2">No upcoming events.</div>
                         ) : (
                             <div className="grid gap-3 mt-2">
-                                {events.map((event: any) => (
+                                {events.map((event: Event) => (
                                     <div key={event.id} className="border rounded p-3 flex justify-between items-start">
                                         <div>
                                             <Link href={`/events/${event.id}`} className="text-base font-medium">{event.title}</Link>

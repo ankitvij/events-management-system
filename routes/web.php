@@ -159,8 +159,9 @@ require __DIR__.'/settings.php';
 // Events listing (public)
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
-// Protect create/update/delete routes
-Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show']);
+// Allow public access to the create form, but protect store/update/delete routes
+Route::get('events/create', [EventController::class, 'create'])->name('events.create');
+Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create']);
 
 // Allow public viewing of individual events at /events/{event}
 Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');

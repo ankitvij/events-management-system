@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
-import AppLayout from '@/layouts/app-layout';
 import ListControls from '@/components/list-controls';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { Pagination, LooseObject, PaginationLink } from '@/types/entities';
 
-type Props = { pages: any };
+type Props = { pages: Pagination<LooseObject> };
 
 export default function Index({ pages }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -12,8 +12,6 @@ export default function Index({ pages }: Props) {
     ];
 
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const initial = params?.get('q') ?? '';
-    const [search, setSearch] = useState(initial);
 
     function applySort(key: string) {
         if (typeof window === 'undefined') return;
@@ -55,19 +53,19 @@ export default function Index({ pages }: Props) {
 
                 <div>
                     <div className="mb-4">
-                        {pages.links?.map((link: any) => (
+                        {pages.links?.map((link) => (
                             link.url ? (
-                                <Link key={link.label} href={link.url} className={link.active ? 'font-medium px-2' : 'text-muted px-2'} as="a" preserveScroll>
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <Link key={String(link.label)} href={link.url} className={link.active ? 'font-medium px-2' : 'text-muted px-2'} as="a" preserveScroll>
+                                    <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                                 </Link>
                             ) : (
-                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                             )
                         ))}
                     </div>
 
                     <div className="grid gap-3">
-                    {pages.data?.map((page: any) => (
+                    {pages.data?.map((page: LooseObject) => (
                         <div key={page.id} className="border rounded p-3">
                             <div className="flex justify-between items-center">
                                 <div>
@@ -87,7 +85,7 @@ export default function Index({ pages }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {pages.links?.map((link: any) => (
+                    {pages.links?.map((link: PaginationLink) => (
                         link.url ? (
                             <Link key={link.label} href={link.url} className={link.active ? 'font-medium px-2' : 'text-muted px-2'} as="a" preserveScroll>
                                 <span dangerouslySetInnerHTML={{ __html: link.label }} />

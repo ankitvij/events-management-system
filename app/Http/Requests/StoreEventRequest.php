@@ -26,6 +26,7 @@ class StoreEventRequest extends FormRequest
             'active' => ['nullable', 'boolean'],
             'organiser_ids' => ['nullable', 'array'],
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
+            'organiser_emails' => ['nullable', 'string'],
         ];
     }
 }
