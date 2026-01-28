@@ -1,12 +1,11 @@
-import { Head, Link, usePage, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
-import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
+import type { Pagination, Customer, PaginationLink } from '@/types/entities';
 
 type Props = {
-    customers: any;
+    customers: Pagination<Customer>;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -14,12 +13,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CustomersIndex({ customers }: Props) {
-    const page = usePage();
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const initial = params?.get('q') ?? '';
-    const [search, setSearch] = useState(initial);
-    const timeoutRef = useRef<number | null>(null);
-    const firstRender = useRef(true);
 
     function toggleActive(id: number, value: boolean) {
         router.put(`/customers/${id}`, { active: value });
@@ -67,25 +61,25 @@ export default function CustomersIndex({ customers }: Props) {
 
                 <div>
                     <div className="mb-4">
-                        {customers.links?.map((link: any) => (
+                        {customers.links?.map((link) => (
                             link.url ? (
                                 <Link
-                                    key={link.label}
+                                    key={String(link.label)}
                                     href={link.url}
                                     className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
                                     as="a"
                                     preserveScroll
                                 >
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                                 </Link>
                             ) : (
-                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                             )
                         ))}
                     </div>
 
                     <div className="grid gap-3">
-                    {customers.data?.map((customer: any) => (
+                    {customers.data?.map((customer: Customer) => (
                         <div key={customer.id} className="border rounded p-3">
                             <div className="flex justify-between">
                                 <div>
@@ -117,7 +111,7 @@ export default function CustomersIndex({ customers }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {customers.links?.map((link: any) => (
+                    {customers.links?.map((link: PaginationLink) => (
                         link.url ? (
                             <Link
                                 key={link.label}

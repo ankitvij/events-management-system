@@ -1,10 +1,32 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import PublicHeader from '@/components/public-header';
-import type { BreadcrumbItem } from '@/types';
+import OrganiserPlaceholder from '@/components/organiser-placeholder';
+import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
 
-type Props = { event: any };
+type Organiser = { id: number; name: string };
+
+type Event = {
+    id: number;
+    title: string;
+    description?: string | null;
+    location?: string | null;
+    address?: string | null;
+    city?: string | null;
+    country?: string | null;
+    image?: string | null;
+    image_thumbnail?: string | null;
+    active?: boolean;
+    organisers?: Organiser[];
+    user?: { id: number; name?: string | null; email?: string | null } | null;
+    start_at?: string | null;
+    end_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+};
+
+type Props = { event: Event };
 
 export default function Show({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -14,11 +36,11 @@ export default function Show({ event }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
-    const organisers = page.props?.organisers ?? [];
+    const organisers = page.props?.organisers ?? [] as Organiser[];
 
-    const organisersForm = useForm({ organiser_ids: event.organisers ? event.organisers.map((o: any) => o.id) : [] });
+    const organisersForm = useForm({ organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [] });
 
-    function saveOrganisers(e: any) {
+    function saveOrganisers(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         organisersForm.put(`/events/${event.id}`, { forceFormData: true });
     }
@@ -30,11 +52,10 @@ export default function Show({ event }: Props) {
                 <meta name="description" content={event.description || ''} />
                 <meta property="og:title" content={event.title} />
                 <meta property="og:description" content={event.description || ''} />
-                {event.image_thumbnail || event.image ? (
-                    <meta property="og:image" content={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : `/storage/${event.image}`} />
+                {event.image || event.image_thumbnail ? (
+                    <meta property="og:image" content={event.image ? `/storage/${event.image}` : `/storage/${event.image_thumbnail}`} />
                 ) : null}
-
-                {/* JSON-LD structured data for Event */}
+                {/* JSON-LD structured data for Event (omit organisers for guests) */}
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify({
@@ -45,22 +66,20 @@ export default function Show({ event }: Props) {
                         startDate: event.start_at || undefined,
                         endDate: event.end_at || undefined,
                         url: typeof window !== 'undefined' ? window.location.href : undefined,
-                        image: event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : (event.image ? `${window.location.origin}/storage/${event.image}` : undefined),
+                        image: event.image ? `${window.location.origin}/storage/${event.image}` : (event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : undefined),
                         location: {
                             '@type': 'Place',
                             name: event.location || undefined,
                             address: event.address || (event.city || event.country ? `${event.city || ''}${event.city && event.country ? ', ' : ''}${event.country || ''}` : undefined),
                         },
-                        organizer: event.organisers ? event.organisers.map((o: any) => ({ '@type': 'Organization', name: o.name })) : undefined,
+                        organizer: current && event.organisers ? event.organisers.map((o: Organiser) => ({ '@type': 'Organization', name: o.name })) : undefined,
                     }) }}
                 />
             </Head>
 
-            {showHomeHeader && <PublicHeader />}
-
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 {(() => {
-                    const url = event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg');
+                    const url = event.image ? `/storage/${event.image}` : (event.image_thumbnail ? `/storage/${event.image_thumbnail}` : '/images/default-event.svg');
                     return (
                         <div className="mb-4">
                             <img src={url} alt={event.title} className="max-w-full h-auto rounded" />
@@ -83,7 +102,11 @@ export default function Show({ event }: Props) {
                 <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
 
                 {event.organisers && event.organisers.length > 0 && (
-                    <div className="text-sm text-muted mt-2">Organisers: {event.organisers.map((o: any) => o.name).join(', ')}</div>
+                    current ? (
+                        <div className="text-sm text-muted mt-2">Organisers: {event.organisers.map((o: Organiser) => o.name).join(', ')}</div>
+                    ) : (
+                        <OrganiserPlaceholder />
+                    )
                 )}
 
                 <div className="mt-4">{event.description}</div>

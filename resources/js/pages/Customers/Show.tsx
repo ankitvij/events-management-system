@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { Customer } from '@/types/entities';
 
-export default function Show({ customer }: any) {
+export default function Show({ customer }: { customer: Customer }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Customers', href: '/customers' },
         { title: customer.name, href: `/customers/${customer.id}` },

@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Event;
-use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class LatestEventsSeeder extends Seeder
 {
@@ -26,15 +26,21 @@ class LatestEventsSeeder extends Seeder
             ['title' => 'Product Design Day', 'city' => 'London', 'country' => 'United Kingdom', 'start_at' => '2026-07-22 10:00:00'],
         ];
 
+        // Ensure we have a user to own these events
+        $user = User::where('email', 'test@example.com')->first() ?? User::first();
+        if (! $user) {
+            $user = User::factory()->create();
+        }
+
         foreach ($events as $e) {
             Event::updateOrCreate(
-                ['slug' => Str::slug($e['title'])],
+                ['title' => $e['title']],
                 [
                     'title' => $e['title'],
                     'city' => $e['city'],
                     'country' => $e['country'],
                     'start_at' => $e['start_at'],
-                    'is_public' => true,
+                    'user_id' => $user->id,
                 ]
             );
         }

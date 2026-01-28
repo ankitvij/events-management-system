@@ -1,9 +1,10 @@
 import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
+import type { Customer } from '@/types/entities';
 
-export default function Edit({ customer }: any) {
+export default function Edit({ customer }: { customer: Customer }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Customers', href: '/customers' },
         { title: 'Edit', href: `/customers/${customer.id}/edit` },

@@ -1,7 +1,7 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
 
 export default function Create() {
     const breadcrumbs: BreadcrumbItem[] = [

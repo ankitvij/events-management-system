@@ -1,8 +1,17 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { UserShort } from '@/types/entities';
 
-export default function Show({ user, roleChanges = [] }: any) {
+type RoleChange = {
+    id: number;
+    created_at: string;
+    changed_by?: UserShort | null;
+    old_role?: string | null;
+    new_role?: string | null;
+};
+
+export default function Show({ user, roleChanges = [] }: { user: UserShort; roleChanges?: RoleChange[] }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Users', href: '/users' },
         { title: user.name, href: `/users/${user.id}` },
@@ -26,7 +35,7 @@ export default function Show({ user, roleChanges = [] }: any) {
                         <div className="text-sm text-muted mt-2">No role changes recorded.</div>
                     ) : (
                         <ul className="mt-3 space-y-3">
-                            {roleChanges.map((c: any) => (
+                            {roleChanges.map((c: RoleChange) => (
                                 <li key={c.id} className="p-3 border rounded">
                                     <div className="text-sm text-muted">{new Date(c.created_at).toLocaleString()}</div>
                                     <div className="mt-1">

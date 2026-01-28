@@ -1,9 +1,15 @@
 import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
+type LinkItem = {
+    url?: string | null;
+    label?: string;
+    active?: boolean;
+};
+
 type Props = {
     path?: string;
-    links?: any[];
+    links?: LinkItem[];
     showSearch?: boolean;
     searchPlaceholder?: string;
     showSort?: boolean;
@@ -60,7 +66,7 @@ export default function ListControls({
     return (
         <div className="mb-4 flex items-center justify-between">
             <div>
-                {links?.map((l: any, idx: number) => {
+                {links?.map((l: LinkItem, idx: number) => {
                     // Replace explicit Previous/Next text with arrows for compact pagination
                     let label = l.label || '';
                     // Use « and » for previous/next and collapse repeated arrows

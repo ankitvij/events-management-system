@@ -1,9 +1,10 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
+import type { UserShort } from '@/types/entities';
 
-export default function Edit({ user }: any) {
+export default function Edit({ user }: { user: UserShort }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Users', href: '/users' },
         { title: user.name, href: `/users/${user.id}` },

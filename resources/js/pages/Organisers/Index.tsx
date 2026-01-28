@@ -1,12 +1,11 @@
-import { Head, Link, usePage, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
-import ListControls from '@/components/list-controls';
 import type { BreadcrumbItem } from '@/types';
+import type { Pagination, Organiser, PaginationLink } from '@/types/entities';
 
 type Props = {
-    organisers: any;
+    organisers: Pagination<Organiser>;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -15,12 +14,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function OrganisersIndex({ organisers }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const q = params?.get('q') ?? '';
-    const sort = params?.get('sort') ?? '';
 
-    const [search, setSearch] = useState<string>(q);
-    const timeoutRef = useRef<number | null>(null);
-    const firstRender = useRef(true);
+
+
 
     function toggleActive(id: number, value: boolean) {
         router.put(`/organisers/${id}`, { active: value });
@@ -39,23 +35,7 @@ export default function OrganisersIndex({ organisers }: Props) {
         router.get(`/organisers${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
-    function applyFilters(updates: Record<string, string | null>) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        Object.entries(updates).forEach(([k, v]) => {
-            if (v === null || v === '') {
-                sp.delete(k);
-            } else {
-                sp.set(k, v);
-            }
-        });
-        const q = sp.toString();
-        router.get(`/organisers${q ? `?${q}` : ''}`);
-    }
 
-    useEffect(() => {
-        // keep local state but navigation handled by shared ListControls
-    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -84,25 +64,25 @@ export default function OrganisersIndex({ organisers }: Props) {
 
                 <div>
                     <div className="mb-4">
-                        {organisers.links?.map((link: any) => (
+                        {organisers.links?.map((link: PaginationLink) => (
                             link.url ? (
                                 <Link
-                                    key={link.label}
+                                    key={String(link.label)}
                                     href={link.url}
                                     className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
                                     as="a"
                                     preserveScroll
                                 >
-                                    <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                    <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                                 </Link>
                             ) : (
-                                <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
                             )
                         ))}
                     </div>
 
                     <div className="grid gap-3">
-                    {organisers.data?.map((org: any) => (
+                    {organisers.data?.map((org: Organiser) => (
                         <div key={org.id} className="border rounded p-3">
                             <div className="flex justify-between">
                                 <div>
@@ -134,7 +114,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {organisers.links?.map((link: any) => (
+                    {organisers.links?.map((link: PaginationLink) => (
                         link.url ? (
                             <Link
                                 key={link.label}

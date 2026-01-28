@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { Link } from '@inertiajs/react';
+import * as React from 'react';
 
 export default function GuestHeader() {
     return (
@@ -13,6 +13,7 @@ export default function GuestHeader() {
 
                     <div className="flex items-center gap-4">
                         <Link href="/login" className="text-sm text-gray-700 hover:text-gray-900">Log in</Link>
+                        <Link href="/events/create" className="text-sm text-blue-600 hover:underline">Create your event</Link>
                         <Link href="/register" className="btn-primary">Sign up</Link>
                     </div>
                 </div>

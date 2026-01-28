@@ -1,10 +1,11 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
+import type { Event, Organiser } from '@/types/entities';
 
-type Props = { event: any };
+type Props = { event: Event };
 
 export default function Edit({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -24,11 +25,10 @@ export default function Edit({ event }: Props) {
         address: event.address || '',
         active: event.active ?? true,
         image: null,
-        organiser_ids: event.organisers ? event.organisers.map((o: any) => o.id) : [],
+        organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
     });
 
     const page = usePage();
-    const current = page.props?.auth?.user;
     const organisers = page.props?.organisers ?? [];
 
     function submit(e: FormEvent) {

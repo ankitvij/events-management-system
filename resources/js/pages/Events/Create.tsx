@@ -1,8 +1,8 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
 
 export default function Create() {
     const breadcrumbs: BreadcrumbItem[] = [
@@ -22,10 +22,12 @@ export default function Create() {
         active: true,
         image: null,
         organiser_ids: [],
+        organiser_emails: '',
     });
 
     const page = usePage();
     const organisers = page.props?.organisers ?? [];
+    const showHomeHeader = page.props?.showHomeHeader ?? false;
 
     function submit(e: FormEvent) {
         e.preventDefault();
@@ -36,7 +38,8 @@ export default function Create() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Event" />
 
-            <form onSubmit={submit} className="p-4 space-y-4">
+            <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
+                <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
                     <label className="block text-sm font-medium">Title</label>
                     <input value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
@@ -85,6 +88,8 @@ export default function Create() {
                 <div>
                     <label className="block text-sm font-medium">Organisers</label>
                     <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
+                    <p className="text-sm text-muted mt-2">Or add organiser email addresses (comma-separated) to create organisers on submit.</p>
+                    <input value={form.data.organiser_emails} onChange={e => form.setData('organiser_emails', e.target.value)} placeholder="organiser1@example.com, organiser2@example.com" className="input mt-2" />
                 </div>
 
                 <div>
@@ -97,7 +102,8 @@ export default function Create() {
                 <div>
                     <button type="submit" className="btn-primary" disabled={form.processing}>Create</button>
                 </div>
-            </form>
+                </form>
+            </div>
         </AppLayout>
     );
 }

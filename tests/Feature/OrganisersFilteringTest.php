@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Organiser;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Organiser;
 
 class OrganisersFilteringTest extends TestCase
 {

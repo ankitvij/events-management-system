@@ -1,5 +1,5 @@
-import * as React from 'react';
 import { Link } from '@inertiajs/react';
+import * as React from 'react';
 
 export default function PublicHeader() {
     return (
@@ -13,6 +13,7 @@ export default function PublicHeader() {
                 </Link>
                 <div>
                     <Link href="/login" className="text-sm text-blue-600 mr-3">Log in</Link>
+                    <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create your event</Link>
                     <Link href="/register" className="text-sm text-blue-600">Sign up</Link>
                 </div>
             </div>

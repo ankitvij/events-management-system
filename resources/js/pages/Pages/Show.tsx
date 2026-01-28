@@ -1,8 +1,11 @@
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { LooseObject } from '@/types/entities';
 
-type Props = { page: any };
+type Page = { id: number; title?: string | null; content?: string | null } & LooseObject;
+
+type Props = { page: Page };
 
 export default function Show({ page }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
