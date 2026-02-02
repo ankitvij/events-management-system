@@ -176,11 +176,17 @@ export default function EventsIndex({ events }: Props) {
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                 <div className="md:col-span-7 flex items-center gap-3">
                                     <div className="w-20 h-12 flex-shrink-0">
-                                        <img
-                                            src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
-                                            alt={event.title}
-                                            className="w-full h-full object-cover rounded"
-                                        />
+                                        {(() => {
+                                            const p = event.image_thumbnail ?? event.image ?? '';
+                                            let url = '/images/default-event.svg';
+                                            if (p) {
+                                                if (p.startsWith('http')) url = p;
+                                                else if (p.startsWith('/storage/')) url = p;
+                                                else if (p.startsWith('storage/')) url = `/${p}`;
+                                                else url = `/storage/${p}`;
+                                            }
+                                            return <img src={url} alt={event.title} className="w-full h-full object-cover rounded" />;
+                                        })()}
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">

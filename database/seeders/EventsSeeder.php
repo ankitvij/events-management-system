@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use App\Models\Event;
 use App\Models\User;
+use App\Models\Organiser;
 
 class EventsSeeder extends Seeder
 {
@@ -21,6 +22,21 @@ class EventsSeeder extends Seeder
 
         $user = User::orderBy('id')->first();
         $userId = $user ? $user->id : 1;
+
+        // Ensure we have organisers to link to events
+        $organiserIds = Organiser::orderBy('id')->pluck('id')->toArray();
+        if (empty($organiserIds)) {
+            // create a few default organisers if none exist
+            $organiserIds = [];
+            for ($o = 1; $o <= 5; $o++) {
+                $org = Organiser::create([
+                    'name' => "Seed Org {$o}",
+                    'email' => "seedorg{$o}@example.test",
+                    'active' => true,
+                ]);
+                $organiserIds[] = $org->id;
+            }
+        }
 
         // Create 30 curated, realistic events (festivals, conferences, cultural events)
         $baseDate = now();
@@ -62,6 +78,8 @@ class EventsSeeder extends Seeder
             $start = $baseDate->copy()->addDays($s['offset'])->setTime(18, 0);
             $end = $start->copy()->addDays($s['days'])->setTime(23, 0);
 
+            $chosenOrganiser = $organiserIds[array_rand($organiserIds)];
+
             $event = Event::create([
                 'title' => $s['title'],
                 'description' => $s['title'] . ' — A multi-day event featuring local and international artists, food and community programming.',
@@ -71,16 +89,16 @@ class EventsSeeder extends Seeder
                 'city' => $s['city'],
                 'address' => $s['address'],
                 'country' => $s['country'],
-                'image' => null,
-                'image_thumbnail' => null,
+                'image' => "images/events/event_{$i}.jpg",
+                'image_thumbnail' => "images/events/event_{$i}_thumb.jpg",
                 'user_id' => $userId,
-                'organiser_id' => $userId,
+                'organiser_id' => $chosenOrganiser,
                 'active' => 1,
             ]);
 
             DB::table('event_organiser')->insert([
                 'event_id' => $event->id,
-                'organiser_id' => $userId,
+                'organiser_id' => $chosenOrganiser,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

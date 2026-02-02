@@ -18,7 +18,12 @@ class EventController extends Controller
 {
     public function index()
     {
-        $query = Event::with(['user', 'organisers'])->latest();
+        // Only eager-load organisers for authenticated users
+        $query = Event::with('user');
+        if (auth()->check()) {
+            $query->with('organisers');
+        }
+        $query->latest();
 
         $current = auth()->user();
         if ($current) {
@@ -220,7 +225,10 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load('user', 'organisers');
+        $event->load('user');
+        if (auth()->check()) {
+            $event->load('organisers');
+        }
 
         $current = auth()->user();
 

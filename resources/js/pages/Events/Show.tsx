@@ -79,7 +79,14 @@ export default function Show({ event }: Props) {
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 {(() => {
-                    const url = event.image ? `/storage/${event.image}` : (event.image_thumbnail ? `/storage/${event.image_thumbnail}` : '/images/default-event.svg');
+                    const p = event.image ?? event.image_thumbnail ?? '';
+                    let url = '/images/default-event.svg';
+                    if (p) {
+                        if (p.startsWith('http')) url = p;
+                        else if (p.startsWith('/storage/')) url = p;
+                        else if (p.startsWith('storage/')) url = `/${p}`;
+                        else url = `/storage/${p}`;
+                    }
                     return (
                         <div className="mb-4">
                             <img src={url} alt={event.title} className="max-w-full h-auto rounded" />
@@ -119,7 +126,9 @@ export default function Show({ event }: Props) {
 
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
-                        <Link href={`/events/${event.id}/edit`} className="btn">Edit</Link>
+                        {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
+                            <Link href={`/events/${event.id}/edit`} className="btn">Edit</Link>
+                        ) : null}
 
                         {!current && !showHomeHeader && (
                             <div className="ml-auto text-sm">
