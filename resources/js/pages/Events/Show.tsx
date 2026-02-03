@@ -1,7 +1,7 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
-import OrganiserPlaceholder from '@/components/organiser-placeholder';
-import { useEffect, type FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
+import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -126,6 +126,30 @@ export default function Show({ event }: Props) {
                 )}
 
                 <div className="mt-4">{event.description}</div>
+
+                {page.props?.tickets && page.props.tickets.length > 0 && (
+                    <div className="mt-6">
+                        <h2 className="text-lg font-semibold">Tickets</h2>
+                        <ul className="mt-2 space-y-2">
+                            {page.props.tickets.map((t: any) => (
+                                <li key={t.id} className="flex items-center justify-between border p-2 rounded">
+                                    <div>
+                                        <div className="font-medium">{t.name}</div>
+                                        <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="font-medium">${t.price.toFixed(2)}</div>
+                                        {t.active && t.quantity_available > 0 ? (
+                                            <button className="btn mt-2">Buy</button>
+                                        ) : (
+                                            <div className="text-xs text-muted mt-2">Sold out</div>
+                                        )}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 <div className="mt-4 text-xs text-muted">
                     <div>Created by: {event.user ? (event.user.name ?? event.user.email) : '—'}</div>

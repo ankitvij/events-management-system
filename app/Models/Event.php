@@ -49,6 +49,11 @@ class Event extends Model
         return $this->belongsToMany(Organiser::class, 'event_organiser')->withTimestamps();
     }
 
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
     /**
      * Return a full URL for the image with cache-busting based on file mtime when available.
      */

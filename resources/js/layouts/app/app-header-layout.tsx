@@ -1,8 +1,8 @@
 import { usePage } from '@inertiajs/react';
 import { AppContent } from '@/components/app-content';
 import { AppHeader } from '@/components/app-header';
-import PublicHeader from '@/components/public-header';
 import { AppShell } from '@/components/app-shell';
+import PublicHeader from '@/components/public-header';
 import type { AppLayoutProps, SharedData } from '@/types';
 
 export default function AppHeaderLayout({

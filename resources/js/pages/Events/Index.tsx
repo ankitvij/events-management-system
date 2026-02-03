@@ -1,7 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
+import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 

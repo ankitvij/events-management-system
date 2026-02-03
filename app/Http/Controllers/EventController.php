@@ -246,14 +246,40 @@ class EventController extends Controller
 
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
+        // Load tickets: guests see only active tickets with availability, authenticated users see all
+        if (auth()->check()) {
+            $event->load('tickets');
+        } else {
+            $event->load(['tickets' => function ($q) {
+                $q->where('active', true)->where('quantity_available', '>', 0);
+            }]);
+        }
+
         $current = auth()->user();
         $canEdit = false;
         if ($current) {
             $canEdit = $current->is_super_admin || ($event->user_id && $current->id === $event->user_id);
         }
 
+        $tickets = $event->tickets->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'name' => $t->name,
+                'price' => (float) $t->price,
+                'quantity_total' => (int) $t->quantity_total,
+                'quantity_available' => (int) $t->quantity_available,
+                'active' => (bool) $t->active,
+            ];
+        })->values();
+
         if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event, 'organisers' => $organisers, 'showOrganisers' => auth()->check(), 'canEdit' => $canEdit]);
+            return response()->json([
+                'event' => $event,
+                'organisers' => $organisers,
+                'showOrganisers' => auth()->check(),
+                'canEdit' => $canEdit,
+                'tickets' => $tickets,
+            ]);
         }
 
         return Inertia::render('Events/Show', [
@@ -261,6 +287,7 @@ class EventController extends Controller
             'organisers' => $organisers,
             'showHomeHeader' => ! auth()->check(),
             'canEdit' => $canEdit,
+            'tickets' => $tickets,
         ]);
     }
 

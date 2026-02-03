@@ -193,6 +193,13 @@ use App\Http\Controllers\OrganiserController;
 
 Route::resource('organisers', OrganiserController::class)->middleware(['auth']);
 
+use App\Http\Controllers\TicketController;
+
+// Tickets nested under events
+Route::post('events/{event}/tickets', [TicketController::class, 'store'])->middleware(['auth'])->name('events.tickets.store');
+Route::put('events/{event}/tickets/{ticket}', [TicketController::class, 'update'])->middleware(['auth'])->name('events.tickets.update');
+Route::delete('events/{event}/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware(['auth'])->name('events.tickets.destroy');
+
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
