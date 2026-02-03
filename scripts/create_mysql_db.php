@@ -3,7 +3,7 @@ $host = getenv('DB_HOST') ?: '127.0.0.1';
 $port = getenv('DB_PORT') ?: '3306';
 $user = getenv('DB_USERNAME') ?: 'root';
 $pass = getenv('DB_PASSWORD') ?: '';
-$db = getenv('DB_DATABASE') ?: 'events_test';
+$db = getenv('DB_DATABASE') ?: 'change_me';
 try {
     $dsn = "mysql:host={$host};port={$port}";
     $pdo = new PDO($dsn, $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);

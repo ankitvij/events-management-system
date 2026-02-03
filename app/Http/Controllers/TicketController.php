@@ -12,7 +12,10 @@ class TicketController extends Controller
 {
     public function store(Request $request, Event $event)
     {
-        $this->authorize('update', $event);
+        $current = $request->user();
+        if (! $current || (! $current->is_super_admin && $event->user_id !== $current->id)) {
+            abort(403);
+        }
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -33,7 +36,10 @@ class TicketController extends Controller
 
     public function update(Request $request, Event $event, Ticket $ticket)
     {
-        $this->authorize('update', $event);
+        $current = $request->user();
+        if (! $current || (! $current->is_super_admin && $event->user_id !== $current->id)) {
+            abort(403);
+        }
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -50,7 +56,10 @@ class TicketController extends Controller
 
     public function destroy(Event $event, Ticket $ticket)
     {
-        $this->authorize('update', $event);
+        $current = request()->user();
+        if (! $current || (! $current->is_super_admin && $event->user_id !== $current->id)) {
+            abort(403);
+        }
 
         $ticket->delete();
 
