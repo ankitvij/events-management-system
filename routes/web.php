@@ -200,6 +200,14 @@ Route::post('events/{event}/tickets', [TicketController::class, 'store'])->middl
 Route::put('events/{event}/tickets/{ticket}', [TicketController::class, 'update'])->middleware(['auth'])->name('events.tickets.update');
 Route::delete('events/{event}/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware(['auth'])->name('events.tickets.destroy');
 
+use App\Http\Controllers\CartController;
+
+// Shopping cart
+Route::get('cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
+Route::put('cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.items.update');
+Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
