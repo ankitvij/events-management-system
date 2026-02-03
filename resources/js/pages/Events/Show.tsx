@@ -1,6 +1,6 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
-import type { FormEvent } from 'react';
+import { useEffect, type FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -37,6 +37,8 @@ export default function Show({ event }: Props) {
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const organisers = page.props?.organisers ?? [] as Organiser[];
+
+    // debug logging removed
 
     const organisersForm = useForm({ organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [] });
 
@@ -133,7 +135,7 @@ export default function Show({ event }: Props) {
 
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
-                        {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
+                        {page.props?.canEdit ? (
                             <Link href={`/events/${event.id}/edit`} className="btn">Edit</Link>
                         ) : null}
 
@@ -145,7 +147,7 @@ export default function Show({ event }: Props) {
                         )}
                     </div>
 
-                    {(current && (current.is_super_admin || (event.user && current.id === event.user.id))) && (
+                    {page.props?.canEdit && (
                         <form onSubmit={saveOrganisers} className="mt-4">
                             <label className="block text-sm font-medium mb-2">Organisers</label>
                             <OrganiserMultiSelect organisers={organisers} value={organisersForm.data.organiser_ids} onChange={(v: number[]) => organisersForm.setData('organiser_ids', v)} />

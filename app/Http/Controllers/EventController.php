@@ -246,14 +246,21 @@ class EventController extends Controller
 
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
+        $current = auth()->user();
+        $canEdit = false;
+        if ($current) {
+            $canEdit = $current->is_super_admin || ($event->user_id && $current->id === $event->user_id);
+        }
+
         if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event, 'organisers' => $organisers, 'showOrganisers' => auth()->check()]);
+            return response()->json(['event' => $event, 'organisers' => $organisers, 'showOrganisers' => auth()->check(), 'canEdit' => $canEdit]);
         }
 
         return Inertia::render('Events/Show', [
             'event' => $event,
             'organisers' => $organisers,
             'showHomeHeader' => ! auth()->check(),
+            'canEdit' => $canEdit,
         ]);
     }
 
