@@ -49,6 +49,30 @@ export default function Show({ event }: Props) {
         organisersForm.put(`/events/${event.id}`, { forceFormData: true });
     }
 
+    async function addToCart(ticket: any) {
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const resp = await fetch('/cart/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                body: JSON.stringify({ ticket_id: ticket.id, event_id: event.id, quantity: 1, price: ticket.price }),
+            });
+
+            if (resp.ok) {
+                // notify sidebar to refresh
+                window.dispatchEvent(new CustomEvent('cart:updated'));
+            } else {
+                console.error('Failed to add to cart', resp.statusText);
+            }
+        } catch (e) {
+            console.error('Add to cart error', e);
+        }
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head>
@@ -146,7 +170,7 @@ export default function Show({ event }: Props) {
                                             <div className="text-right">
                                                 <div className="font-medium">${t.price.toFixed(2)}</div>
                                                 {t.active && t.quantity_available > 0 ? (
-                                                    <button className="btn mt-2">Buy</button>
+                                                    <button className="btn mt-2" onClick={() => addToCart(t)}>Buy</button>
                                                 ) : (
                                                     <div className="text-xs text-muted mt-2">Sold out</div>
                                                 )}
