@@ -79,7 +79,7 @@ export default function Show({ event }: Props) {
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 {(() => {
-                    const p = event.image ?? event.image_thumbnail ?? '';
+                    const p = event.image_url ?? event.image_thumbnail_url ?? event.image ?? event.image_thumbnail ?? '';
                     let url = '/images/default-event.svg';
                     if (p) {
                         if (p.startsWith('http')) url = p;

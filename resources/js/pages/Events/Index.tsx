@@ -177,7 +177,7 @@ export default function EventsIndex({ events }: Props) {
                                 <div className="md:col-span-7 flex items-center gap-3">
                                     <div className="w-20 h-12 flex-shrink-0">
                                         {(() => {
-                                            const p = event.image_thumbnail ?? event.image ?? '';
+                                            const p = event.image_thumbnail_url ?? event.image_url ?? event.image_thumbnail ?? event.image ?? '';
                                             let url = '/images/default-event.svg';
                                             if (p) {
                                                 if (p.startsWith('http')) url = p;
