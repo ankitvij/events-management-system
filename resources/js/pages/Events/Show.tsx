@@ -2,6 +2,8 @@ import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
+import TicketCreateForm from '@/components/TicketCreateForm';
+import TicketItem from '@/components/TicketItem';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -130,24 +132,37 @@ export default function Show({ event }: Props) {
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
                         <h2 className="text-lg font-semibold">Tickets</h2>
-                        <ul className="mt-2 space-y-2">
-                            {page.props.tickets.map((t: any) => (
-                                <li key={t.id} className="flex items-center justify-between border p-2 rounded">
-                                    <div>
-                                        <div className="font-medium">{t.name}</div>
-                                        <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available</div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="font-medium">${t.price.toFixed(2)}</div>
-                                        {t.active && t.quantity_available > 0 ? (
-                                            <button className="btn mt-2">Buy</button>
-                                        ) : (
-                                            <div className="text-xs text-muted mt-2">Sold out</div>
-                                        )}
-                                    </div>
-                                </li>
+                        <div className="mt-2 space-y-2">
+                            {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
+                                <div key={t.id} className="border p-2 rounded">
+                                    {page.props?.canEdit ? (
+                                        <TicketItem eventId={event.id} ticket={t} />
+                                    ) : (
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="font-medium">{t.name}</div>
+                                                <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="font-medium">${t.price.toFixed(2)}</div>
+                                                {t.active && t.quantity_available > 0 ? (
+                                                    <button className="btn mt-2">Buy</button>
+                                                ) : (
+                                                    <div className="text-xs text-muted mt-2">Sold out</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
-                        </ul>
+                        </div>
+                    </div>
+                )}
+
+                {page.props?.canEdit && (
+                    <div className="mt-4 border-t pt-4">
+                        <h3 className="text-sm font-medium">Create ticket</h3>
+                        <TicketCreateForm eventId={event.id} />
                     </div>
                 )}
 
