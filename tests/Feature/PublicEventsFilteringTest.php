@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Event;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Event;
 
 class PublicEventsFilteringTest extends TestCase
 {
@@ -14,10 +14,10 @@ class PublicEventsFilteringTest extends TestCase
     {
         parent::setUp();
         // create a few events with varying attributes
-        Event::factory()->create(["title" => "Alpha Party", "city" => "CityA", "country" => "CountryX", "active" => true]);
-        Event::factory()->create(["title" => "Beta Gala", "city" => "CityB", "country" => "CountryY", "active" => true]);
-        Event::factory()->create(["title" => "Gamma Meetup", "city" => "CityA", "country" => "CountryY", "active" => true]);
-        Event::factory()->create(["title" => "Old Event", "city" => "CityC", "country" => "CountryZ", "active" => false]);
+        Event::factory()->create(['title' => 'Alpha Party', 'city' => 'CityA', 'country' => 'CountryX', 'active' => true]);
+        Event::factory()->create(['title' => 'Beta Gala', 'city' => 'CityB', 'country' => 'CountryY', 'active' => true]);
+        Event::factory()->create(['title' => 'Gamma Meetup', 'city' => 'CityA', 'country' => 'CountryY', 'active' => true]);
+        Event::factory()->create(['title' => 'Old Event', 'city' => 'CityC', 'country' => 'CountryZ', 'active' => false]);
     }
 
     public function test_search_filters_by_title_and_description()

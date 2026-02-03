@@ -6,10 +6,11 @@ use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Models\Event;
 use App\Models\Organiser;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -17,7 +18,12 @@ class EventController extends Controller
 {
     public function index()
     {
-        $query = Event::with(['user', 'organisers'])->latest();
+        // Only eager-load organisers for authenticated users
+        $query = Event::with('user');
+        if (auth()->check()) {
+            $query->with('organisers');
+        }
+        $query->latest();
 
         $current = auth()->user();
         if ($current) {
@@ -94,8 +100,9 @@ class EventController extends Controller
             $countries = [];
         }
 
-        // Apply optional free-text search from query param `q`
-        $search = request('q', '');
+        // Apply optional free-text search from query params `q` or `search`
+        // (some clients/tests use `search` while others use `q`).
+        $search = request('q', request('search', ''));
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $like = "%{$search}%";
@@ -120,7 +127,7 @@ class EventController extends Controller
 
         if (! auth()->check()) {
             $page = request('page', 1);
-            $params = request()->only(['q', 'city', 'country', 'sort', 'active']);
+            $params = request()->only(['q', 'search', 'city', 'country', 'sort', 'active']);
             $hash = md5(http_build_query($params));
             $cacheKey = "events.public.page.{$page}.params.{$hash}";
             $events = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($query, $cacheKey) {
@@ -133,7 +140,7 @@ class EventController extends Controller
             $events = $query->paginate(10)->withQueryString();
         }
         if (app()->runningUnitTests()) {
-            return response()->json(['events' => $events]);
+            return response()->json(['events' => $events, 'showOrganisers' => auth()->check()]);
         }
 
         return Inertia::render('Events/Index', [
@@ -154,6 +161,7 @@ class EventController extends Controller
 
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
+            'showHomeHeader' => ! auth()->check(),
         ]);
     }
 
@@ -162,19 +170,53 @@ class EventController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('events', 'public');
-            $thumb = $this->generateThumbnail($data['image']);
-            if ($thumb) {
-                $data['image_thumbnail'] = $thumb;
+        DB::transaction(function () use ($request, $data) {
+            $local = $data;
+
+            if ($request->hasFile('image')) {
+                $local['image'] = $request->file('image')->store('events', 'public');
+                $thumb = $this->generateThumbnail($local['image']);
+                if ($thumb) {
+                    $local['image_thumbnail'] = $thumb;
+                }
             }
-        }
 
-        $event = Event::create($data);
+            $event = Event::create($local);
 
-        if (! empty($data['organiser_ids'])) {
-            $event->organisers()->sync($data['organiser_ids']);
-        }
+            $organiserIds = [];
+            if (! empty($local['organiser_ids'])) {
+                $organiserIds = array_values($local['organiser_ids']);
+            }
+
+            // Handle comma-separated organiser emails
+            $emailsRaw = $request->input('organiser_emails', '');
+            if (is_string($emailsRaw) && trim($emailsRaw) !== '') {
+                $parts = array_filter(array_map('trim', explode(',', $emailsRaw)));
+                foreach ($parts as $e) {
+                    if (! filter_var($e, FILTER_VALIDATE_EMAIL)) {
+                        continue;
+                    }
+
+                    $namePart = strstr($e, '@', true) ?: $e;
+                    $name = ucwords(str_replace(['.', '_', '-'], ' ', $namePart));
+
+                    $organiser = Organiser::firstOrCreate([
+                        'email' => $e,
+                    ], [
+                        'name' => $name,
+                        'active' => 1,
+                    ]);
+
+                    if ($organiser && $organiser->id) {
+                        $organiserIds[] = $organiser->id;
+                    }
+                }
+            }
+
+            if (! empty($organiserIds)) {
+                $event->organisers()->sync(array_values(array_unique($organiserIds)));
+            }
+        });
 
         $this->clearPublicEventsCache();
 
@@ -183,17 +225,16 @@ class EventController extends Controller
 
     public function show(Event $event)
     {
-        $event->load('user', 'organisers');
+        $event->load('user');
+        if (auth()->check()) {
+            $event->load('organisers');
+        }
 
         $current = auth()->user();
 
-        // Guests may view only active, non-super-admin-owned events
+        // Guests may view only active events
         if (! $current) {
             if (! $event->active) {
-                abort(404);
-            }
-
-            if ($event->user && $event->user->is_super_admin) {
                 abort(404);
             }
         } else {
@@ -205,14 +246,48 @@ class EventController extends Controller
 
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
+        // Load tickets: guests see only active tickets with availability, authenticated users see all
+        if (auth()->check()) {
+            $event->load('tickets');
+        } else {
+            $event->load(['tickets' => function ($q) {
+                $q->where('active', true)->where('quantity_available', '>', 0);
+            }]);
+        }
+
+        $current = auth()->user();
+        $canEdit = false;
+        if ($current) {
+            $canEdit = $current->is_super_admin || ($event->user_id && $current->id === $event->user_id);
+        }
+
+        $tickets = $event->tickets->map(function ($t) {
+            return [
+                'id' => $t->id,
+                'name' => $t->name,
+                'price' => (float) $t->price,
+                'quantity_total' => (int) $t->quantity_total,
+                'quantity_available' => (int) $t->quantity_available,
+                'active' => (bool) $t->active,
+            ];
+        })->values();
+
         if (app()->runningUnitTests()) {
-            return response()->json(['event' => $event, 'organisers' => $organisers]);
+            return response()->json([
+                'event' => $event,
+                'organisers' => $organisers,
+                'showOrganisers' => auth()->check(),
+                'canEdit' => $canEdit,
+                'tickets' => $tickets,
+            ]);
         }
 
         return Inertia::render('Events/Show', [
             'event' => $event,
             'organisers' => $organisers,
             'showHomeHeader' => ! auth()->check(),
+            'canEdit' => $canEdit,
+            'tickets' => $tickets,
         ]);
     }
 

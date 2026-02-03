@@ -1,12 +1,42 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import PublicHeader from '@/components/public-header';
 import ListControls from '@/components/list-controls';
+import OrganiserPlaceholder from '@/components/organiser-placeholder';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
+type Organiser = {
+    id: number;
+    name: string;
+};
+
+type Event = {
+    id: number;
+    title: string;
+    location?: string | null;
+    image?: string | null;
+    image_thumbnail?: string | null;
+    active?: boolean;
+    organisers?: Organiser[];
+    user?: { id: number } | null;
+    country?: string | null;
+    city?: string | null;
+    start_at?: string | null;
+};
+
+type PaginationLink = {
+    label?: string | null;
+    url?: string | null;
+    active?: boolean;
+};
+
+type EventsPagination = {
+    data: Event[];
+    links?: PaginationLink[];
+};
+
 type Props = {
-    events: any;
+    events: EventsPagination;
     showHomeHeader?: boolean;
 };
 
@@ -19,8 +49,7 @@ export default function EventsIndex({ events }: Props) {
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const cities: string[] = page.props?.cities ?? [];
-    const countries: string[] = page.props?.countries ?? [];
+
     function applySort(key: string) {
         if (typeof window === 'undefined') return;
         const sp = new URLSearchParams(window.location.search);
@@ -64,8 +93,6 @@ export default function EventsIndex({ events }: Props) {
                 <title>Events</title>
                 <meta name="description" content="Browse upcoming events." />
             </Head>
-
-            {showHomeHeader && <PublicHeader />}
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 <div className="flex items-center justify-between mb-4">
@@ -144,16 +171,29 @@ export default function EventsIndex({ events }: Props) {
                     </div>
 
                     <div className="space-y-3">
-                    {events.data?.map((event: any) => (
+                    {events.data?.map((event: Event) => (
                         <div key={event.id} className="border rounded p-3">
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                 <div className="md:col-span-7 flex items-center gap-3">
                                     <div className="w-20 h-12 flex-shrink-0">
-                                        <img
-                                            src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
-                                            alt={event.title}
-                                            className="w-full h-full object-cover rounded"
-                                        />
+                                        {(() => {
+                                            const p = event.image_thumbnail_url ?? event.image_url ?? event.image_thumbnail ?? event.image ?? '';
+                                            let url = '/images/default-event.svg';
+                                            if (p) {
+                                                if (p.startsWith('http')) url = p;
+                                                else if (p.startsWith('/storage/')) url = p;
+                                                else if (p.startsWith('storage/')) url = `/${p}`;
+                                                else url = `/storage/${p}`;
+                                            }
+                                            const ts = (event.updated_at ?? event.created_at) as string | undefined;
+                                            const addCacheBust = (u: string, t?: string) => {
+                                                if (!t) return u;
+                                                const sep = u.includes('?') ? '&' : '?';
+                                                return `${u}${sep}v=${encodeURIComponent(t)}`;
+                                            };
+                                            const finalUrl = addCacheBust(url, ts);
+                                            return <img src={finalUrl} alt={event.title} className="w-full h-full object-cover rounded" />;
+                                        })()}
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
@@ -164,18 +204,18 @@ export default function EventsIndex({ events }: Props) {
                                         </div>
                                         <div className="text-sm text-muted">{event.location}</div>
                                         {event.organisers && event.organisers.length > 0 && (
-                                            <div className="text-sm text-muted mt-1">
-                                                Organisers: {event.organisers.map((o: any, idx: number) => (
-                                                    <span key={o.id}>
-                                                        {current ? (
+                                            current ? (
+                                                <div className="text-sm text-muted mt-1">
+                                                    Organisers: {event.organisers.map((o: Organiser, idx: number) => (
+                                                        <span key={o.id}>
                                                             <Link href={`/organisers/${o.id}`} className="text-blue-600">{o.name}</Link>
-                                                        ) : (
-                                                            <span>{o.name}</span>
-                                                        )}
-                                                        {idx < event.organisers.length - 1 ? ', ' : ''}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                                            {idx < (event.organisers?.length ?? 0) - 1 ? ', ' : ''}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <OrganiserPlaceholder />
+                                            )
                                         )}
                                     </div>
                                 </div>
@@ -216,7 +256,7 @@ export default function EventsIndex({ events }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {events.links?.map((link: any) => {
+                    {events.links?.map((link: PaginationLink) => {
                         let label = link.label ?? '';
                         label = label.replace(/Previous/gi, '«').replace(/Next/gi, '»');
                         label = label.replace(/&laquo;|«/g, '«').replace(/&raquo;|»/g, '»').replace(/&lsaquo;|‹/g, '«').replace(/&rsaquo;|›/g, '»');

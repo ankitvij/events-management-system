@@ -1,11 +1,12 @@
 import { Head, usePage, router } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
 import ListControls from '@/components/list-controls';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { UserShort } from '@/types/entities';
 
 type Props = {
     roles: string[];
-    users: Array<any>;
+    users: UserShort[];
 };
 
 export default function RolesIndex({ roles, users }: Props) {

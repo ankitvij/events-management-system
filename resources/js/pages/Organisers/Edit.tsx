@@ -1,9 +1,10 @@
 import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { FormEvent } from 'react';
+import type { Organiser } from '@/types/entities';
 
-export default function Edit({ organiser }: any) {
+export default function Edit({ organiser }: { organiser: Organiser }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Organisers', href: '/organisers' },
         { title: 'Edit', href: `/organisers/${organiser.id}/edit` },

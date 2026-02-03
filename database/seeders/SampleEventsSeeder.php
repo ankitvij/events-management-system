@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Event;
+use Illuminate\Database\Seeder;
 
 class SampleEventsSeeder extends Seeder
 {
@@ -22,7 +22,7 @@ class SampleEventsSeeder extends Seeder
             $country = $countries[array_rand($countries)];
 
             Event::factory()->create([
-                'title' => $type . ' — ' . ucfirst(\Illuminate\Support\Str::random(6)),
+                'title' => $type.' — '.ucfirst(\Illuminate\Support\Str::random(6)),
                 'location' => $city,
                 'city' => $city,
                 'country' => $country,

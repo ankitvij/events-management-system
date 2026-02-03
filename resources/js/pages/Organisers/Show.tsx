@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
+import type { Organiser } from '@/types/entities';
 
-export default function Show({ organiser }: any) {
+export default function Show({ organiser }: { organiser: Organiser }) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Organisers', href: '/organisers' },
         { title: organiser.name, href: `/organisers/${organiser.id}` },
