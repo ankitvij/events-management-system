@@ -185,7 +185,14 @@ export default function EventsIndex({ events }: Props) {
                                                 else if (p.startsWith('storage/')) url = `/${p}`;
                                                 else url = `/storage/${p}`;
                                             }
-                                            return <img src={url} alt={event.title} className="w-full h-full object-cover rounded" />;
+                                            const ts = (event.updated_at ?? event.created_at) as string | undefined;
+                                            const addCacheBust = (u: string, t?: string) => {
+                                                if (!t) return u;
+                                                const sep = u.includes('?') ? '&' : '?';
+                                                return `${u}${sep}v=${encodeURIComponent(t)}`;
+                                            };
+                                            const finalUrl = addCacheBust(url, ts);
+                                            return <img src={finalUrl} alt={event.title} className="w-full h-full object-cover rounded" />;
                                         })()}
                                     </div>
                                     <div>

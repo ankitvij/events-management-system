@@ -87,9 +87,16 @@ export default function Show({ event }: Props) {
                         else if (p.startsWith('storage/')) url = `/${p}`;
                         else url = `/storage/${p}`;
                     }
+                    const ts = (event.updated_at ?? event.created_at) as string | undefined;
+                    const addCacheBust = (u: string, t?: string) => {
+                        if (!t) return u;
+                        const sep = u.includes('?') ? '&' : '?';
+                        return `${u}${sep}v=${encodeURIComponent(t)}`;
+                    };
+                    const finalUrl = addCacheBust(url, ts);
                     return (
                         <div className="mb-4">
-                            <img src={url} alt={event.title} className="max-w-full h-auto rounded" />
+                            <img src={finalUrl} alt={event.title} className="max-w-full h-auto rounded" />
                         </div>
                     );
                 })()}
