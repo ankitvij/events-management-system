@@ -4,6 +4,7 @@ import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import TicketCreateForm from '@/components/TicketCreateForm';
 import TicketItem from '@/components/TicketItem';
+import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -47,6 +48,31 @@ export default function Show({ event }: Props) {
     function saveOrganisers(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         organisersForm.put(`/events/${event.id}`, { forceFormData: true });
+    }
+
+            async function addToCart(ticket: any) {
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const resp = await fetch('/cart/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                },
+                        credentials: 'same-origin',
+                body: JSON.stringify({ ticket_id: ticket.id, event_id: event.id, quantity: 1, price: ticket.price }),
+            });
+
+            if (resp.ok) {
+                // notify sidebar to refresh
+                window.dispatchEvent(new CustomEvent('cart:updated'));
+            } else {
+                console.error('Failed to add to cart', resp.statusText);
+            }
+        } catch (e) {
+            console.error('Add to cart error', e);
+        }
     }
 
     return (
@@ -131,28 +157,41 @@ export default function Show({ event }: Props) {
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
-                        <h2 className="text-lg font-semibold">Tickets</h2>
+                        <h2 id="tickets" className="text-lg font-semibold">Tickets</h2>
                         <div className="mt-2 space-y-2">
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
                                 <div key={t.id} className="border p-2 rounded">
                                     {page.props?.canEdit ? (
-                                        <TicketItem eventId={event.id} ticket={t} />
-                                    ) : (
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <div className="font-medium">{t.name}</div>
-                                                <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-medium">${t.price.toFixed(2)}</div>
-                                                {t.active && t.quantity_available > 0 ? (
-                                                    <button className="btn mt-2">Buy</button>
-                                                ) : (
-                                                    <div className="text-xs text-muted mt-2">Sold out</div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+                                                <TicketItem eventId={event.id} ticket={t} />
+                                            ) : (
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <div className="font-medium">{t.name}</div>
+                                                        <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available · Sold: {t.quantity_total - t.quantity_available}</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-medium">€{t.price.toFixed(2)}</div>
+                                                        {t.active && t.quantity_available > 0 ? (
+                                                            <div className="mt-2 flex justify-end items-center">
+                                                                <ActionButton
+                                                                    onClick={async () => { await addToCart(t); window.location.href = '/cart'; }}
+                                                                >
+                                                                    Buy
+                                                                </ActionButton>
+                                                                <button
+                                                                    type="button"
+                                                                    className="ml-3 bg-white border px-4 py-2 rounded text-sm cursor-pointer"
+                                                                    onClick={() => addToCart(t)}
+                                                                >
+                                                                    Add to cart
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-xs text-muted mt-2">Sold out</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                 </div>
                             ))}
                         </div>

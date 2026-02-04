@@ -87,7 +87,7 @@ export default function ListControls({
 
             <div className="flex items-center gap-3">
                 {showSearch && (
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
+                    <input name="q" value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
                 )}
 
                 {/* city/country filters removed — controlled centrally where needed */}

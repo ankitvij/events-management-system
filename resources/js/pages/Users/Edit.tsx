@@ -35,19 +35,19 @@ export default function Edit({ user }: { user: UserShort }) {
             <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
                     <label className="block text-sm font-medium">Name</label>
-                    <input value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
+                    <input name="name" value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
                     {form.errors.name && <div className="text-sm text-destructive mt-1">{form.errors.name}</div>}
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Email</label>
-                    <input value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
+                    <input name="email" value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
                     {form.errors.email && <div className="text-sm text-destructive mt-1">{form.errors.email}</div>}
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Password (leave empty to keep)</label>
-                    <input type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} className="input" />
+                    <input name="password" type="password" value={form.data.password} onChange={e => form.setData('password', e.target.value)} className="input" />
                 </div>
 
                 {isSuper && (
@@ -65,7 +65,7 @@ export default function Edit({ user }: { user: UserShort }) {
                 {(isSuper || current?.id === user.id || (current?.role === 'admin' && user.role === 'user')) && (
                     <div>
                         <label className="flex items-center gap-2">
-                            <input type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
+                            <input name="active" type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
                             <span className="text-sm">Active</span>
                         </label>
                     </div>

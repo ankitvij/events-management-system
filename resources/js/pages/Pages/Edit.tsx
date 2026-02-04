@@ -30,12 +30,12 @@ export default function Edit({ page }: Props) {
             <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
                     <label className="block text-sm font-medium">Title</label>
-                    <input value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
+                    <input name="title" value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Slug</label>
-                    <input value={form.data.slug} onChange={e => form.setData('slug', e.target.value)} className="input" />
+                    <input name="slug" value={form.data.slug} onChange={e => form.setData('slug', e.target.value)} className="input" />
                 </div>
 
                 <div>
@@ -45,7 +45,7 @@ export default function Edit({ page }: Props) {
 
                 <div>
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
+                        <input name="active" type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
                         <span className="text-sm">Active</span>
                     </label>
                 </div>

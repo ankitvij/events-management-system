@@ -65,6 +65,11 @@ export function AppSidebar() {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
     }
 
+    // show Pages module to admins
+    if (isAdmin) {
+        items.push({ title: 'Pages', href: '/pages', icon: Folder });
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

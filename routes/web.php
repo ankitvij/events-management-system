@@ -207,6 +207,10 @@ Route::get('cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
 Route::put('cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.items.update');
 Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+// Lightweight JSON summary for sidebar updates
+Route::get('cart/summary', [CartController::class, 'summary'])->name('cart.summary');
+// Checkout (basic reservation + decrement) - POST
+Route::post('cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
 use App\Http\Controllers\CustomerController;
 

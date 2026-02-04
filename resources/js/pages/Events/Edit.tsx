@@ -43,47 +43,47 @@ export default function Edit({ event }: Props) {
             <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
                     <label className="block text-sm font-medium">Title</label>
-                    <input value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
+                    <input name="title" value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Location</label>
-                    <input value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
+                    <input name="location" value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">City</label>
-                    <input value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                    <input name="city" value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Country</label>
-                    <input value={form.data.country} onChange={e => form.setData('country', e.target.value)} className="input" />
+                    <input name="country" value={form.data.country} onChange={e => form.setData('country', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Address</label>
-                    <input value={form.data.address} onChange={e => form.setData('address', e.target.value)} className="input" />
+                    <input name="address" value={form.data.address} onChange={e => form.setData('address', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Start</label>
-                    <input type="datetime-local" value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
+                    <input name="start_at" type="datetime-local" value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">End</label>
-                    <input type="datetime-local" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
+                    <input name="end_at" type="datetime-local" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Description</label>
-                    <textarea value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                    <textarea name="description" value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Image</label>
-                    <input type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
+                    <input name="image" type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
                 </div>
 
                 <div>
