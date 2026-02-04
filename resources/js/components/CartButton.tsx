@@ -1,10 +1,12 @@
 import { Link } from '@inertiajs/react';
 import React, { useEffect, useRef, useState } from 'react';
+import CheckoutModal from '@/components/checkout-modal';
 import { Trash } from 'lucide-react';
 
 export default function CartButton() {
     const [summary, setSummary] = useState<{ count: number; total: number; items?: any[] }>({ count: 0, total: 0, items: [] });
     const [open, setOpen] = useState(false);
+    const [showCheckout, setShowCheckout] = useState(false);
     const ref = useRef<HTMLDivElement | null>(null);
 
     const fetchSummary = async () => {
@@ -140,7 +142,13 @@ export default function CartButton() {
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                         <div className="text-sm text-muted">Total: €{Number(summary.total).toFixed(2)}</div>
-                        <Link href="/cart" className="text-sm text-blue-600">View cart</Link>
+                        <div className="flex items-center gap-2">
+                            <Link href="/cart" className="text-sm text-blue-600">View cart</Link>
+                            {summary.count > 0 && (
+                                <button type="button" onClick={() => setShowCheckout(true)} className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-2 py-1 text-sm text-white">Checkout</button>
+                            )}
+                            <CheckoutModal isOpen={showCheckout} onClose={() => setShowCheckout(false)} onSuccess={async () => { await fetchSummary(); }} />
+                        </div>
                     </div>
                 </div>
             )}

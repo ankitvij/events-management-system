@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Ticket;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Mail\OrderConfirmed;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,9 +18,20 @@ class CartController extends Controller
     {
         // Ensure a cart exists for the session (create for guests) so views can safely load relations
         $cart = $this->getCart($request, true);
-        $cart->load('items.ticket', 'items.event');
-        $count = $cart->items->sum('quantity');
-        $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+        if (! $cart) {
+            $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
+        }
+        if ($cart) {
+            $cart->load('items.ticket', 'items.event');
+            $count = $cart->items->sum('quantity');
+            $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+        } else {
+            // Fallback: present an empty cart object for views to render safely
+            $cart = new Cart();
+            $cart->setRelation('items', collect());
+            $count = 0;
+            $total = 0;
+        }
         return inertia('Cart/Index', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
     }
 
@@ -77,11 +92,16 @@ class CartController extends Controller
     {
         $cart = $this->getCart($request);
         if (! $cart || $cart->items()->count() === 0) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
+            }
             return redirect()->back()->with('error', 'Cart is empty');
         }
 
+        $incomingEmail = $request->input('email');
+
         try {
-            DB::transaction(function () use ($cart) {
+            $order = DB::transaction(function () use ($cart, $incomingEmail) {
                 $cart->load('items');
                 foreach ($cart->items as $item) {
                     if ($item->ticket_id) {
@@ -94,14 +114,88 @@ class CartController extends Controller
                     }
                 }
 
+                // create an order and order items to represent this reservation
+                // generate a unique 10-digit booking code for this order
+                do {
+                    try {
+                        $code = (string) random_int(1000000000, 9999999999);
+                    } catch (\Throwable $e) {
+                        // fallback if random_int is not available
+                        $code = substr((string) time() . (string) rand(1000, 9999), 0, 10);
+                    }
+                } while (\App\Models\Order::where('booking_code', $code)->exists());
+                $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+                $order = Order::create([
+                    'booking_code' => $code,
+                    'user_id' => $cart->user_id ?? null,
+                    'session_id' => $cart->session_id ?? null,
+                    'status' => 'confirmed',
+                    'total' => $total,
+                    'contact_name' => null,
+                    'contact_email' => null,
+                ]);
+
+                foreach ($cart->items as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'ticket_id' => $item->ticket_id,
+                        'event_id' => $item->event_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                    ]);
+                }
+
                 // clear cart items after successful reservation
                 $cart->items()->delete();
+
+                return $order;
             });
+
+            // attempt to send confirmation email outside transaction
+            $recipient = null;
+            if ($cart->user) {
+                $recipient = $cart->user->email;
+            }
+            // prefer contact email passed during guest checkout
+            $incomingName = $request->input('name');
+            if (! $recipient && $incomingEmail) {
+                $recipient = $incomingEmail;
+            }
+            if (isset($order)) {
+                // persist contact details on order if provided
+                $order->contact_name = $incomingName ?: $order->contact_name;
+                $order->contact_email = $incomingEmail ?: $order->contact_email;
+                $order->save();
+            }
+            if ($recipient && isset($order)) {
+                try {
+                    Mail::to($recipient)->send(new OrderConfirmed($order));
+                } catch (\Throwable $e) {
+                    logger()->error('Order confirmation mail failed: ' . $e->getMessage());
+                }
+            }
         } catch (\Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+            }
             return redirect()->back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('cart.index')->with('success', 'Checkout complete');
+        // prefer display the order confirmation page with details
+        $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'order_id' => $order->id, 'email' => $recipientEmail]);
+        }
+
+        $message = "Order placed successfully.";
+        if ($recipientEmail) {
+            $message .= " A confirmation has been sent to {$recipientEmail}.";
+        }
+        $message .= " For any questions reply to that email or mention order number #{$order->id}.";
+
+        // Include booking_code as query param so guests can view their order confirmation
+        return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', $message);
     }
 
     public function updateItem(Request $request, CartItem $item)
@@ -130,6 +224,15 @@ class CartController extends Controller
         if ($request->user()) {
             $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
             return $cart;
+        }
+
+        // Allow lookup by explicit cart_id cookie or request parameter (useful for tests and some clients)
+        $cookieCartId = $request->cookie('cart_id');
+        $paramCartId = $request->input('cart_id');
+        $cartIdToFind = $cookieCartId ?: $paramCartId;
+        if ($cartIdToFind) {
+            $cart = Cart::find($cartIdToFind);
+            if ($cart) return $cart;
         }
 
         $sid = $request->session()->getId();

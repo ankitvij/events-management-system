@@ -157,10 +157,12 @@ class EventController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        // Only provide organisers list to authenticated users
+        $organisers = auth()->check() ? Organiser::orderBy('name')->get(['id', 'name']) : [];
 
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
+            'showOrganisers' => auth()->check(),
             'showHomeHeader' => ! auth()->check(),
         ]);
     }
@@ -168,7 +170,8 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
+        // Allow guest-created events: user_id may be null for guests
+        $data['user_id'] = $request->user()?->id;
 
         DB::transaction(function () use ($request, $data) {
             $local = $data;
@@ -215,6 +218,27 @@ class EventController extends Controller
 
             if (! empty($organiserIds)) {
                 $event->organisers()->sync(array_values(array_unique($organiserIds)));
+            }
+            // If guest supplied a single organiser name/email, create organiser and attach
+            $guestName = $request->input('organiser_name');
+            $guestEmail = $request->input('organiser_email');
+            if ((! auth()->check()) && $guestEmail && filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                $name = $guestName ?: (strstr($guestEmail, '@', true) ?: $guestEmail);
+                $name = ucwords(str_replace(['.', '_', '-'], ' ', $name));
+
+                $organiser = Organiser::firstOrCreate([
+                    'email' => $guestEmail,
+                ], [
+                    'name' => $name,
+                    'active' => 1,
+                ]);
+
+                if ($organiser && $organiser->id) {
+                    // attach to pivot and set primary organiser_id on event
+                    $event->organisers()->syncWithoutDetaching([$organiser->id]);
+                    $event->organiser_id = $organiser->id;
+                    $event->save();
+                }
             }
         });
 

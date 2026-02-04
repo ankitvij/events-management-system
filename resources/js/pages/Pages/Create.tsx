@@ -2,6 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
+import ActionButton from '@/components/ActionButton';
 import type { BreadcrumbItem } from '@/types';
 
 export default function Create() {
@@ -45,7 +46,7 @@ export default function Create() {
                 </div>
 
                 <div>
-                    <button type="submit" className="btn-primary" disabled={form.processing}>Create</button>
+                    <ActionButton type="submit">Create</ActionButton>
                 </div>
             </form>
         </AppLayout>

@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
+import CheckoutModal from '@/components/checkout-modal';
 import { Trash } from 'lucide-react';
 
 export default function CartSidebar({ cart }: { cart?: any }) {
@@ -69,6 +70,8 @@ export default function CartSidebar({ cart }: { cart?: any }) {
         return Array.from(map.values());
     }
 
+    const [showCheckout, setShowCheckout] = useState(false);
+
     return (
         <div className="p-4 border rounded">
             <h3 className="font-semibold">Cart</h3>
@@ -100,7 +103,11 @@ export default function CartSidebar({ cart }: { cart?: any }) {
             </div>
 
             <div className="mt-2">
-                <Link href="/cart" className="text-blue-600">View cart</Link>
+                <div className="flex items-center gap-3">
+                    <Link href="/cart" className="text-blue-600">View cart</Link>
+                    <button type="button" onClick={() => setShowCheckout(true)} className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-2 py-1 text-sm text-white">Checkout</button>
+                    <CheckoutModal isOpen={showCheckout} onClose={() => setShowCheckout(false)} onSuccess={async () => { await fetchSummary(); }} />
+                </div>
             </div>
         </div>
     );

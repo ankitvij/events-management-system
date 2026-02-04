@@ -68,6 +68,7 @@ export function AppSidebar() {
     // show Pages module to admins
     if (isAdmin) {
         items.push({ title: 'Pages', href: '/pages', icon: Folder });
+        items.push({ title: 'Orders', href: '/orders', icon: Folder });
     }
 
     return (

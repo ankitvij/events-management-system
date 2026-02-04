@@ -26,6 +26,23 @@ export default function Toasts() {
         return undefined;
     }, [page.props]);
 
+    useEffect(() => {
+        function onAppToast(e: any) {
+            const detail = e.detail || {};
+            const m = detail.message || null;
+            const t = detail.type === 'error' ? 'error' : 'success';
+            setMessage(m);
+            setType(t);
+            if (m) {
+                const id = setTimeout(() => setMessage(null), 3500);
+                return () => clearTimeout(id);
+            }
+            return undefined;
+        }
+        window.addEventListener('app:toast', onAppToast as EventListener);
+        return () => window.removeEventListener('app:toast', onAppToast as EventListener);
+    }, []);
+
     if (!message) return null;
 
     return (
