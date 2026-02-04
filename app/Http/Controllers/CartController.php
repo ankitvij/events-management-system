@@ -77,6 +77,9 @@ class CartController extends Controller
     {
         $cart = $this->getCart($request);
         if (! $cart || $cart->items()->count() === 0) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
+            }
             return redirect()->back()->with('error', 'Cart is empty');
         }
 
@@ -98,7 +101,14 @@ class CartController extends Controller
                 $cart->items()->delete();
             });
         } catch (\Throwable $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+            }
             return redirect()->back()->with('error', $e->getMessage());
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Checkout complete']);
         }
 
         return redirect()->route('cart.index')->with('success', 'Checkout complete');
