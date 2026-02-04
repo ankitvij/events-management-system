@@ -142,6 +142,13 @@ class CartController extends Controller
             return $cart;
         }
 
+        // Allow lookup by explicit cart_id cookie (useful for tests and some clients)
+        $cookieCartId = $request->cookie('cart_id');
+        if ($cookieCartId) {
+            $cart = Cart::find($cookieCartId);
+            if ($cart) return $cart;
+        }
+
         $sid = $request->session()->getId();
         $cart = Cart::where('session_id', $sid)->first();
         if (! $cart && $create) {
