@@ -15,4 +15,14 @@ class CartItem extends Model
     {
         return $this->belongsTo(Cart::class);
     }
+
+    public function ticket()
+    {
+        return $this->belongsTo(Ticket::class);
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(Event::class);
+    }
 }

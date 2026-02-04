@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import React from 'react';
+import ActionButton from '@/components/ActionButton';
 
 type Props = { eventId: number };
 
@@ -19,11 +20,30 @@ export default function TicketCreateForm({ eventId }: Props) {
 
     return (
         <form onSubmit={onSubmit} className="mt-2">
-            <div className="flex gap-2">
-                <input placeholder="Name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className="flex-1" />
-                <input type="number" placeholder="Price" value={String(form.data.price)} onChange={(e) => form.setData('price', parseFloat(e.target.value || '0'))} className="w-28" />
-                <input type="number" placeholder="Total" value={String(form.data.quantity_total)} onChange={(e) => form.setData('quantity_total', parseInt(e.target.value || '0', 10))} className="w-28" />
-                <button type="submit" className="btn">Create</button>
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium">Name</label>
+                    <input name="name" placeholder="Name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className="w-full" />
+                </div>
+
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium">Price (€)</label>
+                    <input name="price" type="number" step="0.01" placeholder="0.00" value={String(form.data.price)} onChange={(e) => form.setData('price', parseFloat(e.target.value || '0'))} className="w-full" />
+                </div>
+
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium">Total</label>
+                    <input name="quantity_total" type="number" placeholder="0" value={String(form.data.quantity_total)} onChange={(e) => form.setData('quantity_total', parseInt(e.target.value || '0', 10))} className="w-full" />
+                </div>
+
+                <div className="md:col-span-1">
+                    <label className="block text-sm font-medium">Available</label>
+                    <input name="quantity_available" type="number" placeholder="0" value={String(form.data.quantity_available)} onChange={(e) => form.setData('quantity_available', parseInt(e.target.value || '0', 10))} className="w-full" />
+                </div>
+
+                <div className="md:col-span-1">
+                    <ActionButton type="submit">Create</ActionButton>
+                </div>
             </div>
         </form>
     );

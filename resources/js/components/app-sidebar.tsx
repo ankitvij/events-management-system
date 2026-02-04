@@ -3,7 +3,6 @@ import { BookOpen, Calendar, Folder, LayoutGrid, Users, Shield } from 'lucide-re
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import CartSidebar from '@/components/CartSidebar';
 import {
     Sidebar,
     SidebarContent,
@@ -66,6 +65,11 @@ export function AppSidebar() {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
     }
 
+    // show Pages module to admins
+    if (isAdmin) {
+        items.push({ title: 'Pages', href: '/pages', icon: Folder });
+    }
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -85,9 +89,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <div className="mb-4">
-                    <CartSidebar cart={page.props?.cart} />
-                </div>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>

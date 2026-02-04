@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import ActionButton from '@/components/ActionButton';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -44,7 +45,9 @@ export default function UsersIndex({ users }: Props) {
                     <div className="flex items-center gap-4">
                         <ListControls path="/users" links={users.links} showSearch showActive />
                     </div>
-                    <Link href="/users/create" className="btn-primary">New User</Link>
+                    <div className="flex gap-2">
+                        <ActionButton href="/users/create">New User</ActionButton>
+                    </div>
                 </div>
 
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">

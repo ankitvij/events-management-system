@@ -12,9 +12,12 @@ class CartController extends Controller
 {
     public function index(Request $request)
     {
-        $cart = $this->getCart($request);
-        $cart->load('items');
-        return inertia('Cart/Index', ['cart' => $cart]);
+        // Ensure a cart exists for the session (create for guests) so views can safely load relations
+        $cart = $this->getCart($request, true);
+        $cart->load('items.ticket', 'items.event');
+        $count = $cart->items->sum('quantity');
+        $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+        return inertia('Cart/Index', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
     }
 
     public function storeItem(Request $request)
@@ -28,10 +31,29 @@ class CartController extends Controller
 
         $cart = $this->getCart($request, true);
 
-        $item = CartItem::create(array_merge($data, ['cart_id' => $cart->id]));
+        // If an identical item (same ticket & event) exists, increment its quantity instead of creating a new row.
+        $existing = null;
+        if (! empty($data['ticket_id']) || ! empty($data['event_id'])) {
+            $query = CartItem::where('cart_id', $cart->id)->where('ticket_id', $data['ticket_id'] ?? null)->where('event_id', $data['event_id'] ?? null);
+            $existing = $query->first();
+        }
+
+        if ($existing) {
+            $existing->quantity = $existing->quantity + $data['quantity'];
+            // Update price in case price changed (keep latest)
+            $existing->price = $data['price'];
+            $existing->save();
+            $item = $existing;
+        } else {
+            $item = CartItem::create(array_merge($data, ['cart_id' => $cart->id]));
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'item' => $item, 'cart_id' => $cart->id]);
+            // return updated cart summary as well to help the frontend update UI
+            $cart->load('items.ticket', 'items.event');
+            $count = $cart->items->sum('quantity');
+            $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+            return response()->json(['success' => true, 'item' => $item, 'cart_id' => $cart->id, 'count' => $count, 'total' => $total]);
         }
 
         return redirect()->back();
@@ -43,7 +65,7 @@ class CartController extends Controller
         if (! $cart) {
             return response()->json(['items' => [], 'count' => 0, 'total' => 0]);
         }
-        $cart->load('items');
+        $cart->load('items.ticket', 'items.event');
         $count = $cart->items->sum('quantity');
         $total = $cart->items->sum(function ($i) {
             return $i->quantity * $i->price;
@@ -86,12 +108,20 @@ class CartController extends Controller
     {
         $data = $request->validate(['quantity' => 'required|integer|min:1']);
         $item->update($data);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $item]);
+        }
+
         return redirect()->back();
     }
 
     public function destroyItem(CartItem $item)
     {
         $item->delete();
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
         return redirect()->back();
     }
 

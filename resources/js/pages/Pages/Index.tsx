@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import ActionButton from '@/components/ActionButton';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -35,7 +36,7 @@ export default function Index({ pages }: Props) {
                     <div className="flex items-center gap-4">
                         <ListControls path="/pages" links={pages.links} showSearch searchPlaceholder="Search pages..." />
                     </div>
-                    <Link href="/pages/create" className="btn-primary">New Page</Link>
+                    <ActionButton href="/pages/create">New Page</ActionButton>
                 </div>
 
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
