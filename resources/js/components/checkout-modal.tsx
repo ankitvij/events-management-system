@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +17,10 @@ function getCsrf() {
 export default function CheckoutModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess?: () => void }) {
     const [loading, setLoading] = useState(false);
     const [summary, setSummary] = useState<{ count: number; total: number }>({ count: 0, total: 0 });
+    const page = usePage();
+    const user = page.props?.auth?.user ?? null;
+    const [guestName, setGuestName] = useState('');
+    const [guestEmail, setGuestEmail] = useState('');
 
     useEffect(() => {
         if (!isOpen) return;
@@ -38,10 +43,16 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: { isOpen: 
         setLoading(true);
         try {
             const token = getCsrf();
+            const body: any = {};
+            if (!user) {
+                body.email = guestEmail;
+                body.name = guestName;
+            }
             const resp = await fetch('/cart/checkout', {
                 method: 'POST',
-                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token, 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
+                body: JSON.stringify(body),
             });
             if (!resp.ok) {
                 const j = await resp.json().catch(() => ({ message: 'Checkout failed' }));
@@ -74,6 +85,19 @@ export default function CheckoutModal({ isOpen, onClose, onSuccess }: { isOpen: 
                         This will attempt to reserve your selected tickets. Reservations are temporary.
                     </DialogDescription>
                 </DialogHeader>
+
+                {!user && (
+                    <div className="mt-4 space-y-3">
+                        <div>
+                            <label className="block text-sm font-medium">Full name</label>
+                            <input type="text" value={guestName} onChange={(e) => setGuestName(e.target.value)} className="mt-1 block w-full border rounded px-2 py-1" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium">Email address</label>
+                            <input type="email" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="mt-1 block w-full border rounded px-2 py-1" />
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-4">
                     <div className="text-sm">Items: {summary.count}</div>

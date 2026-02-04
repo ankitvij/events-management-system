@@ -173,18 +173,12 @@ export default function Show({ event }: Props) {
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
                                                         {t.active && t.quantity_available > 0 ? (
                                                             <div className="mt-2 flex justify-end items-center">
-                                                                <ActionButton
-                                                                    onClick={async () => { await addToCart(t); window.location.href = '/cart'; }}
-                                                                >
+                                                                <ActionButton onClick={async () => { await addToCart(t); window.location.href = '/cart'; }}>
                                                                     Buy
                                                                 </ActionButton>
-                                                                <button
-                                                                    type="button"
-                                                                    className="ml-3 bg-white border px-4 py-2 rounded text-sm cursor-pointer"
-                                                                    onClick={() => addToCart(t)}
-                                                                >
+                                                                <ActionButton className="ml-3" onClick={() => addToCart(t)}>
                                                                     Add to cart
-                                                                </button>
+                                                                </ActionButton>
                                                             </div>
                                                         ) : (
                                                             <div className="text-xs text-muted mt-2">Sold out</div>

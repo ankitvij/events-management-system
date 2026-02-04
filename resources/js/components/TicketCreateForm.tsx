@@ -22,13 +22,12 @@ export default function TicketCreateForm({ eventId }: Props) {
         <form onSubmit={onSubmit} className="mt-2">
             <div className="grid grid-cols-1 md:grid-cols-6 gap-2 items-end">
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-medium">Name</label>
-                    <input name="name" placeholder="Name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className="w-full" />
-                </div>
-
-                <div className="md:col-span-1">
-                    <label className="block text-sm font-medium">Price (€)</label>
-                    <input name="price" type="number" step="0.01" placeholder="0.00" value={String(form.data.price)} onChange={(e) => form.setData('price', parseFloat(e.target.value || '0'))} className="w-full" />
+                    <label className="block text-sm font-medium">Type</label>
+                    <input name="name" placeholder="Type" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className="w-full" />
+                    <div className="mt-2">
+                        <label className="block text-sm font-medium">Price (€)</label>
+                        <input name="price" type="number" step="0.01" placeholder="0.00" value={String(form.data.price)} onChange={(e) => form.setData('price', parseFloat(e.target.value || '0'))} className="w-full" />
+                    </div>
                 </div>
 
                 <div className="md:col-span-1">

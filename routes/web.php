@@ -159,9 +159,12 @@ require __DIR__.'/settings.php';
 // Events listing (public)
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
-// Allow public access to the create form, but protect store/update/delete routes
+// Allow public access to the create form and allow guests to submit new events
 Route::get('events/create', [EventController::class, 'create'])->name('events.create');
-Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create']);
+// Public store route so guests can submit event creations
+Route::post('events', [EventController::class, 'store'])->name('events.store');
+// Protect all other event resource routes with auth
+Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create', 'store']);
 
 // Allow public viewing of individual events at /events/{event}
 Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
@@ -221,6 +224,7 @@ use App\Http\Controllers\OrderController;
 // Admin orders
 Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
 Route::get('orders/{order}', [OrderController::class, 'show'])->middleware(['auth'])->name('orders.show');
+Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->middleware(['auth'])->name('orders.receipt');
 
 use App\Http\Controllers\PageController;
 

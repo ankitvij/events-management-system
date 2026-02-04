@@ -27,6 +27,9 @@ class StoreEventRequest extends FormRequest
             'organiser_ids' => ['nullable', 'array'],
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
             'organiser_emails' => ['nullable', 'string'],
+            // Allow guests to supply a single organiser name/email when creating an event
+            'organiser_name' => ['nullable', 'string', 'max:255'],
+            'organiser_email' => ['nullable', 'email', 'max:255'],
         ];
     }
 }

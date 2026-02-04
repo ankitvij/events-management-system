@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import React from 'react';
 
@@ -19,18 +19,20 @@ export default function OrdersIndex() {
                         <div className="text-sm text-muted">No orders yet.</div>
                     ) : (
                         orders.data.map((o: any) => (
-                            <div key={o.id} className="p-3 border rounded">
+                            <Link key={o.id} href={`/orders/${o.id}`} className="block p-3 border rounded hover:bg-gray-50" as="a">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <div className="font-medium">Order #{o.id}</div>
                                         <div className="text-sm text-muted">Placed: {o.created_at}</div>
+                                        {o.booking_code ? <div className="text-sm">Booking: <strong>{o.booking_code}</strong></div> : null}
+                                        {o.contact_name ? <div className="text-sm">Contact: {o.contact_name}</div> : null}
                                     </div>
                                     <div className="text-right">
                                         <div className="font-medium">€{Number(o.total).toFixed(2)}</div>
                                         <div className="text-sm text-muted">Items: {o.items?.length ?? 0}</div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))
                     )}
                 </div>

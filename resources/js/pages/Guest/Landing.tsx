@@ -97,7 +97,7 @@ export default function GuestLanding({ events }: Props) {
                             className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
                             aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
-                            Start
+                            Date
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
 

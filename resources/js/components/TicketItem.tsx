@@ -40,7 +40,7 @@ export default function TicketItem({ eventId, ticket }: Props) {
         <form onSubmit={onSave} className="w-full">
             <div className="flex gap-4 items-center">
                 <div className="flex-1">
-                    <label className="block text-sm font-medium">Name</label>
+                    <label className="block text-sm font-medium">Type</label>
                     <input name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} className="w-full" />
                     <div className="grid grid-cols-5 gap-2 mt-2 text-xs text-muted">
                         <div>

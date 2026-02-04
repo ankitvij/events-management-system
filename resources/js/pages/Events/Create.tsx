@@ -1,6 +1,8 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
+import ActionButton from '@/components/ActionButton';
+import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -23,10 +25,13 @@ export default function Create() {
         image: null,
         organiser_ids: [],
         organiser_emails: '',
+        organiser_name: '',
+        organiser_email: '',
     });
 
     const page = usePage();
     const organisers = page.props?.organisers ?? [];
+    const showOrganisers = page.props?.showOrganisers ?? false;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
 
     function submit(e: FormEvent) {
@@ -77,7 +82,7 @@ export default function Create() {
 
                 <div>
                     <label className="block text-sm font-medium">Description</label>
-                    <textarea value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                    <RichEditor value={form.data.description} onChange={v => form.setData('description', v)} />
                 </div>
 
                 <div>
@@ -87,9 +92,19 @@ export default function Create() {
 
                 <div>
                     <label className="block text-sm font-medium">Organisers</label>
-                    <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
-                    <p className="text-sm text-muted mt-2">Or add organiser email addresses (comma-separated) to create organisers on submit.</p>
-                    <input name="organiser_emails" value={form.data.organiser_emails} onChange={e => form.setData('organiser_emails', e.target.value)} placeholder="organiser1@example.com, organiser2@example.com" className="input mt-2" />
+                    {showOrganisers ? (
+                        <>
+                            <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
+                            <p className="text-sm text-muted mt-2">Or add organiser email addresses (comma-separated) to create organisers on submit.</p>
+                            <input name="organiser_emails" value={form.data.organiser_emails} onChange={e => form.setData('organiser_emails', e.target.value)} placeholder="organiser1@example.com, organiser2@example.com" className="input mt-2" />
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-sm text-muted">You are creating an event as a guest. Please provide an organiser name and email to create an organiser record for this event.</p>
+                            <input name="organiser_name" value={form.data.organiser_name} onChange={e => form.setData('organiser_name', e.target.value)} placeholder="Organiser name" className="input mt-2" />
+                            <input name="organiser_email" value={form.data.organiser_email} onChange={e => form.setData('organiser_email', e.target.value)} placeholder="organiser@example.com" className="input mt-2" />
+                        </>
+                    )}
                 </div>
 
                 <div>
@@ -100,7 +115,7 @@ export default function Create() {
                 </div>
 
                 <div>
-                    <button type="submit" className="btn-primary" disabled={form.processing}>Create</button>
+                    <ActionButton type="submit">Create</ActionButton>
                 </div>
                 </form>
             </div>
