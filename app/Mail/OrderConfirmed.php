@@ -29,8 +29,16 @@ class OrderConfirmed extends Mailable
     {
         $mail = $this->subject('Your order confirmation')->view('emails.order_confirmed', ['order' => $this->order]);
 
-        // Try to generate a PDF if Dompdf is available; otherwise attach a plaintext receipt
-        if (class_exists('\\Dompdf\\Dompdf')) {
+        // Try to generate a PDF using the Barryvdh Pdf facade if available
+        if (class_exists('\\Barryvdh\\DomPDF\\Facade\\Pdf')) {
+            try {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.order_confirmed_pdf', ['order' => $this->order])->output();
+                $mail->attachData($pdf, "order-{$this->order->id}.pdf", ['mime' => 'application/pdf']);
+            } catch (\\Throwable $e) {
+                $text = $this->generatePlainReceipt();
+                $mail->attachData($text, "order-{$this->order->id}.txt", ['mime' => 'text/plain']);
+            }
+        } elseif (class_exists('\\Dompdf\\Dompdf')) {
             try {
                 $dompdf = new \\Dompdf\\Dompdf();
                 $html = view('emails.order_confirmed_pdf', ['order' => $this->order])->render();
@@ -39,7 +47,6 @@ class OrderConfirmed extends Mailable
                 $pdf = $dompdf->output();
                 $mail->attachData($pdf, "order-{$this->order->id}.pdf", ['mime' => 'application/pdf']);
             } catch (\\Throwable $e) {
-                // fallback to text attachment
                 $text = $this->generatePlainReceipt();
                 $mail->attachData($text, "order-{$this->order->id}.txt", ['mime' => 'text/plain']);
             }
