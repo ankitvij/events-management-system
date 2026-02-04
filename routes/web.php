@@ -216,6 +216,12 @@ use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
 
+use App\Http\Controllers\OrderController;
+
+// Admin orders
+Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
+Route::get('orders/{order}', [OrderController::class, 'show'])->middleware(['auth'])->name('orders.show');
+
 use App\Http\Controllers\PageController;
 
 Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);

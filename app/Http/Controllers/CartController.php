@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Ticket;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Mail\OrderConfirmed;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -97,8 +101,45 @@ class CartController extends Controller
                     }
                 }
 
+                // create an order and order items to represent this reservation
+                $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+                $order = Order::create([
+                    'user_id' => $cart->user_id ?? null,
+                    'session_id' => $cart->session_id ?? null,
+                    'status' => 'confirmed',
+                    'total' => $total,
+                ]);
+
+                foreach ($cart->items as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'ticket_id' => $item->ticket_id,
+                        'event_id' => $item->event_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                    ]);
+                }
+
                 // clear cart items after successful reservation
                 $cart->items()->delete();
+
+                // queue/send confirmation email if we have an email
+                $recipient = null;
+                if ($cart->user) {
+                    $recipient = $cart->user->email;
+                }
+                // allow incoming email param for guests
+                if (! $recipient && request()->input('email')) {
+                    $recipient = request()->input('email');
+                }
+                if ($recipient) {
+                    try {
+                        Mail::to($recipient)->send(new OrderConfirmed($order));
+                    } catch (\Throwable $e) {
+                        // don't fail checkout if mail fails; log for later
+                        logger()->error('Order confirmation mail failed: ' . $e->getMessage());
+                    }
+                }
             });
         } catch (\Throwable $e) {
             if ($request->wantsJson() || $request->ajax()) {
