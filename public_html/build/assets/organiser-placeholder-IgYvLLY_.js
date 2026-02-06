@@ -1,1 +1,0 @@
-import{c as r,j as t,L as i}from"./app-DMA6u8dI.js";function a(){const s=r.c(1);let e;return s[0]===Symbol.for("react.memo_cache_sentinel")?(e=t.jsxs("div",{className:"text-sm text-muted mt-1",children:["Organisers are hidden — ",t.jsx(i,{href:"/login",className:"text-blue-600",children:"log in"})," to view organisers."]}),s[0]=e):e=s[0],e}export{a as O};
