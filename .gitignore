@@ -46,3 +46,6 @@ yarn-error.log
 /cookies.txt
 /server.log
 /server.err
+
+# Ignore backup files ending with _bck
+*_bck
