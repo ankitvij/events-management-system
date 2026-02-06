@@ -113,10 +113,19 @@ export default function CartIndex() {
                     <div className="mt-4 space-y-2">
                         {summary.items.map((i: any) => (
                             <div key={i.id ?? `${i.ticket_id}_${i.event_id}` } className="border p-2 rounded flex items-center justify-between">
-                                <div>
-                                    <div className="font-medium">{i.ticket ? i.ticket.name : (i.ticket_id ? `Ticket #${i.ticket_id}` : 'Item')}</div>
-                                    <div className="text-sm text-muted">{i.event ? `Event: ${i.event.title}` : ''}</div>
-                                    <div className="text-sm text-muted">Qty: {i.quantity}</div>
+                                <div className="flex items-center gap-3">
+                                    {(i.event?.image_thumbnail_url || i.event?.image_url || i.event?.image_thumbnail || i.event?.image) && (
+                                        <img
+                                            src={i.event?.image_url ?? i.event?.image_thumbnail_url ?? (i.event?.image_thumbnail ? `/storage/${i.event.image_thumbnail}` : (i.event?.image ? `/storage/${i.event.image}` : ''))}
+                                            alt={i.event?.title}
+                                            className="w-20 h-12 object-cover rounded"
+                                        />
+                                    )}
+                                    <div>
+                                        <div className="font-medium">{i.ticket ? i.ticket.name : (i.ticket_id ? `Ticket type #${i.ticket_id}` : 'Item')}</div>
+                                        <div className="text-sm text-muted">{i.event ? `Event: ${i.event.title}` : ''}</div>
+                                        <div className="text-sm text-muted">Qty: {i.quantity}</div>
+                                    </div>
                                 </div>
                                 <div className="text-right">
                                     <div className="font-medium">€{Number(i.price).toFixed(2)}</div>

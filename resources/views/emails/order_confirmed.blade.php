@@ -1,33 +1,60 @@
 <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
-    <h2>Order #{{ $order->id }}</h2>
+    @php
+        $items = $items ?? $order->items;
+        $firstItem = $items->first();
+        $topEmbed = $firstItem ? ($event_embeds[$firstItem->id] ?? null) : null;
+        $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
+    @endphp
+    @if($topEmbed)
+        <img src="{{ $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime']) }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
+    @elseif($topImg)
+        <img src="{{ $topImg }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
+    @endif
+
+    <h2>Booking code: {{ $order->booking_code }}</h2>
     <p>Thank you for your order.</p>
+    <p class="muted">Placed on: {{ $order->created_at?->format('Y-m-d H:i') }}</p>
 
-    <p>
-        @if($order->contact_email)
-            A confirmation has been sent to <strong>{{ $order->contact_email }}</strong>.
-        @elseif($order->user?->email)
-            A confirmation has been sent to <strong>{{ $order->user->email }}</strong>.
-        @endif
-    </p>
-
-    <h3>Items</h3>
+    <h3>Ticket types</h3>
     <ul>
-        @foreach($order->items as $item)
+        @foreach($items as $item)
             <li>
                 <div style="display:flex;gap:12px;align-items:center">
-                    @if($item->event?->image_thumbnail_url)
-                        <img src="{{ $item->event->image_thumbnail_url }}" alt="{{ $item->event->title }}" style="width:80px;height:56px;object-fit:cover;border-radius:4px" />
-                    @endif
                     <div>
-                        <div><strong>{{ $item->ticket?->name ?? 'Ticket' }}</strong> x{{ $item->quantity }} — €{{ number_format($item->price, 2) }}</div>
+                        <div><strong>Ticket type:</strong> {{ $item->ticket?->name ?? 'Ticket type' }} x{{ $item->quantity }} — €{{ number_format($item->price, 2) }}</div>
+                        @if(is_array($item->guest_details) && count($item->guest_details) > 0)
+                            <div style="font-size:0.9em;color:#666">Name(s): {{ collect($item->guest_details)->pluck('name')->filter()->join(', ') }}</div>
+                        @endif
                         @if($item->event)
-                            <div style="font-size:0.9em;color:#666">Event: {{ $item->event->title }} @if($item->event->start_at) ({{ $item->event->start_at->format('Y-m-d H:i') }})@endif</div>
+                            <div style="font-size:0.9em;color:#666">Event: {{ $item->event->title }} @if($item->event->start_at) ({{ $item->event->start_at->format('Y-m-d') }})@endif</div>
+                            @if($item->event->facebook_url || $item->event->instagram_url || $item->event->whatsapp_url)
+                                <div style="font-size:0.9em;color:#666;margin-top:4px">
+                                    @if($item->event->facebook_url)
+                                        <a href="{{ $item->event->facebook_url }}" style="color:#2563eb">Facebook</a>
+                                    @endif
+                                    @if($item->event->instagram_url)
+                                        @if($item->event->facebook_url) · @endif
+                                        <a href="{{ $item->event->instagram_url }}" style="color:#2563eb">Instagram</a>
+                                    @endif
+                                    @if($item->event->whatsapp_url)
+                                        @if($item->event->facebook_url || $item->event->instagram_url) · @endif
+                                        <a href="{{ $item->event->whatsapp_url }}" style="color:#2563eb">WhatsApp</a>
+                                    @endif
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
-                @if(isset($qr_codes[$item->id]))
+                @php
+                    $qrEmbed = $qr_embeds[$item->id] ?? null;
+                @endphp
+                @if($qrEmbed)
                     <div style="margin-top:8px">
-                        <img src="{{ $qr_codes[$item->id] }}" alt="QR code" style="width:120px;height:120px" />
+                        <img src="{{ $message->embedData($qrEmbed['data'], $qrEmbed['name'], $qrEmbed['mime']) }}" alt="QR code" style="width:180px;height:180px" />
+                    </div>
+                @elseif(isset($qr_codes[$item->id]))
+                    <div style="margin-top:8px">
+                        <img src="{{ $qr_codes[$item->id] }}" alt="QR code" style="width:180px;height:180px" />
                     </div>
                 @endif
             </li>
@@ -36,5 +63,6 @@
 
     <p><strong>Total: €{{ number_format($order->total, 2) }}</strong></p>
 
-    <p>If you have any questions, reply to this email or mention your order number <strong>#{{ $order->id }}</strong> when contacting us.</p>
+    <p>If you have any questions, reply to this email and include your booking code when contacting us.</p>
+    <p style="margin-top:12px">View your order online: <a href="{{ $view_url }}">{{ $view_url }}</a></p>
 </div>

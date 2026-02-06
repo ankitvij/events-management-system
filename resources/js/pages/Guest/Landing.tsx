@@ -118,7 +118,7 @@ export default function GuestLanding({ events }: Props) {
                                             </div>
                                             <div>
                                                 <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
-                                                <div className="text-sm text-muted">{event.location}</div>
+                                                <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                             </div>
                                         </div>
 
@@ -126,7 +126,7 @@ export default function GuestLanding({ events }: Props) {
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.city ?? '—'}</div>
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
                                         <div className="md:col-span-1 text-center">
-                                            <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Tickets</Link>
+                                            <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Ticket types</Link>
                                         </div>
                                     </div>
                                 </div>

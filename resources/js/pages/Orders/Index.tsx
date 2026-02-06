@@ -29,7 +29,7 @@ export default function OrdersIndex() {
                                     </div>
                                     <div className="text-right">
                                         <div className="font-medium">€{Number(o.total).toFixed(2)}</div>
-                                        <div className="text-sm text-muted">Items: {o.items?.length ?? 0}</div>
+                                        <div className="text-sm text-muted">Ticket types: {o.items?.length ?? 0}</div>
                                     </div>
                                 </div>
                             </Link>

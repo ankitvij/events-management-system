@@ -14,7 +14,6 @@ type Organiser = {
 type Event = {
     id: number;
     title: string;
-    location?: string | null;
     image?: string | null;
     image_thumbnail?: string | null;
     active?: boolean;
@@ -204,7 +203,7 @@ export default function EventsIndex({ events }: Props) {
                                                 <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
-                                        <div className="text-sm text-muted">{event.location}</div>
+                                        <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                         {event.organisers && event.organisers.length > 0 && (
                                             current ? (
                                                 <div className="text-sm text-muted mt-1">
@@ -247,13 +246,10 @@ export default function EventsIndex({ events }: Props) {
 
                                 </div>
                                 <div className="md:col-span-1 text-center">
-                                    <button type="button" onClick={() => router.get(`/events/${event.id}/edit`)} className="ml-2 text-lg text-black cursor-pointer" aria-label={`Edit ${event.title}`}>✏️</button>
-                                    <button type="button" onClick={() => { if (confirm('Delete this event?')) { router.delete(`/events/${event.id}`); } }} className="ml-2 text-lg text-black cursor-pointer" aria-label={`Delete ${event.title}`}>
-                                        🗑️
-                                    </button>
+                                    <ActionButton className="px-3 py-1 text-sm" onClick={() => router.get(`/events/${event.id}/edit`)}>Edit</ActionButton>
                                 </div>
                                 <div className="md:col-span-1 text-center">
-                                    <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Tickets</Link>
+                                    <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Ticket types</Link>
                                 </div>
                             </div>
                         </div>

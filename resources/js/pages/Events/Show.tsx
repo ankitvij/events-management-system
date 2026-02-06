@@ -14,10 +14,12 @@ type Event = {
     id: number;
     title: string;
     description?: string | null;
-    location?: string | null;
     address?: string | null;
     city?: string | null;
     country?: string | null;
+    facebook_url?: string | null;
+    instagram_url?: string | null;
+    whatsapp_url?: string | null;
     image?: string | null;
     image_thumbnail?: string | null;
     active?: boolean;
@@ -50,7 +52,7 @@ export default function Show({ event }: Props) {
         organisersForm.put(`/events/${event.id}`, { forceFormData: true });
     }
 
-            async function addToCart(ticket: any) {
+            async function addToCart(ticket: any): Promise<boolean> {
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const resp = await fetch('/cart/items', {
@@ -67,12 +69,14 @@ export default function Show({ event }: Props) {
             if (resp.ok) {
                 // notify sidebar to refresh
                 window.dispatchEvent(new CustomEvent('cart:updated'));
+                return true;
             } else {
                 console.error('Failed to add to cart', resp.statusText);
             }
         } catch (e) {
             console.error('Add to cart error', e);
         }
+        return false;
     }
 
     return (
@@ -93,13 +97,13 @@ export default function Show({ event }: Props) {
                         '@type': 'Event',
                         name: event.title || undefined,
                         description: event.description || undefined,
-                        startDate: event.start_at || undefined,
-                        endDate: event.end_at || undefined,
+                        startDate: event.start_at ? event.start_at.slice(0, 10) : undefined,
+                        endDate: event.end_at ? event.end_at.slice(0, 10) : undefined,
                         url: typeof window !== 'undefined' ? window.location.href : undefined,
                         image: event.image ? `${window.location.origin}/storage/${event.image}` : (event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : undefined),
                         location: {
                             '@type': 'Place',
-                            name: event.location || undefined,
+                            name: event.address || event.city || event.country || undefined,
                             address: event.address || (event.city || event.country ? `${event.city || ''}${event.city && event.country ? ', ' : ''}${event.country || ''}` : undefined),
                         },
                         organizer: current && event.organisers ? event.organisers.map((o: Organiser) => ({ '@type': 'Organization', name: o.name })) : undefined,
@@ -133,17 +137,19 @@ export default function Show({ event }: Props) {
                 <h1 className="text-2xl font-semibold">{event.title}</h1>
 
                 <div className="text-sm text-muted">
-                    {event.location}{event.city ? ` · ${event.city}` : ''}{event.country ? `, ${event.country}` : ''}
+                    {event.city ? event.city : ''}{event.city && event.country ? ', ' : ''}{event.country ? event.country : ''}
                 </div>
 
                 {/* address intentionally not displayed in public pages */}
 
                 <div className="text-sm text-muted mt-2">
-                    {event.start_at ? `Starts: ${new Date(event.start_at).toLocaleString()}` : 'Starts: —'}
-                    {event.end_at ? ` · Ends: ${new Date(event.end_at).toLocaleString()}` : ''}
+                    {event.start_at ? `Starts: ${new Date(event.start_at).toLocaleDateString()}` : 'Starts: —'}
+                    {event.end_at ? ` · Ends: ${new Date(event.end_at).toLocaleDateString()}` : ''}
                 </div>
 
-                <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
+                {current && (
+                    <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
+                )}
 
                 {event.organisers && event.organisers.length > 0 && (
                     current ? (
@@ -157,7 +163,7 @@ export default function Show({ event }: Props) {
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
-                        <h2 id="tickets" className="text-lg font-semibold">Tickets</h2>
+                        <h2 id="tickets" className="text-lg font-semibold">Ticket types</h2>
                         <div className="mt-2 space-y-2">
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
                                 <div key={t.id} className="border p-2 rounded">
@@ -169,19 +175,19 @@ export default function Show({ event }: Props) {
                                                         <div className="font-medium">{t.name}</div>
                                                         <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available · Sold: {t.quantity_total - t.quantity_available}</div>
                                                     </div>
-                                                    <div className="text-right">
+                                                    <div className="flex items-center space-x-3">
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
                                                         {t.active && t.quantity_available > 0 ? (
-                                                            <div className="mt-2 flex justify-end items-center">
-                                                                <ActionButton onClick={async () => { await addToCart(t); window.location.href = '/cart'; }}>
-                                                                    Buy
-                                                                </ActionButton>
-                                                                <ActionButton className="ml-3" onClick={() => addToCart(t)}>
+                                                            <div className="flex items-center">
+                                                                <ActionButton onClick={() => addToCart(t)}>
                                                                     Add to cart
+                                                                </ActionButton>
+                                                                <ActionButton className="ml-3" onClick={async () => { const ok = await addToCart(t); if (ok) { window.location.href = '/cart'; } else { alert('Could not add ticket to cart. Please try again.'); } }}>
+                                                                    Buy Now
                                                                 </ActionButton>
                                                             </div>
                                                         ) : (
-                                                            <div className="text-xs text-muted mt-2">Sold out</div>
+                                                            <div className="text-xs text-muted">Sold out</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -194,21 +200,23 @@ export default function Show({ event }: Props) {
 
                 {page.props?.canEdit && (
                     <div className="mt-4 border-t pt-4">
-                        <h3 className="text-sm font-medium">Create ticket</h3>
+                        <h3 className="text-sm font-medium">Create ticket type</h3>
                         <TicketCreateForm eventId={event.id} />
                     </div>
                 )}
 
-                <div className="mt-4 text-xs text-muted">
-                    <div>Created by: {event.user ? (event.user.name ?? event.user.email) : '—'}</div>
-                    <div>Created: {event.created_at ? new Date(event.created_at).toLocaleString() : '—'}</div>
-                    <div>Updated: {event.updated_at ? new Date(event.updated_at).toLocaleString() : '—'}</div>
-                </div>
+                {current && (
+                    <div className="mt-4 text-xs text-muted">
+                        <div>Created by: {event.user ? (event.user.name ?? event.user.email) : '—'}</div>
+                        <div>Created: {event.created_at ? new Date(event.created_at).toLocaleString() : '—'}</div>
+                        <div>Updated: {event.updated_at ? new Date(event.updated_at).toLocaleString() : '—'}</div>
+                    </div>
+                )}
 
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <Link href={`/events/${event.id}/edit`} className="btn">Edit</Link>
+                            <ActionButton href={`/events/${event.id}/edit`}>Edit</ActionButton>
                         ) : null}
 
                         {!current && !showHomeHeader && (
