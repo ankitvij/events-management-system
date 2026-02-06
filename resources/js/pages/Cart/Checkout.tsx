@@ -1,43 +1,85 @@
-import { Head, Link } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
 
-export default function CartCheckout() {
-    const [loading, setLoading] = useState(false);
-    const [summary, setSummary] = useState<{ count: number; total: number }>({ count: 0, total: 0 });
+type GuestEntry = { name: string; email: string };
+type TicketGuestsEntry = { cart_item_id: number; guests: GuestEntry[] };
 
-    useEffect(() => {
-        let mounted = true;
-        (async () => {
-            try {
-                const resp = await fetch('/cart/summary', { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-                if (!resp.ok) return;
-                const j = await resp.json();
-                if (!mounted) return;
-                setSummary({ count: j.count ?? 0, total: j.total ?? 0 });
-            } catch (e) {
-                // ignore
-            }
-        })();
-        return () => { mounted = false; };
-    }, []);
+export default function CartCheckout() {
+    const page = usePage();
+    const cart = (page.props as any)?.cart;
+    const items = cart?.items ?? [];
+    const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [ticketGuests, setTicketGuests] = useState<TicketGuestsEntry[]>(() => (
+        items.map((item: any) => ({
+            cart_item_id: item.id,
+            guests: Array.from({ length: Math.max(0, Number(item.quantity ?? 0)) }, () => ({ name: '', email: '' })),
+        }))
+    ));
+
+    const totals = useMemo(() => {
+        const count = items.reduce((sum: number, item: any) => sum + Number(item.quantity ?? 0), 0);
+        const computedTotal = items.reduce((sum: number, item: any) => sum + Number(item.quantity ?? 0) * Number(item.price ?? 0), 0);
+        const total = (page.props as any)?.cart_total ?? computedTotal;
+
+        return { count, total };
+    }, [items, page.props]);
+
+    function updateGuestField(cartItemId: number, index: number, field: keyof GuestEntry, value: string) {
+        setTicketGuests((prev) => prev.map((entry) => {
+            if (entry.cart_item_id !== cartItemId) return entry;
+            return {
+                ...entry,
+                guests: entry.guests.map((guest, guestIndex) => (
+                    guestIndex === index ? { ...guest, [field]: value } : guest
+                )),
+            };
+        }));
+    }
+
+    function hasMissingGuestNames() {
+        return ticketGuests.some((entry) => entry.guests.some((guest) => !guest.name.trim()));
+    }
 
     async function handleConfirm() {
+        if (!email.trim()) {
+            window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: 'Please enter your email address.' } }));
+            return;
+        }
+
+        if (hasMissingGuestNames()) {
+            window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: 'Please enter a ticket holder name for each ticket.' } }));
+            return;
+        }
+
         setLoading(true);
         try {
             const token = getCsrf();
+            const payload = {
+                email: email.trim(),
+                ticket_guests: ticketGuests.map((entry) => ({
+                    cart_item_id: entry.cart_item_id,
+                    guests: entry.guests.map((guest) => ({
+                        name: guest.name.trim(),
+                        email: guest.email.trim() || null,
+                    })),
+                })),
+            };
             const resp = await fetch('/cart/checkout', {
                 method: 'POST',
-                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
                 credentials: 'same-origin',
+                body: JSON.stringify(payload),
             });
             if (!resp.ok) {
                 const j = await resp.json().catch(() => ({ message: 'Checkout failed' }));
-                window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: j.message || 'Checkout failed' } }));
+                const firstError = j?.errors ? Object.values(j.errors)[0]?.[0] : null;
+                window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: firstError || j.message || 'Checkout failed' } }));
                 setLoading(false);
                 return;
             }
@@ -45,7 +87,8 @@ export default function CartCheckout() {
             if (j.success) {
                 window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'success', message: j.message || 'Checkout complete' } }));
                 window.dispatchEvent(new CustomEvent('cart:updated'));
-                window.location.href = '/cart';
+                const bookingCode = j.booking_code ?? '';
+                window.location.href = `/orders/${j.order_id}?booking_code=${encodeURIComponent(bookingCode)}`;
             } else {
                 window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: j.message || 'Checkout failed' } }));
             }
@@ -68,21 +111,98 @@ export default function CartCheckout() {
                     This will attempt to reserve your selected tickets. Reservations are temporary.
                 </p>
 
-                <div className="mt-4 rounded border p-4">
-                    <div className="text-sm">Items: {summary.count}</div>
-                    <div className="text-lg font-medium">Total: €{Number(summary.total).toFixed(2)}</div>
-                </div>
+                <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+                    <div className="space-y-6">
+                        <div className="rounded border p-4">
+                            <h2 className="text-base font-semibold">Customer details</h2>
+                            <div className="mt-3">
+                                <label className="block text-sm font-medium">Email address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="mt-1 w-full rounded border px-3 py-2"
+                                    placeholder="you@example.com"
+                                />
+                            </div>
+                        </div>
 
-                <div className="mt-6 flex items-center gap-2">
-                    <Link href="/cart" className="px-3 py-2 rounded border">Back to cart</Link>
-                    <button
-                        type="button"
-                        className="px-3 py-2 rounded bg-green-600 text-white"
-                        onClick={handleConfirm}
-                        disabled={loading}
-                    >
-                        {loading ? 'Processing…' : 'Confirm Checkout'}
-                    </button>
+                        {items.length === 0 ? (
+                            <div className="rounded border p-4 text-sm text-muted">Your cart is empty.</div>
+                        ) : (
+                            items.map((item: any) => {
+                                const entry = ticketGuests.find((guestEntry) => guestEntry.cart_item_id === item.id);
+                                const eventImage = item.event?.image_thumbnail_url
+                                    ?? item.event?.image_url
+                                    ?? (item.event?.image_thumbnail ? `/storage/${item.event.image_thumbnail}` : (item.event?.image ? `/storage/${item.event.image}` : null));
+
+                                return (
+                                    <div key={item.id} className="rounded border p-4">
+                                        <div className="flex items-center gap-4">
+                                            {eventImage && (
+                                                <img
+                                                    src={eventImage}
+                                                    alt={item.event?.title ?? 'Event'}
+                                                    className="h-16 w-24 rounded object-cover"
+                                                />
+                                            )}
+                                            <div>
+                                                <div className="text-sm text-muted">{item.event?.title ?? 'Event'}</div>
+                                                <div className="text-base font-semibold">{item.ticket?.name ?? 'Ticket'}</div>
+                                                <div className="text-sm text-muted">Qty: {item.quantity}</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 space-y-4">
+                                            {entry?.guests.map((guest, index) => (
+                                                <div key={`${item.id}-${index}`} className="grid gap-3 sm:grid-cols-2">
+                                                    <div>
+                                                        <label className="block text-sm font-medium">Ticket holder {index + 1} name</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            value={guest.name}
+                                                            onChange={(e) => updateGuestField(item.id, index, 'name', e.target.value)}
+                                                            className="mt-1 w-full rounded border px-3 py-2"
+                                                            placeholder="Full name"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium">Ticket holder {index + 1} email (optional)</label>
+                                                        <input
+                                                            type="email"
+                                                            value={guest.email}
+                                                            onChange={(e) => updateGuestField(item.id, index, 'email', e.target.value)}
+                                                            className="mt-1 w-full rounded border px-3 py-2"
+                                                            placeholder="name@example.com"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    <div className="rounded border p-4 h-fit">
+                        <div className="text-sm text-muted">Items: {totals.count}</div>
+                        <div className="mt-2 text-lg font-semibold">Total: €{Number(totals.total).toFixed(2)}</div>
+
+                        <div className="mt-6 flex items-center gap-2">
+                            <Link href="/cart" className="px-3 py-2 rounded border">Back to cart</Link>
+                            <button
+                                type="button"
+                                className="px-3 py-2 rounded bg-green-600 text-white"
+                                onClick={handleConfirm}
+                                disabled={loading || items.length === 0}
+                            >
+                                {loading ? 'Processing…' : 'Confirm Checkout'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </AppLayout>

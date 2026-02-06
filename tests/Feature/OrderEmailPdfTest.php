@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Event;
-use App\Models\Ticket;
 use App\Models\Order;
+use App\Models\Ticket;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -31,9 +31,20 @@ class OrderEmailPdfTest extends TestCase
         ]);
 
         $cart = Cart::create();
-        CartItem::create(['cart_id' => $cart->id, 'ticket_id' => $ticket->id, 'event_id' => $event->id, 'quantity' => 1, 'price' => 5.00]);
+        $item = CartItem::create(['cart_id' => $cart->id, 'ticket_id' => $ticket->id, 'event_id' => $event->id, 'quantity' => 1, 'price' => 5.00]);
 
-        $resp = $this->postJson('/cart/checkout', ['cart_id' => $cart->id, 'email' => 'pdf@example.com']);
+        $resp = $this->postJson('/cart/checkout', [
+            'cart_id' => $cart->id,
+            'email' => 'pdf@example.com',
+            'ticket_guests' => [
+                [
+                    'cart_item_id' => $item->id,
+                    'guests' => [
+                        ['name' => 'PDF Guest', 'email' => 'guest@example.com'],
+                    ],
+                ],
+            ],
+        ]);
         $resp->assertStatus(200);
 
         // Ensure an order was created
@@ -46,7 +57,7 @@ class OrderEmailPdfTest extends TestCase
             $this->assertIsString($pdf);
             $this->assertTrue(strlen($pdf) > 100, 'Generated PDF seems too small');
         } elseif (class_exists('\\Dompdf\\Dompdf')) {
-            $dompdf = new \Dompdf\Dompdf();
+            $dompdf = new \Dompdf\Dompdf;
             $html = view('emails.order_confirmed_pdf', ['order' => $order])->render();
             $dompdf->loadHtml($html);
             $dompdf->render();

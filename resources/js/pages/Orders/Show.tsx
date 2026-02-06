@@ -43,6 +43,9 @@ export default function OrdersShow() {
                                         {Array.isArray(it.guest_details) && it.guest_details.length > 0 && (
                                             <div className="text-sm text-muted">Name(s): {it.guest_details.map((g: any) => g?.name).filter(Boolean).join(', ')}</div>
                                         )}
+                                        {Array.isArray(it.guest_details) && it.guest_details.length > 0 && (
+                                            <div className="text-sm text-muted">Email(s): {it.guest_details.map((g: any) => g?.email).filter(Boolean).join(', ')}</div>
+                                        )}
                                         <div className="text-sm text-muted">Qty: {it.quantity}</div>
                                         <div className="mt-2 text-right">€{Number(it.price).toFixed(2)}</div>
                                         <div className="mt-2">

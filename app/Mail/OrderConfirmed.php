@@ -16,7 +16,12 @@ class OrderConfirmed extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(public Order $order, public ?OrderItem $item = null, public ?string $ticketHolderName = null) {}
+    public function __construct(
+        public Order $order,
+        public ?OrderItem $item = null,
+        public ?string $ticketHolderName = null,
+        public ?string $ticketHolderEmail = null,
+    ) {}
 
     /**
      * Build the message.
@@ -30,6 +35,7 @@ class OrderConfirmed extends Mailable
             if ($this->ticketHolderName) {
                 $this->item->guest_details = [[
                     'name' => $this->ticketHolderName,
+                    'email' => $this->ticketHolderEmail,
                 ]];
             }
             $items = collect([$this->item]);
@@ -42,7 +48,7 @@ class OrderConfirmed extends Mailable
         $event_embeds = [];
         foreach ($items as $item) {
             $guestName = $this->ticketHolderName ?: ($this->order->contact_name ?? $this->order->user?->name ?? null);
-            $guestEmail = $this->order->contact_email ?? $this->order->user?->email ?? null;
+            $guestEmail = $this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null);
             $payload = json_encode([
                 'booking_code' => $this->order->booking_code,
                 'customer_name' => $guestName,

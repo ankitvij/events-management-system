@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CheckoutRequest;
 use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -129,7 +130,7 @@ class CartController extends Controller
         ]);
     }
 
-    public function checkout(Request $request)
+    public function checkout(CheckoutRequest $request)
     {
         $cart = $this->getCart($request);
         if (! $cart || $cart->items()->count() === 0) {
@@ -140,10 +141,11 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Cart is empty');
         }
 
-        $incomingEmail = $request->input('email');
-        $incomingName = $request->input('name');
-        $incomingPassword = $request->input('password');
-        $ticketGuests = $request->input('ticket_guests', []);
+        $validated = $request->validated();
+        $incomingEmail = $validated['email'] ?? null;
+        $incomingName = $validated['name'] ?? null;
+        $incomingPassword = $validated['password'] ?? null;
+        $ticketGuests = $validated['ticket_guests'] ?? [];
         if (! is_array($ticketGuests)) {
             $ticketGuests = [];
         }
@@ -281,18 +283,35 @@ class CartController extends Controller
             if (! empty($result['customer_id']) && $incomingPassword) {
                 session()->put('customer_id', $result['customer_id']);
             }
-            if (isset($order) && $recipient) {
+            if (isset($order)) {
                 $order->loadMissing('items.ticket.event', 'user');
                 try {
                     foreach ($order->items as $item) {
-                        $names = collect(is_array($item->guest_details) ? $item->guest_details : [])
-                            ->pluck('name')
-                            ->filter()
+                        $guestEntries = collect(is_array($item->guest_details) ? $item->guest_details : [])
+                            ->filter(fn ($guest) => is_array($guest))
                             ->values();
-                        $total = max(1, (int) $item->quantity);
-                        for ($i = 0; $i < $total; $i++) {
-                            $name = $names->get($i);
-                            Mail::to($recipient)->send(new OrderConfirmed($order, $item, $name));
+
+                        if ($recipient) {
+                            $names = $guestEntries->pluck('name')->filter()->values();
+                            $total = max(1, (int) $item->quantity);
+                            for ($i = 0; $i < $total; $i++) {
+                                $name = $names->get($i);
+                                Mail::to($recipient)->send(new OrderConfirmed($order, $item, $name));
+                            }
+                        }
+
+                        foreach ($guestEntries as $guest) {
+                            $guestEmail = $guest['email'] ?? null;
+                            if (! $guestEmail || ! filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                                continue;
+                            }
+
+                            if ($recipient && $guestEmail === $recipient) {
+                                continue;
+                            }
+
+                            $guestName = $guest['name'] ?? null;
+                            Mail::to($guestEmail)->send(new OrderConfirmed($order, $item, $guestName, $guestEmail));
                         }
                     }
                 } catch (\Throwable $e) {

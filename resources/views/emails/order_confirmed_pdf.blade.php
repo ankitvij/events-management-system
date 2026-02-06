@@ -39,6 +39,12 @@
 						<div><strong>Ticket type:</strong> {{ $item->ticket?->name ?? 'Ticket type' }} x{{ $item->quantity }} — €{{ number_format($item->price,2) }}</div>
 						@if(is_array($item->guest_details) && count($item->guest_details) > 0)
 							<div class="muted">Ticket holder: {{ collect($item->guest_details)->pluck('name')->filter()->join(', ') }}</div>
+							@php
+								$guestEmails = collect($item->guest_details)->pluck('email')->filter()->join(', ');
+							@endphp
+							@if($guestEmails)
+								<div class="muted">Ticket holder email: {{ $guestEmails }}</div>
+							@endif
 						@endif
 						@if($item->event)
 							<div class="muted">Event: {{ $item->event->title }} @if($item->event->start_at) ({{ $item->event->start_at->format('Y-m-d') }})@endif</div>

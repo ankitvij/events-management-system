@@ -12,6 +12,7 @@ export default function GuestLanding({ events }: Props) {
     const [search, setSearch] = useState(initial);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
+    const ticketButtonClass = 'inline-flex items-center justify-center rounded bg-black px-3 py-2 text-sm font-medium text-white hover:bg-gray-800';
 
     useEffect(() => {
         if (firstRender.current) {
@@ -47,6 +48,10 @@ export default function GuestLanding({ events }: Props) {
         if (next === '') sp.delete('sort'); else sp.set('sort', next);
         sp.delete('page');
         router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
+
+    function visitEvent(id: number) {
+        router.visit(`/events/${id}`);
     }
 
     return (
@@ -106,7 +111,19 @@ export default function GuestLanding({ events }: Props) {
                     <div className="space-y-3">
                         {events?.data?.length ? (
                             events.data.map((event: Event) => (
-                                <div key={event.id} className="border rounded p-3">
+                                <div
+                                    key={event.id}
+                                    className="border rounded p-3 cursor-pointer hover:bg-gray-50 transition"
+                                    role="link"
+                                    tabIndex={0}
+                                    onClick={() => visitEvent(event.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            visitEvent(event.id);
+                                        }
+                                    }}
+                                >
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                         <div className="md:col-span-8 flex items-center gap-3">
                                             <div className="w-20 h-12 flex-shrink-0">
@@ -117,7 +134,7 @@ export default function GuestLanding({ events }: Props) {
                                                 />
                                             </div>
                                             <div>
-                                                <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                                <div className="text-lg font-medium">{event.title}</div>
                                                 <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                             </div>
                                         </div>
@@ -126,7 +143,13 @@ export default function GuestLanding({ events }: Props) {
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.city ?? '—'}</div>
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
                                         <div className="md:col-span-1 text-center">
-                                            <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Ticket types</Link>
+                                            <Link
+                                                href={`/events/${event.id}#tickets`}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className={ticketButtonClass}
+                                            >
+                                                Buy Tickets
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
