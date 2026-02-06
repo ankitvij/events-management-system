@@ -14,14 +14,13 @@ class EventFactory extends Factory
     {
         $faker = \Faker\Factory::create();
         $start = $faker->dateTimeBetween('now', '+1 month');
-        $end = (clone $start)->modify('+'.$faker->numberBetween(1, 48).' hours');
+        $end = (clone $start)->modify('+'.$faker->numberBetween(1, 5).' days');
 
         return [
             'title' => $faker->sentence(6),
             'description' => $faker->paragraph(),
-            'start_at' => $start,
-            'end_at' => $end,
-            'location' => $faker->city(),
+            'start_at' => $start->format('Y-m-d'),
+            'end_at' => $end->format('Y-m-d'),
             'user_id' => User::factory(),
         ];
     }

@@ -18,7 +18,7 @@ createInertiaApp({
             `./pages/${name.replaceAll('\\\\', '/')}.tsx`,
         ];
 
-        const allKeys = Object.keys(pages);
+        const allKeys = Object.keys(pages || {});
 
         // 1) exact match
         let key = allKeys.find(k => variants.includes(k));

@@ -8,12 +8,16 @@ export type Event = {
     id: number;
     title: string;
     description?: string | null;
-    location?: string | null;
     address?: string | null;
     city?: string | null;
     country?: string | null;
+    facebook_url?: string | null;
+    instagram_url?: string | null;
+    whatsapp_url?: string | null;
     image?: string | null;
     image_thumbnail?: string | null;
+    image_url?: string | null;
+    image_thumbnail_url?: string | null;
     active?: boolean;
     organisers?: Organiser[];
     user?: UserShort | null;

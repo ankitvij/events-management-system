@@ -23,8 +23,6 @@ class EventController extends Controller
         if (auth()->check()) {
             $query->with('organisers');
         }
-        $query->latest();
-
         $current = auth()->user();
         if ($current) {
             // For authenticated non-super-admin users, hide events created by super-admins
@@ -54,40 +52,40 @@ class EventController extends Controller
         $sort = request('sort');
         switch ($sort) {
             case 'start_asc':
-                $query->orderBy('start_at', 'asc');
+                $query->reorder('start_at', 'asc');
                 break;
             case 'start_desc':
-                $query->orderBy('start_at', 'desc');
+                $query->reorder('start_at', 'desc');
                 break;
             case 'created_desc':
-                $query->orderBy('created_at', 'desc');
+                $query->reorder('created_at', 'desc');
                 break;
             case 'title_asc':
-                $query->orderBy('title', 'asc');
+                $query->reorder('title', 'asc');
                 break;
             case 'title_desc':
-                $query->orderBy('title', 'desc');
+                $query->reorder('title', 'desc');
                 break;
             case 'country_asc':
-                $query->orderBy('country', 'asc');
+                $query->reorder('country', 'asc');
                 break;
             case 'country_desc':
-                $query->orderBy('country', 'desc');
+                $query->reorder('country', 'desc');
                 break;
             case 'city_asc':
-                $query->orderBy('city', 'asc');
+                $query->reorder('city', 'asc');
                 break;
             case 'city_desc':
-                $query->orderBy('city', 'desc');
+                $query->reorder('city', 'desc');
                 break;
             case 'active_asc':
-                $query->orderBy('active', 'asc');
+                $query->reorder('active', 'asc');
                 break;
             case 'active_desc':
-                $query->orderBy('active', 'desc');
+                $query->reorder('active', 'desc');
                 break;
             default:
-                // keep default ordering (latest)
+                $query->latest();
                 break;
         }
 
@@ -108,7 +106,6 @@ class EventController extends Controller
                 $like = "%{$search}%";
                 $q->where('title', 'like', $like)
                     ->orWhere('description', 'like', $like)
-                    ->orWhere('location', 'like', $like)
                     ->orWhere('city', 'like', $like)
                     ->orWhere('country', 'like', $like);
             });
@@ -157,10 +154,12 @@ class EventController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        // Only provide organisers list to authenticated users
+        $organisers = auth()->check() ? Organiser::orderBy('name')->get(['id', 'name']) : [];
 
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
+            'showOrganisers' => auth()->check(),
             'showHomeHeader' => ! auth()->check(),
         ]);
     }
@@ -168,7 +167,8 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $data['user_id'] = $request->user()->id;
+        // Allow guest-created events: user_id may be null for guests
+        $data['user_id'] = $request->user()?->id;
 
         DB::transaction(function () use ($request, $data) {
             $local = $data;
@@ -215,6 +215,27 @@ class EventController extends Controller
 
             if (! empty($organiserIds)) {
                 $event->organisers()->sync(array_values(array_unique($organiserIds)));
+            }
+            // If guest supplied a single organiser name/email, create organiser and attach
+            $guestName = $request->input('organiser_name');
+            $guestEmail = $request->input('organiser_email');
+            if ((! auth()->check()) && $guestEmail && filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+                $name = $guestName ?: (strstr($guestEmail, '@', true) ?: $guestEmail);
+                $name = ucwords(str_replace(['.', '_', '-'], ' ', $name));
+
+                $organiser = Organiser::firstOrCreate([
+                    'email' => $guestEmail,
+                ], [
+                    'name' => $name,
+                    'active' => 1,
+                ]);
+
+                if ($organiser && $organiser->id) {
+                    // attach to pivot and set primary organiser_id on event
+                    $event->organisers()->syncWithoutDetaching([$organiser->id]);
+                    $event->organiser_id = $organiser->id;
+                    $event->save();
+                }
             }
         });
 

@@ -25,9 +25,8 @@ class EventThumbnailTest extends TestCase
         $response = $this->post(route('events.store'), [
             'title' => 'Thumb Event',
             'description' => 'With image',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'end_at' => now()->addDays(2)->toDateTimeString(),
-            'location' => 'Hall',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(2)->toDateString(),
             'image' => $file,
         ]);
 
@@ -50,9 +49,8 @@ class EventThumbnailTest extends TestCase
         $response = $this->post(route('events.store'), [
             'title' => 'No Image Event',
             'description' => 'No image here',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'end_at' => now()->addDays(2)->toDateTimeString(),
-            'location' => 'Hall',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(2)->toDateString(),
         ]);
 
         $response->assertRedirect(route('events.index'));

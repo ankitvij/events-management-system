@@ -55,6 +55,7 @@ export default function ListControls({
 
     function applyFilters(updates: Record<string, string | null>) {
         if (typeof window === 'undefined') return;
+        if (!updates) return;
         const sp = new URLSearchParams(window.location.search);
         Object.entries(updates).forEach(([k, v]) => {
             if (v === null || v === '') sp.delete(k); else sp.set(k, v);
@@ -87,7 +88,7 @@ export default function ListControls({
 
             <div className="flex items-center gap-3">
                 {showSearch && (
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
+                    <input name="q" value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
                 )}
 
                 {/* city/country filters removed — controlled centrally where needed */}

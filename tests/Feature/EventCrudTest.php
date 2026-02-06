@@ -21,9 +21,8 @@ class EventCrudTest extends TestCase
         $response = $this->post(route('events.store'), [
             'title' => 'My Test Event',
             'description' => 'Event description',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'end_at' => now()->addDays(2)->toDateTimeString(),
-            'location' => 'Test Hall',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(2)->toDateString(),
             'organiser_emails' => 'alice@example.test,bob@example.test',
         ]);
 
@@ -31,7 +30,6 @@ class EventCrudTest extends TestCase
 
         $this->assertDatabaseHas('events', [
             'title' => 'My Test Event',
-            'location' => 'Test Hall',
             'user_id' => $user->id,
         ]);
 
@@ -51,9 +49,8 @@ class EventCrudTest extends TestCase
         $update = $this->put(route('events.update', $event), [
             'title' => 'Updated Event',
             'description' => 'Updated',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'end_at' => now()->addDays(3)->toDateTimeString(),
-            'location' => 'Updated Hall',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(3)->toDateString(),
         ]);
 
         $update->assertRedirect(route('events.show', $event));
@@ -61,7 +58,6 @@ class EventCrudTest extends TestCase
         $this->assertDatabaseHas('events', [
             'id' => $event->id,
             'title' => 'Updated Event',
-            'location' => 'Updated Hall',
         ]);
 
         // Delete
@@ -79,8 +75,7 @@ class EventCrudTest extends TestCase
         // Create event with organisers via emails
         $response = $this->post(route('events.store'), [
             'title' => 'Public Visibility Event',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'location' => 'Test Hall',
+            'start_at' => now()->addDay()->toDateString(),
             'organiser_emails' => 'alice@example.test,bob@example.test',
         ]);
 
@@ -107,8 +102,7 @@ class EventCrudTest extends TestCase
 
         $response = $this->post(route('events.store'), [
             'title' => 'Auth Visibility Event',
-            'start_at' => now()->addDay()->toDateTimeString(),
-            'location' => 'Test Hall',
+            'start_at' => now()->addDay()->toDateString(),
             'organiser_emails' => 'alice2@example.test,bob2@example.test',
         ]);
 

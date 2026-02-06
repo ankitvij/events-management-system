@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EventController;
+use App\Http\Middleware\EnsureCustomerAuthenticated;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -83,7 +85,6 @@ Route::get('/', function () {
                 $like = "%{$search}%";
                 $q->where('title', 'like', $like)
                     ->orWhere('description', 'like', $like)
-                    ->orWhere('location', 'like', $like)
                     ->orWhere('city', 'like', $like)
                     ->orWhere('country', 'like', $like);
             });
@@ -159,9 +160,12 @@ require __DIR__.'/settings.php';
 // Events listing (public)
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
-// Allow public access to the create form, but protect store/update/delete routes
+// Allow public access to the create form and allow guests to submit new events
 Route::get('events/create', [EventController::class, 'create'])->name('events.create');
-Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create']);
+// Public store route so guests can submit event creations
+Route::post('events', [EventController::class, 'store'])->name('events.store');
+// Protect all other event resource routes with auth
+Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create', 'store']);
 
 // Allow public viewing of individual events at /events/{event}
 Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
@@ -173,6 +177,7 @@ use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
 
+use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\RoleController;
 
 Route::get('roles', [RoleController::class, 'index'])
@@ -186,6 +191,14 @@ Route::put('roles/users/{user}', [RoleController::class, 'update'])
 Route::post('roles/users/{user}/undo', [RoleController::class, 'undo'])
     ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
     ->name('roles.users.undo');
+
+Route::get('admin/error-logs', [ErrorLogController::class, 'index'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('admin.error_logs');
+
+Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('admin.error_logs.data');
 
 // temporary POST fallback removed — updates should use PUT/PATCH via Inertia forms
 
@@ -207,10 +220,44 @@ Route::get('cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
 Route::put('cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.items.update');
 Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');
+// Lightweight JSON summary for sidebar updates
+Route::get('cart/summary', [CartController::class, 'summary'])->name('cart.summary');
+// Checkout (basic reservation + decrement) - POST
+Route::post('cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
+// Customer-facing auth (separate from admin/auth)
+Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])->name('customer.register');
+Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
+Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
+Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
+Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
+
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\OrderController;
+
+// Public order view: show a small form to validate with email + booking code
+Route::get('orders/{order}/view', [OrderController::class, 'publicView'])->name('orders.public.view');
+Route::post('orders/{order}/verify', [OrderController::class, 'publicVerify'])->name('orders.public.verify');
+Route::get('orders/{order}/display', [OrderController::class, 'display'])->name('orders.display');
+// Public API endpoint to send tickets by booking code + email (POST)
+Route::post('orders/send-ticket', [OrderController::class, 'sendTicket'])->name('orders.sendTicket');
+
+// Admin: expose recent mail-failure logs for debugging (admins only)
+Route::get('admin/logs/mail-failures', [LogController::class, 'mailFailures'])
+    ->middleware(['auth'])
+    ->name('admin.logs.mail_failures');
+
+// Admin orders
+Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
+Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
+
+// Customer: list own orders (session-based customer)
+Route::get('customer/orders', [OrderController::class, 'customerIndex'])->name('customer.orders')->middleware(EnsureCustomerAuthenticated::class);
 
 use App\Http\Controllers\PageController;
 

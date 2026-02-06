@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import ActionButton from '@/components/ActionButton';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
@@ -13,7 +14,6 @@ type Organiser = {
 type Event = {
     id: number;
     title: string;
-    location?: string | null;
     image?: string | null;
     image_thumbnail?: string | null;
     active?: boolean;
@@ -110,13 +110,13 @@ export default function EventsIndex({ events }: Props) {
                 <div className="mb-4 flex items-center justify-between">
                     <ListControls path="/events" links={events.links} showSearch={false} />
                     {current ? (
-                        <button type="button" onClick={() => router.get('/events/create')} className="bg-black text-white px-6 py-2 rounded-full text-lg font-semibold shadow-sm cursor-pointer">New Event</button>
+                        <ActionButton href="/events/create">New Event</ActionButton>
                     ) : null}
                 </div>
 
                 <div>
-                    <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
-                        <div className="md:col-span-7 flex items-center justify-between">
+                    <div className="hidden md:grid md:grid-cols-12 gap-4 p-3 text-sm text-muted">
+                        <div className="md:col-span-6 flex items-center justify-between">
                             <button
                                 onClick={() => applySort('title')}
                                 className="text-left text-white bg-black px-3 py-2 rounded cursor-pointer"
@@ -126,7 +126,7 @@ export default function EventsIndex({ events }: Props) {
                                 Event
                                 <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                             </button>
-                            <div className="ml-4 flex-1">
+                            <div className="flex-1">
                                 <input
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
@@ -159,6 +159,7 @@ export default function EventsIndex({ events }: Props) {
                             Start
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
+
                         <button
                             onClick={() => applySort('active')}
                             className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
@@ -167,14 +168,26 @@ export default function EventsIndex({ events }: Props) {
                             Active
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('active_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
-                                <div className="md:col-span-1 text-center">Actions</div>
+                        <div className="md:col-span-1 text-center">Actions</div>
                     </div>
 
                     <div className="space-y-3">
                     {events.data?.map((event: Event) => (
-                        <div key={event.id} className="border rounded p-3">
+                        <div
+                            key={event.id}
+                            className="border rounded p-3 cursor-pointer"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => router.get(`/events/${event.id}`)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    router.get(`/events/${event.id}`);
+                                }
+                            }}
+                        >
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                                <div className="md:col-span-7 flex items-center gap-3">
+                                <div className="md:col-span-6 flex items-center gap-3">
                                     <div className="w-20 h-12 flex-shrink-0">
                                         {(() => {
                                             const p = event.image_thumbnail_url ?? event.image_url ?? event.image_thumbnail ?? event.image ?? '';
@@ -197,12 +210,12 @@ export default function EventsIndex({ events }: Props) {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                            <Link href={`/events/${event.id}`} className="text-lg font-medium" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
                                             {!event.active && (
                                                 <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
-                                        <div className="text-sm text-muted">{event.location}</div>
+                                        <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                         {event.organisers && event.organisers.length > 0 && (
                                             current ? (
                                                 <div className="text-sm text-muted mt-1">
@@ -228,7 +241,10 @@ export default function EventsIndex({ events }: Props) {
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
                                         <button
                                             type="button"
-                                            onClick={() => toggleActive(event.id, !event.active)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleActive(event.id, !event.active);
+                                            }}
                                             className="text-xl cursor-pointer mr-2"
                                             aria-pressed={event.active}
                                             aria-label={event.title + ' active toggle'}
@@ -245,10 +261,13 @@ export default function EventsIndex({ events }: Props) {
 
                                 </div>
                                 <div className="md:col-span-1 text-center">
-                                    <button type="button" onClick={() => router.get(`/events/${event.id}/edit`)} className="ml-2 text-lg text-black cursor-pointer" aria-label={`Edit ${event.title}`}>✏️</button>
-                                    <button type="button" onClick={() => { if (confirm('Delete this event?')) { router.delete(`/events/${event.id}`); } }} className="ml-2 text-lg text-black cursor-pointer" aria-label={`Delete ${event.title}`}>
-                                        🗑️
-                                    </button>
+                                    <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.get(`/events/${event.id}/edit`);
+                                    }}>Edit</ActionButton>
+                                </div>
+                                <div className="md:col-span-1 text-center">
+                                    <Link href={`/events/${event.id}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>
                                 </div>
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuGroup,
@@ -18,6 +18,7 @@ type Props = {
 
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
+    const page = usePage();
 
     const handleLogout = () => {
         cleanup();
@@ -31,6 +32,27 @@ export function UserMenuContent({ user }: Props) {
                     <UserInfo user={user} showEmail={true} />
                 </div>
             </DropdownMenuLabel>
+            {page.props?.customer && (
+                <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <a
+                            className="block w-full cursor-pointer"
+                            href="#"
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                                await fetch('/customer/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': token }, credentials: 'same-origin' });
+                                window.location.reload();
+                            }}
+                            data-test="customer-logout"
+                        >
+                            <LogOut className="mr-2" />
+                            Customer Log out
+                        </a>
+                    </DropdownMenuItem>
+                </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
                 <DropdownMenuItem asChild>

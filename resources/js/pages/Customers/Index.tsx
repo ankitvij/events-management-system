@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import ActionButton from '@/components/ActionButton';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -42,7 +43,9 @@ export default function CustomersIndex({ customers }: Props) {
                         <ListControls path="/customers" links={customers.links} showSearch searchPlaceholder="Search customers..." />
                     </div>
 
-                    <Link href="/customers/create" className="btn-primary">New Customer</Link>
+                    <div className="flex gap-2">
+                        <ActionButton href="/customers/create">New Customer</ActionButton>
+                    </div>
                 </div>
 
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">

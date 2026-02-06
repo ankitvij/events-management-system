@@ -62,8 +62,8 @@ export default function GuestLanding({ events }: Props) {
                 <section className="mt-16">
                     <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />
 
-                    <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm">
-                        <div className="md:col-span-9 flex items-center justify-between">
+                    <div className="hidden md:grid md:grid-cols-12 gap-4 p-3 text-sm">
+                        <div className="md:col-span-8 flex items-center justify-between">
                             <button
                                 onClick={() => applySort('title')}
                                 className="text-left bg-black text-white px-3 py-2 rounded cursor-pointer"
@@ -72,8 +72,8 @@ export default function GuestLanding({ events }: Props) {
                                 Event
                                 <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                             </button>
-                            <div className="ml-4">
-                                <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events..." className="w-96 md:w-[40rem] border-2 border-gray-800 px-3 py-1" />
+                            <div>
+                                <input name="q" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search events..." className="w-96 md:w-[40rem] border-2 border-gray-800 px-3 py-1" />
                             </div>
                         </div>
                         <button
@@ -97,9 +97,10 @@ export default function GuestLanding({ events }: Props) {
                             className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
                             aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
-                            Start
+                            Date
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
+
                     </div>
 
                     <div className="space-y-3">
@@ -107,7 +108,7 @@ export default function GuestLanding({ events }: Props) {
                             events.data.map((event: Event) => (
                                 <div key={event.id} className="border rounded p-3">
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                                        <div className="md:col-span-9 flex items-center gap-3">
+                                        <div className="md:col-span-8 flex items-center gap-3">
                                             <div className="w-20 h-12 flex-shrink-0">
                                                 <img
                                                     src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
@@ -117,13 +118,16 @@ export default function GuestLanding({ events }: Props) {
                                             </div>
                                             <div>
                                                 <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
-                                                <div className="text-sm text-muted">{event.location}</div>
+                                                <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                             </div>
                                         </div>
 
-                                        <div className="md:col-span-1 text-sm text-muted">{event.country ?? '—'}</div>
-                                        <div className="md:col-span-1 text-sm text-muted">{event.city ?? '—'}</div>
-                                        <div className="md:col-span-1 text-sm text-muted">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
+                                        <div className="md:col-span-1 text-sm text-muted text-center">{event.country ?? '—'}</div>
+                                        <div className="md:col-span-1 text-sm text-muted text-center">{event.city ?? '—'}</div>
+                                        <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
+                                        <div className="md:col-span-1 text-center">
+                                            <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Ticket types</Link>
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -144,21 +148,6 @@ export default function GuestLanding({ events }: Props) {
                             ))}
                         </nav>
                     )}
-                </section>
-
-                <section className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-6 border rounded-lg">
-                        <h3 className="font-semibold mb-2">Create Events</h3>
-                        <p className="text-sm text-muted">Quickly create events with images, locations and organisers.</p>
-                    </div>
-                    <div className="p-6 border rounded-lg">
-                        <h3 className="font-semibold mb-2">Manage Teams</h3>
-                        <p className="text-sm text-muted">Invite organisers and coordinate schedules and roles.</p>
-                    </div>
-                    <div className="p-6 border rounded-lg">
-                        <h3 className="font-semibold mb-2">Stay Notified</h3>
-                        <p className="text-sm text-muted">Keep attendees informed with notifications and updates.</p>
-                    </div>
                 </section>
             </main>
         </AppLayout>

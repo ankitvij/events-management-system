@@ -41,6 +41,18 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'customer' => (function () use ($request) {
+                $id = $request->session()->get('customer_id');
+                if (! $id) {
+                    return null;
+                }
+                $c = \App\Models\Customer::find($id);
+                if (! $c) {
+                    return null;
+                }
+
+                return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email];
+            })(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
