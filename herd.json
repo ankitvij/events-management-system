@@ -1,0 +1,6 @@
+{
+  "name": "events",
+  "type": "laravel",
+  "public": "public_html",
+  "docroot": "public_html"
+}
