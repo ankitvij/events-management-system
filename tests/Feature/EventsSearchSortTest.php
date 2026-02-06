@@ -12,8 +12,8 @@ class EventsSearchSortTest extends TestCase
 
     public function test_search_filters_events()
     {
-        Event::factory()->create(['title' => 'FindMe Event', 'location' => 'Somewhere']);
-        Event::factory()->create(['title' => 'Other Event', 'location' => 'Elsewhere']);
+        Event::factory()->create(['title' => 'FindMe Event', 'city' => 'Somewhere']);
+        Event::factory()->create(['title' => 'Other Event', 'city' => 'Elsewhere']);
 
         $resp = $this->getJson('/events?search=FindMe');
         $resp->assertStatus(200);

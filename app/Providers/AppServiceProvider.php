@@ -2,14 +2,17 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogFailedMail;
 use App\Models\Customer;
 use App\Models\Organiser;
 use App\Models\User;
 use App\Policies\CustomerPolicy;
 use App\Policies\OrganiserPolicy;
 use Carbon\CarbonImmutable;
+use Illuminate\Mail\Events\MessageFailed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -30,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Register mail failure logger so bounces/rejections are recorded
+        Event::listen(MessageFailed::class, [LogFailedMail::class, 'handle']);
 
         Gate::policy(Organiser::class, OrganiserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);

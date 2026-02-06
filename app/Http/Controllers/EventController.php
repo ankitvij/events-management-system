@@ -23,8 +23,6 @@ class EventController extends Controller
         if (auth()->check()) {
             $query->with('organisers');
         }
-        $query->latest();
-
         $current = auth()->user();
         if ($current) {
             // For authenticated non-super-admin users, hide events created by super-admins
@@ -54,40 +52,40 @@ class EventController extends Controller
         $sort = request('sort');
         switch ($sort) {
             case 'start_asc':
-                $query->orderBy('start_at', 'asc');
+                $query->reorder('start_at', 'asc');
                 break;
             case 'start_desc':
-                $query->orderBy('start_at', 'desc');
+                $query->reorder('start_at', 'desc');
                 break;
             case 'created_desc':
-                $query->orderBy('created_at', 'desc');
+                $query->reorder('created_at', 'desc');
                 break;
             case 'title_asc':
-                $query->orderBy('title', 'asc');
+                $query->reorder('title', 'asc');
                 break;
             case 'title_desc':
-                $query->orderBy('title', 'desc');
+                $query->reorder('title', 'desc');
                 break;
             case 'country_asc':
-                $query->orderBy('country', 'asc');
+                $query->reorder('country', 'asc');
                 break;
             case 'country_desc':
-                $query->orderBy('country', 'desc');
+                $query->reorder('country', 'desc');
                 break;
             case 'city_asc':
-                $query->orderBy('city', 'asc');
+                $query->reorder('city', 'asc');
                 break;
             case 'city_desc':
-                $query->orderBy('city', 'desc');
+                $query->reorder('city', 'desc');
                 break;
             case 'active_asc':
-                $query->orderBy('active', 'asc');
+                $query->reorder('active', 'asc');
                 break;
             case 'active_desc':
-                $query->orderBy('active', 'desc');
+                $query->reorder('active', 'desc');
                 break;
             default:
-                // keep default ordering (latest)
+                $query->latest();
                 break;
         }
 
@@ -108,7 +106,6 @@ class EventController extends Controller
                 $like = "%{$search}%";
                 $q->where('title', 'like', $like)
                     ->orWhere('description', 'like', $like)
-                    ->orWhere('location', 'like', $like)
                     ->orWhere('city', 'like', $like)
                     ->orWhere('country', 'like', $like);
             });

@@ -1,6 +1,8 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
+import RichEditor from '@/components/RichEditor';
+import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Event, Organiser } from '@/types/entities';
@@ -17,12 +19,14 @@ export default function Edit({ event }: Props) {
     const form = useForm({
         title: event.title || '',
         description: event.description || '',
-        start_at: event.start_at || '',
-        end_at: event.end_at || '',
-        location: event.location || '',
+        start_at: event.start_at ? event.start_at.slice(0, 10) : '',
+        end_at: event.end_at ? event.end_at.slice(0, 10) : '',
         city: event.city || '',
         country: event.country || '',
         address: event.address || '',
+        facebook_url: event.facebook_url || '',
+        instagram_url: event.instagram_url || '',
+        whatsapp_url: event.whatsapp_url || '',
         active: event.active ?? true,
         image: null,
         organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
@@ -42,13 +46,8 @@ export default function Edit({ event }: Props) {
 
             <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
-                    <label className="block text-sm font-medium">Title</label>
-                    <input name="title" value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium">Location</label>
-                    <input name="location" value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">Title <span className="text-red-600">*</span></label>
+                    <input name="title" required value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
                 </div>
 
                 <div>
@@ -67,18 +66,33 @@ export default function Edit({ event }: Props) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Start</label>
-                    <input name="start_at" type="datetime-local" value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">Start date <span className="text-red-600">*</span></label>
+                    <input name="start_at" type="date" required value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">End</label>
-                    <input name="end_at" type="datetime-local" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
+                    <input name="end_at" type="date" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Facebook link (optional)</label>
+                    <input name="facebook_url" value={form.data.facebook_url} onChange={e => form.setData('facebook_url', e.target.value)} className="input" placeholder="https://facebook.com/yourpage" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Instagram link (optional)</label>
+                    <input name="instagram_url" value={form.data.instagram_url} onChange={e => form.setData('instagram_url', e.target.value)} className="input" placeholder="https://instagram.com/yourpage" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">WhatsApp (optional)</label>
+                    <input name="whatsapp_url" value={form.data.whatsapp_url} onChange={e => form.setData('whatsapp_url', e.target.value)} className="input" placeholder="https://wa.me/1234567890" />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium">Description</label>
-                    <textarea name="description" value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" />
+                    <RichEditor value={form.data.description} onChange={v => form.setData('description', v)} />
                 </div>
 
                 <div>
@@ -92,7 +106,7 @@ export default function Edit({ event }: Props) {
                 </div>
 
                 <div>
-                    <button type="submit" className="btn-primary" disabled={form.processing}>Save</button>
+                    <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Save</ActionButton>
                 </div>
             </form>
         </AppLayout>

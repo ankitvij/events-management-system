@@ -1,8 +1,9 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import * as React from 'react';
 import CartButton from '@/components/CartButton';
 
 export default function PublicHeader() {
+    const page = usePage();
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-sidebar-border/80 bg-white">
@@ -15,9 +16,23 @@ export default function PublicHeader() {
                     </Link>
                     <div className="flex items-center gap-4">
                         <div>
-                            <Link href="/login" className="text-sm text-blue-600 mr-3">Log in</Link>
-                            <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create your event</Link>
-                            <Link href="/register" className="text-sm text-blue-600">Sign up</Link>
+                            {page.props?.customer ? (
+                                <>
+                                    <Link href="/customer/orders" className="text-sm text-blue-600 mr-3">My orders</Link>
+                                    <a href="#" onClick={async (e) => {
+                                        e.preventDefault();
+                                        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                                        await fetch('/customer/logout', { method: 'POST', headers: { 'X-CSRF-TOKEN': token }, credentials: 'same-origin' });
+                                        window.location.reload();
+                                    }} className="text-sm text-blue-600 mr-3">Log out</a>
+                                </>
+                            ) : (
+                                <>
+                                    <Link href="/customer/login" className="text-sm text-blue-600 mr-3">Log in</Link>
+                                    <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create your event</Link>
+                                    <Link href="/customer/register" className="text-sm text-blue-600">Sign up</Link>
+                                </>
+                            )}
                         </div>
 
                         <div className="ml-4">

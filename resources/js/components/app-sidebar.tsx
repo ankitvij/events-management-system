@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Folder, LayoutGrid, Users, Shield } from 'lucide-react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Users, Shield, Bug } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -33,7 +33,7 @@ const mainNavItems: NavItem[] = [
 const footerNavItems: NavItem[] = [
     {
         title: 'Repository',
-        href: 'https://github.com/ankit/events-management-system',
+        href: 'https://github.com/ankitvij/events-management-system',
         icon: Folder,
     },
     {
@@ -63,6 +63,7 @@ export function AppSidebar() {
 
     if (isSuper) {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
+        items.push({ title: 'Error Logs', href: '/admin/error-logs', icon: Bug });
     }
 
     // show Pages module to admins

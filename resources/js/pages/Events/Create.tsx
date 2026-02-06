@@ -17,9 +17,11 @@ export default function Create() {
         description: '',
         start_at: '',
         end_at: '',
-        location: '',
         city: '',
         address: '',
+        facebook_url: '',
+        instagram_url: '',
+        whatsapp_url: '',
         country: '',
         active: true,
         image: null,
@@ -46,13 +48,8 @@ export default function Create() {
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
                 <form onSubmit={submit} className="p-4 space-y-4">
                 <div>
-                    <label className="block text-sm font-medium">Title</label>
-                    <input name="title" value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium">Location</label>
-                    <input name="location" value={form.data.location} onChange={e => form.setData('location', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">Title <span className="text-red-600">*</span></label>
+                    <input name="title" required value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
                 </div>
 
                 <div>
@@ -71,13 +68,28 @@ export default function Create() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">Start</label>
-                    <input name="start_at" type="datetime-local" value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">Start date <span className="text-red-600">*</span></label>
+                    <input name="start_at" type="date" required value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">End</label>
-                    <input name="end_at" type="datetime-local" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">End date</label>
+                    <input name="end_at" type="date" value={form.data.end_at} onChange={e => form.setData('end_at', e.target.value)} className="input" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Facebook link (optional)</label>
+                    <input name="facebook_url" value={form.data.facebook_url} onChange={e => form.setData('facebook_url', e.target.value)} className="input" placeholder="https://facebook.com/yourpage" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">Instagram link (optional)</label>
+                    <input name="instagram_url" value={form.data.instagram_url} onChange={e => form.setData('instagram_url', e.target.value)} className="input" placeholder="https://instagram.com/yourpage" />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium">WhatsApp (optional)</label>
+                    <input name="whatsapp_url" value={form.data.whatsapp_url} onChange={e => form.setData('whatsapp_url', e.target.value)} className="input" placeholder="https://wa.me/1234567890" />
                 </div>
 
                 <div>
@@ -101,8 +113,10 @@ export default function Create() {
                     ) : (
                         <>
                             <p className="text-sm text-muted">You are creating an event as a guest. Please provide an organiser name and email to create an organiser record for this event.</p>
-                            <input name="organiser_name" value={form.data.organiser_name} onChange={e => form.setData('organiser_name', e.target.value)} placeholder="Organiser name" className="input mt-2" />
-                            <input name="organiser_email" value={form.data.organiser_email} onChange={e => form.setData('organiser_email', e.target.value)} placeholder="organiser@example.com" className="input mt-2" />
+                            <label className="block text-sm font-medium mt-2">Organiser name <span className="text-red-600">*</span></label>
+                            <input required name="organiser_name" value={form.data.organiser_name} onChange={e => form.setData('organiser_name', e.target.value)} placeholder="Organiser name" className="input mt-1" />
+                            <label className="block text-sm font-medium mt-2">Organiser email <span className="text-red-600">*</span></label>
+                            <input required name="organiser_email" type="email" value={form.data.organiser_email} onChange={e => form.setData('organiser_email', e.target.value)} placeholder="organiser@example.com" className="input mt-1" />
                         </>
                     )}
                 </div>

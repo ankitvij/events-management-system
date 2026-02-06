@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Ticket;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Mail\OrderConfirmed;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class CartController extends Controller
 {
@@ -24,14 +27,17 @@ class CartController extends Controller
         if ($cart) {
             $cart->load('items.ticket', 'items.event');
             $count = $cart->items->sum('quantity');
-            $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+            $total = $cart->items->sum(function ($i) {
+                return $i->quantity * $i->price;
+            });
         } else {
             // Fallback: present an empty cart object for views to render safely
-            $cart = new Cart();
+            $cart = new Cart;
             $cart->setRelation('items', collect());
             $count = 0;
             $total = 0;
         }
+
         return inertia('Cart/Index', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
     }
 
@@ -67,7 +73,10 @@ class CartController extends Controller
             // return updated cart summary as well to help the frontend update UI
             $cart->load('items.ticket', 'items.event');
             $count = $cart->items->sum('quantity');
-            $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+            $total = $cart->items->sum(function ($i) {
+                return $i->quantity * $i->price;
+            });
+
             return response()->json(['success' => true, 'item' => $item, 'cart_id' => $cart->id, 'count' => $count, 'total' => $total]);
         }
 
@@ -78,14 +87,24 @@ class CartController extends Controller
     {
         $cart = $this->getCart($request);
         if (! $cart) {
-            return response()->json(['items' => [], 'count' => 0, 'total' => 0]);
+            return response()->json([
+                'count' => 0,
+                'total' => 0,
+                'items' => [],
+            ]);
         }
+
         $cart->load('items.ticket', 'items.event');
         $count = $cart->items->sum('quantity');
-        $total = $cart->items->sum(function ($i) {
-            return $i->quantity * $i->price;
+        $total = $cart->items->sum(function ($item) {
+            return $item->quantity * $item->price;
         });
-        return response()->json(['items' => $cart->items, 'count' => $count, 'total' => $total]);
+
+        return response()->json([
+            'count' => $count,
+            'total' => $total,
+            'items' => $cart->items,
+        ]);
     }
 
     public function checkout(Request $request)
@@ -95,19 +114,29 @@ class CartController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
             }
+
             return redirect()->back()->with('error', 'Cart is empty');
         }
 
         $incomingEmail = $request->input('email');
+        $incomingName = $request->input('name');
+        $incomingPassword = $request->input('password');
+        $ticketGuests = $request->input('ticket_guests', []);
+        if (! is_array($ticketGuests)) {
+            $ticketGuests = [];
+        }
+        $ticketGuestsByItem = collect($ticketGuests)->filter(function ($entry) {
+            return is_array($entry) && isset($entry['cart_item_id']);
+        })->keyBy('cart_item_id');
 
         try {
-            $order = DB::transaction(function () use ($cart, $incomingEmail) {
+            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem) {
                 $cart->load('items');
                 foreach ($cart->items as $item) {
                     if ($item->ticket_id) {
                         $ticket = Ticket::lockForUpdate()->find($item->ticket_id);
                         if (! $ticket || $ticket->quantity_available < $item->quantity) {
-                            throw new \Exception('Insufficient availability for ticket id: ' . $item->ticket_id);
+                            throw new \Exception('Insufficient availability for ticket id: '.$item->ticket_id);
                         }
                         $ticket->quantity_available = max(0, $ticket->quantity_available - $item->quantity);
                         $ticket->save();
@@ -121,10 +150,12 @@ class CartController extends Controller
                         $code = (string) random_int(1000000000, 9999999999);
                     } catch (\Throwable $e) {
                         // fallback if random_int is not available
-                        $code = substr((string) time() . (string) rand(1000, 9999), 0, 10);
+                        $code = substr((string) time().(string) rand(1000, 9999), 0, 10);
                     }
                 } while (\App\Models\Order::where('booking_code', $code)->exists());
-                $total = $cart->items->sum(function ($i) { return $i->quantity * $i->price; });
+                $total = $cart->items->sum(function ($i) {
+                    return $i->quantity * $i->price;
+                });
                 $order = Order::create([
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
@@ -136,19 +167,75 @@ class CartController extends Controller
                 ]);
 
                 foreach ($cart->items as $item) {
+                    $guestDetails = null;
+                    $entry = $ticketGuestsByItem->get($item->id);
+                    if (is_array($entry) && isset($entry['guests']) && is_array($entry['guests'])) {
+                        $guestDetails = collect($entry['guests'])->map(function ($guest) {
+                            if (! is_array($guest)) {
+                                return null;
+                            }
+
+                            $name = trim((string) ($guest['name'] ?? ''));
+                            $email = trim((string) ($guest['email'] ?? ''));
+
+                            if ($name === '' && $email === '') {
+                                return null;
+                            }
+
+                            return [
+                                'name' => $name ?: null,
+                                'email' => $email ?: null,
+                            ];
+                        })->filter()->values()->all();
+
+                        if (is_array($guestDetails)) {
+                            $guestDetails = array_slice($guestDetails, 0, $item->quantity);
+                        }
+                    }
+
                     OrderItem::create([
                         'order_id' => $order->id,
                         'ticket_id' => $item->ticket_id,
                         'event_id' => $item->event_id,
                         'quantity' => $item->quantity,
                         'price' => $item->price,
+                        'guest_details' => $guestDetails,
                     ]);
                 }
 
                 // clear cart items after successful reservation
                 $cart->items()->delete();
 
-                return $order;
+                // associate a customer when an email was provided
+                $customerId = null;
+                if ($incomingEmail) {
+                    $customer = Customer::where('email', $incomingEmail)->first();
+                    if (! $customer) {
+                        $attrs = [
+                            'name' => $incomingName ?: 'Guest',
+                            'email' => $incomingEmail,
+                            'phone' => null,
+                            'active' => true,
+                        ];
+                        if (Schema::hasColumn('customers', 'password') && $incomingPassword) {
+                            $attrs['password'] = Hash::make($incomingPassword);
+                        }
+                        $customer = Customer::create($attrs);
+                    } else {
+                        // if password provided and customer has no password, set it (only when column exists)
+                        if ($incomingPassword && Schema::hasColumn('customers', 'password')) {
+                            if (! $customer->password) {
+                                $customer->password = Hash::make($incomingPassword);
+                                $customer->save();
+                            }
+                        }
+                    }
+                    $customerId = $customer->id;
+                    $order->customer_id = $customerId;
+                    $order->save();
+                }
+
+                return ['order' => $order, 'customer_id' => $customerId];
             });
 
             // attempt to send confirmation email outside transaction
@@ -157,27 +244,44 @@ class CartController extends Controller
                 $recipient = $cart->user->email;
             }
             // prefer contact email passed during guest checkout
-            $incomingName = $request->input('name');
             if (! $recipient && $incomingEmail) {
                 $recipient = $incomingEmail;
             }
-            if (isset($order)) {
+            if (isset($result['order'])) {
+                $order = $result['order'];
                 // persist contact details on order if provided
                 $order->contact_name = $incomingName ?: $order->contact_name;
                 $order->contact_email = $incomingEmail ?: $order->contact_email;
                 $order->save();
             }
-            if ($recipient && isset($order)) {
+
+            // If customer created/identified and password was provided, log them into customer session
+            if (! empty($result['customer_id']) && $incomingPassword) {
+                session()->put('customer_id', $result['customer_id']);
+            }
+            if (isset($order) && $recipient) {
+                $order->loadMissing('items.ticket.event', 'user');
                 try {
-                    Mail::to($recipient)->send(new OrderConfirmed($order));
+                    foreach ($order->items as $item) {
+                        $names = collect(is_array($item->guest_details) ? $item->guest_details : [])
+                            ->pluck('name')
+                            ->filter()
+                            ->values();
+                        $total = max(1, (int) $item->quantity);
+                        for ($i = 0; $i < $total; $i++) {
+                            $name = $names->get($i);
+                            Mail::to($recipient)->send(new OrderConfirmed($order, $item, $name));
+                        }
+                    }
                 } catch (\Throwable $e) {
-                    logger()->error('Order confirmation mail failed: ' . $e->getMessage());
+                    logger()->error('Order confirmation mail failed: '.$e->getMessage());
                 }
             }
         } catch (\Throwable $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
             }
+
             return redirect()->back()->with('error', $e->getMessage());
         }
 
@@ -185,10 +289,21 @@ class CartController extends Controller
         $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
 
         if ($request->wantsJson() || $request->ajax()) {
-            return response()->json(['success' => true, 'order_id' => $order->id, 'email' => $recipientEmail]);
+            $customerCreated = false;
+            if (isset($result) && is_array($result) && ! empty($result['customer_id'])) {
+                $customerCreated = true;
+            }
+
+            return response()->json([
+                'success' => true,
+                'order_id' => $order->id,
+                'email' => $recipientEmail,
+                'booking_code' => $order->booking_code,
+                'customer_created' => $customerCreated,
+            ]);
         }
 
-        $message = "Order placed successfully.";
+        $message = 'Order placed successfully.';
         if ($recipientEmail) {
             $message .= " A confirmation has been sent to {$recipientEmail}.";
         }
@@ -223,6 +338,7 @@ class CartController extends Controller
     {
         if ($request->user()) {
             $cart = Cart::firstOrCreate(['user_id' => $request->user()->id]);
+
             return $cart;
         }
 
@@ -232,7 +348,9 @@ class CartController extends Controller
         $cartIdToFind = $cookieCartId ?: $paramCartId;
         if ($cartIdToFind) {
             $cart = Cart::find($cartIdToFind);
-            if ($cart) return $cart;
+            if ($cart) {
+                return $cart;
+            }
         }
 
         $sid = $request->session()->getId();
@@ -240,6 +358,7 @@ class CartController extends Controller
         if (! $cart && $create) {
             $cart = Cart::create(['session_id' => $sid]);
         }
+
         return $cart;
     }
 }

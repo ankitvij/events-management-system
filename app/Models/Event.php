@@ -12,14 +12,21 @@ class Event extends Model
 {
     use HasFactory;
 
+    protected $appends = [
+        'image_url',
+        'image_thumbnail_url',
+    ];
+
     protected $fillable = [
         'title',
         'description',
         'start_at',
         'end_at',
-        'location',
         'city',
         'address',
+        'facebook_url',
+        'instagram_url',
+        'whatsapp_url',
         'country',
         'image',
         'image_thumbnail',
@@ -29,8 +36,8 @@ class Event extends Model
     ];
 
     protected $casts = [
-        'start_at' => 'datetime',
-        'end_at' => 'datetime',
+        'start_at' => 'date',
+        'end_at' => 'date',
         'active' => 'boolean',
     ];
 
@@ -76,6 +83,7 @@ class Event extends Model
             $file = Storage::disk('public')->path($path);
             if (file_exists($file)) {
                 $ts = filemtime($file);
+
                 return $url.(strpos($url, '?') === false ? '?' : '&').'v='.$ts;
             }
         } catch (\Throwable $e) {
@@ -107,6 +115,7 @@ class Event extends Model
             $file = Storage::disk('public')->path($path);
             if (file_exists($file)) {
                 $ts = filemtime($file);
+
                 return $url.(strpos($url, '?') === false ? '?' : '&').'v='.$ts;
             }
         } catch (\Throwable $e) {

@@ -2,6 +2,7 @@
 /bootstrap/ssr
 /node_modules
 /public/build
+/public_html/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -27,3 +28,20 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Local scratch artifacts
+/add_item*.json
+/checkout.json
+/summary.json
+/page-*.json
+/page-*.txt
+/order-*.txt
+/order-*.html
+/cart-*.txt
+/cart*.html
+/events.html
+/show*.html
+/tmp_page.html
+/cookies.txt
+/server.log
+/server.err
