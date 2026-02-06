@@ -73,5 +73,9 @@ class CheckoutCreatesCustomerTest extends TestCase
         Mail::assertSent(OrderConfirmed::class, function (OrderConfirmed $mail) {
             return $mail->hasTo('holder@example.com');
         });
+
+        Mail::assertSent(OrderConfirmed::class, function (OrderConfirmed $mail) {
+            return $mail->hasTo('checkout@example.com');
+        });
     }
 }

@@ -23,18 +23,6 @@
 		<div>
 			@foreach($items as $item)
 				<div class="item" style="display:flex;gap:12px;align-items:center">
-					@php
-						$img = $event_images[$item->id] ?? null;
-						if (! $img && $item->event?->image_thumbnail_url) {
-							$img = $item->event->image_thumbnail_url;
-							if (! str_starts_with($img, 'http')) {
-								$img = config('app.url') . (str_starts_with($img, '/') ? $img : '/' . $img);
-							}
-						}
-					@endphp
-					@if($img)
-						<img src="{{ $img }}" alt="{{ $item->event->title }}" style="max-width:100%;height:auto;border-radius:8px;display:block" />
-					@endif
 					<div>
 						<div><strong>Ticket type:</strong> {{ $item->ticket?->name ?? 'Ticket type' }} x{{ $item->quantity }} — €{{ number_format($item->price,2) }}</div>
 						@if(is_array($item->guest_details) && count($item->guest_details) > 0)

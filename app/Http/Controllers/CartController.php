@@ -292,11 +292,12 @@ class CartController extends Controller
                             ->values();
 
                         if ($recipient) {
-                            $names = $guestEntries->pluck('name')->filter()->values();
                             $total = max(1, (int) $item->quantity);
                             for ($i = 0; $i < $total; $i++) {
-                                $name = $names->get($i);
-                                Mail::to($recipient)->send(new OrderConfirmed($order, $item, $name));
+                                $guest = $guestEntries->get($i);
+                                $guestName = is_array($guest) ? ($guest['name'] ?? null) : null;
+                                $guestEmail = is_array($guest) ? ($guest['email'] ?? null) : null;
+                                Mail::to($recipient)->send(new OrderConfirmed($order, $item, $guestName, $guestEmail));
                             }
                         }
 
