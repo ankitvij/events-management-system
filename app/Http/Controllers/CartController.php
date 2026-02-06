@@ -41,6 +41,28 @@ class CartController extends Controller
         return inertia('Cart/Index', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
     }
 
+    public function checkoutForm(Request $request)
+    {
+        $cart = $this->getCart($request, true);
+        if (! $cart) {
+            $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
+        }
+        if ($cart) {
+            $cart->load('items.ticket', 'items.event');
+            $count = $cart->items->sum('quantity');
+            $total = $cart->items->sum(function ($i) {
+                return $i->quantity * $i->price;
+            });
+        } else {
+            $cart = new Cart;
+            $cart->setRelation('items', collect());
+            $count = 0;
+            $total = 0;
+        }
+
+        return inertia('Cart/Checkout', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
+    }
+
     public function storeItem(Request $request)
     {
         $data = $request->validate([

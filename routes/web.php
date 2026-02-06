@@ -217,6 +217,7 @@ use App\Http\Controllers\CartController;
 
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
+Route::get('cart/checkout', [CartController::class, 'checkoutForm'])->name('cart.checkout.form');
 Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');
 Route::put('cart/items/{item}', [CartController::class, 'updateItem'])->name('cart.items.update');
 Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name('cart.items.destroy');

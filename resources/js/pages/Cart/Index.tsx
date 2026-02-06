@@ -2,7 +2,6 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import React from 'react';
 import { Trash } from 'lucide-react';
-import CheckoutModal from '@/components/checkout-modal';
 
 function getCsrf() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -99,7 +98,6 @@ export default function CartIndex() {
         }
     }
 
-    const [showCheckout, setShowCheckout] = React.useState(false);
 
     return (
         <AppLayout>
@@ -148,8 +146,7 @@ export default function CartIndex() {
                 <div className="mt-4 p-4 border-t text-right">
                     <div className="text-lg font-medium">Total: €{Number(summary.total).toFixed(2)}</div>
                     <div className="mt-2">
-                        <button type="button" onClick={() => setShowCheckout(true)} className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-sm text-white">Checkout</button>
-                        <CheckoutModal isOpen={showCheckout} onClose={() => setShowCheckout(false)} onSuccess={async () => { await refreshSummary(); }} />
+                        <Link href="/cart/checkout" className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-sm text-white">Checkout</Link>
                     </div>
                 </div>
             </div>
