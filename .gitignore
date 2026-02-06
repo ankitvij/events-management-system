@@ -30,6 +30,9 @@ yarn-error.log
 /.vscode
 /.zed
 
+# Ignore the legacy scripts directory (archived to scripts_bck)
+/scripts
+
 # Local scratch artifacts
 /add_item*.json
 /checkout.json
@@ -46,3 +49,6 @@ yarn-error.log
 /cookies.txt
 /server.log
 /server.err
+
+# Ignore backup files ending with _bck
+*_bck

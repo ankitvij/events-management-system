@@ -1,0 +1,3 @@
+2026/02/06 22:46:52 [emerg] 2888#25628: CreateDirectory() "C:\Users\ankit\Herd\events/temp/client_body_temp" failed (3: The system cannot find the path specified)
+2026/02/06 22:47:21 [notice] 22660#33548: signal process started
+2026/02/06 22:47:21 [error] 22660#33548: invalid PID number "" in "C:\Users\ankit\Herd\events/logs/nginx.pid"
