@@ -56,9 +56,10 @@ export default function GuestLanding({ events }: Props) {
 
     return (
         <AppLayout>
-            <Head>
-                <title>Welcome to Events</title>
-                <meta name="description" content="Public landing page for guests" />
+            <Head title="Welcome to Events">
+                {[
+                    <meta key="description" name="description" content="Public landing page for guests" />,
+                ]}
             </Head>
 
 

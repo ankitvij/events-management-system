@@ -101,9 +101,7 @@ export default function CartCheckout() {
 
     return (
         <AppLayout>
-            <Head>
-                <title>Checkout</title>
-            </Head>
+            <Head title="Checkout" />
 
             <div className="p-4">
                 <h1 className="text-xl font-semibold">Checkout</h1>

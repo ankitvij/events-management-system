@@ -18,6 +18,7 @@
 .env.testing
 .phpactor.json
 .phpunit.result.cache
+AGENTS.md
 Homestead.json
 Homestead.yaml
 npm-debug.log

@@ -89,9 +89,10 @@ export default function EventsIndex({ events }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head>
-                <title>Events</title>
-                <meta name="description" content="Browse upcoming events." />
+            <Head title="Events">
+                {[
+                    <meta key="description" name="description" content="Browse upcoming events." />,
+                ]}
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>

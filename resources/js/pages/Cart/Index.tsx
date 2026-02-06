@@ -101,9 +101,7 @@ export default function CartIndex() {
 
     return (
         <AppLayout>
-            <Head>
-                <title>Your Cart</title>
-            </Head>
+            <Head title="Your Cart" />
 
             <div className="p-4">
                 <h1 className="text-xl font-semibold">Shopping Cart</h1>

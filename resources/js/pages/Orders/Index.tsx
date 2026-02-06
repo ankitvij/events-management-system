@@ -8,9 +8,7 @@ export default function OrdersIndex() {
 
     return (
         <AppLayout>
-            <Head>
-                <title>Orders</title>
-            </Head>
+            <Head title="Orders" />
 
             <div className="p-4">
                 <h1 className="text-xl font-semibold">Orders</h1>

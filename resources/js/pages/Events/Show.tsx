@@ -91,34 +91,35 @@ export default function Show({ event }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head>
-                <title>{event.title}</title>
-                <meta name="description" content={event.description || ''} />
-                <meta property="og:title" content={event.title} />
-                <meta property="og:description" content={event.description || ''} />
-                {event.image || event.image_thumbnail ? (
-                    <meta property="og:image" content={event.image ? `/storage/${event.image}` : `/storage/${event.image_thumbnail}`} />
-                ) : null}
-                {/* JSON-LD structured data for Event (omit organisers for guests) */}
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify({
-                        '@context': 'https://schema.org',
-                        '@type': 'Event',
-                        name: event.title || undefined,
-                        description: event.description || undefined,
-                        startDate: event.start_at ? event.start_at.slice(0, 10) : undefined,
-                        endDate: event.end_at ? event.end_at.slice(0, 10) : undefined,
-                        url: typeof window !== 'undefined' ? window.location.href : undefined,
-                        image: event.image ? `${window.location.origin}/storage/${event.image}` : (event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : undefined),
-                        location: {
-                            '@type': 'Place',
-                            name: event.address || event.city || event.country || undefined,
-                            address: event.address || (event.city || event.country ? `${event.city || ''}${event.city && event.country ? ', ' : ''}${event.country || ''}` : undefined),
-                        },
-                        organizer: current && event.organisers ? event.organisers.map((o: Organiser) => ({ '@type': 'Organization', name: o.name })) : undefined,
-                    }) }}
-                />
+            <Head title={event.title}>
+                {[
+                    <meta key="description" name="description" content={event.description || ''} />,
+                    <meta key="og:title" property="og:title" content={event.title} />,
+                    <meta key="og:description" property="og:description" content={event.description || ''} />,
+                    event.image || event.image_thumbnail ? (
+                        <meta key="og:image" property="og:image" content={event.image ? `/storage/${event.image}` : `/storage/${event.image_thumbnail}`} />
+                    ) : null,
+                    <script
+                        key="ldjson"
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'Event',
+                            name: event.title || undefined,
+                            description: event.description || undefined,
+                            startDate: event.start_at ? event.start_at.slice(0, 10) : undefined,
+                            endDate: event.end_at ? event.end_at.slice(0, 10) : undefined,
+                            url: typeof window !== 'undefined' ? window.location.href : undefined,
+                            image: event.image ? `${window.location.origin}/storage/${event.image}` : (event.image_thumbnail ? `${window.location.origin}/storage/${event.image_thumbnail}` : undefined),
+                            location: {
+                                '@type': 'Place',
+                                name: event.address || event.city || event.country || undefined,
+                                address: event.address || (event.city || event.country ? `${event.city || ''}${event.city && event.country ? ', ' : ''}${event.country || ''}` : undefined),
+                            },
+                            organizer: current && event.organisers ? event.organisers.map((o: Organiser) => ({ '@type': 'Organization', name: o.name })) : undefined,
+                        }) }}
+                    />,
+                ]}
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>

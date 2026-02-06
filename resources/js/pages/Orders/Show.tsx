@@ -5,13 +5,25 @@ import { useState } from 'react';
 
 export default function OrdersShow() {
     const page = usePage();
-    const order = page.props?.order ?? {};
+    const order = (page.props as any)?.order ?? null;
+    const items = Array.isArray(order?.items) ? order.items : [];
+
+    if (!order) {
+        return (
+            <AppLayout>
+                <Head title="Order" />
+                <div className="p-4">
+                    <div className="rounded-md bg-red-600 p-3 text-white">
+                        Unable to load order details. Please check your booking code.
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
 
     return (
         <AppLayout>
-                    <Head>
-                        <title>Booking code: {order.booking_code ?? 'Order'}</title>
-                    </Head>
+            <Head title={`Booking code: ${order.booking_code ?? 'Order'}`} />
 
             {page.props?.flash?.success && (
                 <div className="p-4">
@@ -31,7 +43,7 @@ export default function OrdersShow() {
                 <div className="mt-4">
                     <div className="font-medium">Ticket types</div>
                     <div className="mt-2 space-y-2">
-                        {order.items?.map((it: any) => (
+                        {items.map((it: any) => (
                             <div key={it.id} className="border p-3 rounded space-y-3">
                                 <div className="flex items-start justify-between gap-4">
                                     {(it.event?.image_thumbnail_url || it.event?.image_url) && (
