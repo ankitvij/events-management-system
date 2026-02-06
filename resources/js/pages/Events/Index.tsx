@@ -173,7 +173,19 @@ export default function EventsIndex({ events }: Props) {
 
                     <div className="space-y-3">
                     {events.data?.map((event: Event) => (
-                        <div key={event.id} className="border rounded p-3">
+                        <div
+                            key={event.id}
+                            className="border rounded p-3 cursor-pointer"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => router.get(`/events/${event.id}`)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    router.get(`/events/${event.id}`);
+                                }
+                            }}
+                        >
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                 <div className="md:col-span-6 flex items-center gap-3">
                                     <div className="w-20 h-12 flex-shrink-0">
@@ -198,7 +210,7 @@ export default function EventsIndex({ events }: Props) {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <Link href={`/events/${event.id}`} className="text-lg font-medium">{event.title}</Link>
+                                            <Link href={`/events/${event.id}`} className="text-lg font-medium" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
                                             {!event.active && (
                                                 <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
@@ -229,7 +241,10 @@ export default function EventsIndex({ events }: Props) {
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
                                         <button
                                             type="button"
-                                            onClick={() => toggleActive(event.id, !event.active)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleActive(event.id, !event.active);
+                                            }}
                                             className="text-xl cursor-pointer mr-2"
                                             aria-pressed={event.active}
                                             aria-label={event.title + ' active toggle'}
@@ -246,10 +261,13 @@ export default function EventsIndex({ events }: Props) {
 
                                 </div>
                                 <div className="md:col-span-1 text-center">
-                                    <ActionButton className="px-3 py-1 text-sm" onClick={() => router.get(`/events/${event.id}/edit`)}>Edit</ActionButton>
+                                    <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.get(`/events/${event.id}/edit`);
+                                    }}>Edit</ActionButton>
                                 </div>
                                 <div className="md:col-span-1 text-center">
-                                    <Link href={`/events/${event.id}#tickets`} className="text-blue-600">Ticket types</Link>
+                                    <Link href={`/events/${event.id}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>
                                 </div>
                             </div>
                         </div>

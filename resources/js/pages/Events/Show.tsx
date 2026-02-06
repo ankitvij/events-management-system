@@ -52,17 +52,27 @@ export default function Show({ event }: Props) {
         organisersForm.put(`/events/${event.id}`, { forceFormData: true });
     }
 
-            async function addToCart(ticket: any): Promise<boolean> {
+    function getCookie(name: string): string {
+        if (typeof document === 'undefined') return '';
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift() ?? '';
+        return '';
+    }
+
+    async function addToCart(ticket: any): Promise<boolean> {
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const xsrf = decodeURIComponent(getCookie('XSRF-TOKEN') || '');
             const resp = await fetch('/cart/items', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token,
+                    'X-CSRF-TOKEN': token || xsrf,
+                    ...(xsrf ? { 'X-XSRF-TOKEN': xsrf } : {}),
                 },
-                        credentials: 'same-origin',
+                credentials: 'same-origin',
                 body: JSON.stringify({ ticket_id: ticket.id, event_id: event.id, quantity: 1, price: ticket.price }),
             });
 
@@ -163,7 +173,7 @@ export default function Show({ event }: Props) {
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
-                        <h2 id="tickets" className="text-lg font-semibold">Ticket types</h2>
+                        <h2 id="tickets" className="text-lg font-semibold">Tickets</h2>
                         <div className="mt-2 space-y-2">
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
                                 <div key={t.id} className="border p-2 rounded">
