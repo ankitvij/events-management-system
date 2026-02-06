@@ -30,6 +30,9 @@ yarn-error.log
 /.vscode
 /.zed
 
+# Ignore the legacy scripts directory (archived to scripts_bck)
+/scripts
+
 # Local scratch artifacts
 /add_item*.json
 /checkout.json
