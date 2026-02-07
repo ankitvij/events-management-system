@@ -72,7 +72,8 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        // Ensure the symbolic link points to public_html/storage in this project
+        base_path('public_html/storage') => storage_path('app/public'),
     ],
 
 ];
