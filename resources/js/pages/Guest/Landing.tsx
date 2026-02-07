@@ -145,7 +145,7 @@ export default function GuestLanding({ events }: Props) {
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
                                         <div className="md:col-span-1 text-center">
                                             <Link
-                                                href={`/events/${event.id}#tickets`}
+                                                href={`/events/${event.slug}#tickets`}
                                                 onClick={(e) => e.stopPropagation()}
                                                 className={ticketButtonClass}
                                             >

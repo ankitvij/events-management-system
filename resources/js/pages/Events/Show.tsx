@@ -36,7 +36,7 @@ type Props = { event: Event };
 export default function Show({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
-        { title: event.title, href: `/events/${event.id}` },
+        { title: event.title, href: `/events/${event.slug}` },
     ];
     const page = usePage();
     const current = page.props?.auth?.user;
@@ -49,7 +49,7 @@ export default function Show({ event }: Props) {
 
     function saveOrganisers(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        organisersForm.put(`/events/${event.id}`, { forceFormData: true });
+        organisersForm.put(`/events/${event.slug}`, { forceFormData: true });
     }
 
     function getCookie(name: string): string {
@@ -227,7 +227,7 @@ export default function Show({ event }: Props) {
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <ActionButton href={`/events/${event.id}/edit`}>Edit</ActionButton>
+                            <ActionButton href={`/events/${event.slug}/edit`}>Edit</ActionButton>
                         ) : null}
 
                         {!current && !showHomeHeader && (

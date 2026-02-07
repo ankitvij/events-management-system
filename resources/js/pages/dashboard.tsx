@@ -48,7 +48,7 @@ export default function Dashboard({ events = [] }: Props) {
                                 {events.map((event: Event) => (
                                     <div key={event.id} className="border rounded p-3 flex justify-between items-start">
                                         <div>
-                                            <Link href={`/events/${event.id}`} className="text-base font-medium">{event.title}</Link>
+                                            <Link href={`/events/${event.slug}`} className="text-base font-medium">{event.title}</Link>
                                             <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                             <div className="text-sm text-muted">{new Date(event.start_at).toLocaleDateString()}</div>
                                         </div>
