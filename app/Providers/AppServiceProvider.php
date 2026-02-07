@@ -34,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
+        config(['dompdf.public_path' => base_path('public_html')]);
+
         // Register mail failure logger so bounces/rejections are recorded
         Event::listen(MessageFailed::class, [LogFailedMail::class, 'handle']);
 
