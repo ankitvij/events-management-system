@@ -68,4 +68,4 @@ jobs:
 # Notes:
 # - Provide these repository secrets: SSH_HOST, SSH_USER, SSH_PRIVATE_KEY, SSH_PORT (optional), DEPLOY_PATH
 # - This workflow assumes the production server has Git, Node, Composer, PHP and required build tools installed.
-# - If the server cannot run npm/build, consider building assets in the workflow and rsync/upload the built `public/build` directory instead.
+# - If the server cannot run npm/build, consider building assets in the workflow and rsync/upload the built `public_html/build` directory instead.
