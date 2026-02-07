@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -183,6 +184,16 @@ class EventController extends Controller
 
             $event = Event::create($local);
 
+            // Generate a unique slug based on title
+            $base = Str::slug($event->title ?: 'event');
+            $slug = $base;
+            $i = 1;
+            while (Event::where('slug', $slug)->where('id', '!=', $event->id)->exists()) {
+                $slug = $base.'-'.(++$i);
+            }
+            $event->slug = $slug;
+            $event->save();
+
             $organiserIds = [];
             if (! empty($local['organiser_ids'])) {
                 $organiserIds = array_values($local['organiser_ids']);
@@ -348,6 +359,18 @@ class EventController extends Controller
         }
 
         $event->update($data);
+
+        // Ensure slug stays in sync with title on update
+        if (array_key_exists('title', $data)) {
+            $base = Str::slug($data['title'] ?? $event->title ?: 'event');
+            $slug = $base;
+            $i = 1;
+            while (Event::where('slug', $slug)->where('id', '!=', $event->id)->exists()) {
+                $slug = $base.'-'.(++$i);
+            }
+            $event->slug = $slug;
+            $event->save();
+        }
 
         if (array_key_exists('organiser_ids', $data)) {
             $event->organisers()->sync($data['organiser_ids'] ?? []);

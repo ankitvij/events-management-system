@@ -18,6 +18,7 @@ class Event extends Model
     ];
 
     protected $fillable = [
+        'slug',
         'title',
         'description',
         'start_at',
@@ -34,6 +35,14 @@ class Event extends Model
         'active',
         'organiser_id',
     ];
+
+    /**
+     * Use slug for route model binding when available.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
 
     protected $casts = [
         'start_at' => 'date',
