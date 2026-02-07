@@ -70,7 +70,7 @@ export default [
             'node_modules',
             // ignore built frontend assets so lint focuses on source files
             'public',
-            'public/build',
+            'public_html/build',
             'public_html/build',
             'bootstrap/ssr',
             'tailwind.config.js',
