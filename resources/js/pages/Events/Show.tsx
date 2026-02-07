@@ -12,6 +12,7 @@ type Organiser = { id: number; name: string };
 
 type Event = {
     id: number;
+    slug: string;
     title: string;
     description?: string | null;
     address?: string | null;
@@ -36,7 +37,7 @@ type Props = { event: Event };
 export default function Show({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
-        { title: event.title, href: `/events/${event.slug}` },
+        { title: event.title, href: `/${event.slug}` },
     ];
     const page = usePage();
     const current = page.props?.auth?.user;
@@ -179,7 +180,7 @@ export default function Show({ event }: Props) {
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
                                 <div key={t.id} className="border p-2 rounded">
                                     {page.props?.canEdit ? (
-                                                <TicketItem eventId={event.id} ticket={t} />
+                                                <TicketItem eventSlug={event.slug} ticket={t} />
                                             ) : (
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -212,7 +213,7 @@ export default function Show({ event }: Props) {
                 {page.props?.canEdit && (
                     <div className="mt-4 border-t pt-4">
                         <h3 className="text-sm font-medium">Create ticket type</h3>
-                        <TicketCreateForm eventId={event.id} />
+                        <TicketCreateForm eventSlug={event.slug} />
                     </div>
                 )}
 

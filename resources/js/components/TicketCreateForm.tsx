@@ -2,16 +2,16 @@ import { useForm } from '@inertiajs/react';
 import React from 'react';
 import ActionButton from '@/components/ActionButton';
 
-type Props = { eventId: number };
+type Props = { eventSlug: string };
 
 type FormData = { name: string; price: number; quantity_total: number; quantity_available: number; active: boolean };
 
-export default function TicketCreateForm({ eventId }: Props) {
+export default function TicketCreateForm({ eventSlug }: Props) {
     const form = useForm<FormData>({ name: '', price: 0, quantity_total: 0, quantity_available: 0, active: true });
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        form.post(`/events/${eventId}/tickets`, {
+        form.post(`/events/${eventSlug}/tickets`, {
             onSuccess: () => {
                 form.reset('name', 'price', 'quantity_total', 'quantity_available', 'active');
             },

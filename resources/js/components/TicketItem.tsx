@@ -4,7 +4,7 @@ import React from 'react';
 import ActionButton from '@/components/ActionButton';
 
 type Props = {
-    eventId: number;
+    eventSlug: string;
     ticket: {
         id: number;
         name: string;
@@ -17,7 +17,7 @@ type Props = {
 
 type FormData = { name: string; price: number; quantity_total: number; quantity_available: number; active: boolean };
 
-export default function TicketItem({ eventId, ticket }: Props) {
+export default function TicketItem({ eventSlug, ticket }: Props) {
     const form = useForm<FormData>({
         name: ticket.name,
         price: ticket.price,
@@ -28,12 +28,12 @@ export default function TicketItem({ eventId, ticket }: Props) {
 
     const onSave = (e: React.FormEvent) => {
         e.preventDefault();
-        form.put(`/events/${eventId}/tickets/${ticket.id}`);
+        form.put(`/events/${eventSlug}/tickets/${ticket.id}`);
     };
 
     const onDelete = () => {
         if (!confirm('Delete this ticket?')) return;
-        Inertia.delete(`/events/${eventId}/tickets/${ticket.id}`);
+        Inertia.delete(`/events/${eventSlug}/tickets/${ticket.id}`);
     };
 
     return (

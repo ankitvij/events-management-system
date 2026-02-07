@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
+use App\Models\Event;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -167,8 +168,19 @@ Route::post('events', [EventController::class, 'store'])->name('events.store');
 // Protect all other event resource routes with auth
 Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create', 'store']);
 
-// Allow public viewing of individual events at /events/{event}
-Route::get('events/{event}', [EventController::class, 'show'])->name('events.show');
+// Redirect legacy public links to the new root-level event URLs
+Route::get('events/{eventId}', function (string $eventId) {
+    $event = Event::query()->find($eventId);
+    if (! $event) {
+        abort(404);
+    }
+
+    return redirect("/{$event->slug}");
+})->whereNumber('eventId');
+
+Route::get('events/{event:slug}', function (Event $event) {
+    return redirect("/{$event->slug}");
+});
 
 // Toggle active state (authenticated)
 Route::put('events/{event}/active', [EventController::class, 'toggleActive'])->middleware(['auth']);
@@ -263,3 +275,8 @@ Route::get('customer/orders', [OrderController::class, 'customerIndex'])->name('
 use App\Http\Controllers\PageController;
 
 Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);
+
+// Public event show at root-level slug (must remain after all other routes)
+Route::get('{event:slug}', [EventController::class, 'show'])
+    ->where('event', '[A-Za-z0-9-]+')
+    ->name('events.show');

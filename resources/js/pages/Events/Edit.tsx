@@ -12,7 +12,7 @@ type Props = { event: Event };
 export default function Edit({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
-        { title: event.title, href: `/events/${event.slug}` },
+        { title: event.title, href: `/${event.slug}` },
         { title: 'Edit', href: `/events/${event.slug}/edit` },
     ];
 
