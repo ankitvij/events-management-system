@@ -1,0 +1,83 @@
+
+> build
+> vite build
+
+vite v7.3.1 building client environment for production...
+[plugin @laravel/vite-plugin-wayfinder] Types generated for actions, routes, form variants
+transforming...
+✓ 2815 modules transformed.
+rendering chunks...
+computing gzip size...
+public_html/build/.vite/manifest.json                         30.47 kB │ gzip:   2.55 kB
+public_html/build/assets/app-YWcsOcGx.css                     92.09 kB │ gzip:  15.43 kB
+public_html/build/assets/check-Bnm4eyrH.js                     0.17 kB │ gzip:   0.18 kB │ map:     0.78 kB
+public_html/build/assets/loader-circle-BGAQNNzC.js             0.21 kB │ gzip:   0.20 kB │ map:     0.84 kB
+public_html/build/assets/index-Bfqb1RB-.js                     0.41 kB │ gzip:   0.25 kB │ map:     2.87 kB
+public_html/build/assets/organiser-placeholder-BDvUXALZ.js     0.42 kB │ gzip:   0.33 kB │ map:     0.85 kB
+public_html/build/assets/input-error-Bf840tNI.js               0.48 kB │ gzip:   0.36 kB │ map:     1.23 kB
+public_html/build/assets/spinner-QRMhpgcU.js                   0.50 kB │ gzip:   0.37 kB │ map:     1.08 kB
+public_html/build/assets/index-Dd6nODJq.js                     0.50 kB │ gzip:   0.37 kB │ map:     2.06 kB
+public_html/build/assets/text-link-B6KpmcUl.js                 0.65 kB │ gzip:   0.44 kB │ map:     1.48 kB
+public_html/build/assets/ActionButton-Cqp2XaQh.js              0.70 kB │ gzip:   0.46 kB │ map:     1.91 kB
+public_html/build/assets/label-BozJmzbz.js                     0.88 kB │ gzip:   0.56 kB │ map:     2.52 kB
+public_html/build/assets/createLucideIcon-DMX5OW19.js          0.94 kB │ gzip:   0.59 kB │ map:     4.74 kB
+public_html/build/assets/input-CNxCxDRp.js                     1.10 kB │ gzip:   0.63 kB │ map:     1.79 kB
+public_html/build/assets/Show-4YdhZ0ZU.js                      1.18 kB │ gzip:   0.70 kB │ map:     2.54 kB
+public_html/build/assets/RichEditor-Yo4dVuP2.js                1.29 kB │ gzip:   0.71 kB │ map:     3.22 kB
+public_html/build/assets/verify-email-BawmiAth.js              1.47 kB │ gzip:   0.83 kB │ map:     2.98 kB
+public_html/build/assets/index-B032ce7v.js                     1.54 kB │ gzip:   0.55 kB │ map:    11.72 kB
+public_html/build/assets/organiser-multi-select-BA5sIHqW.js    1.55 kB │ gzip:   0.90 kB │ map:     4.20 kB
+public_html/build/assets/confirm-password-BU0loVtG.js          1.56 kB │ gzip:   0.80 kB │ map:     3.41 kB
+public_html/build/assets/auth-layout-guAF5zhz.js               1.76 kB │ gzip:   0.82 kB │ map:     4.19 kB
+public_html/build/assets/Index-VE3h7y3Q.js                     1.87 kB │ gzip:   0.87 kB │ map:     4.21 kB
+public_html/build/assets/forgot-password-C6_d3Fwt.js           2.13 kB │ gzip:   1.03 kB │ map:     4.85 kB
+public_html/build/assets/Show-BeQUAIp-.js                      2.31 kB │ gzip:   1.08 kB │ map:     5.43 kB
+public_html/build/assets/Login-B7GmKZFk.js                     2.40 kB │ gzip:   1.16 kB │ map:     5.27 kB
+public_html/build/assets/Show-CyM8jPzP.js                      2.41 kB │ gzip:   1.15 kB │ map:     4.99 kB
+public_html/build/assets/reset-password-jNBXY2I-.js            2.43 kB │ gzip:   1.03 kB │ map:     6.21 kB
+public_html/build/assets/Index-rrbxN-IZ.js                     2.49 kB │ gzip:   1.30 kB │ map:     7.31 kB
+public_html/build/assets/Show-DZRCjICe.js                      2.63 kB │ gzip:   1.23 kB │ map:     5.40 kB
+public_html/build/assets/ErrorLogs-lHfCC8xW.js                 2.65 kB │ gzip:   1.00 kB │ map:     7.61 kB
+public_html/build/assets/index-PEL4zmgs.js                     2.80 kB │ gzip:   0.75 kB │ map:    21.19 kB
+public_html/build/assets/appearance-CmrqvAdh.js                2.87 kB │ gzip:   1.40 kB │ map:     8.72 kB
+public_html/build/assets/register-DfcEmu7d.js                  2.88 kB │ gzip:   1.15 kB │ map:    10.02 kB
+public_html/build/assets/index-BsePJUay.js                     2.96 kB │ gzip:   0.96 kB │ map:    20.61 kB
+public_html/build/assets/two-factor-challenge-DSeg26zt.js      3.01 kB │ gzip:   1.43 kB │ map:     9.36 kB
+public_html/build/assets/Create-ix5O6GfS.js                    3.03 kB │ gzip:   1.28 kB │ map:     6.27 kB
+public_html/build/assets/Create-CXlaZXBo.js                    3.06 kB │ gzip:   1.30 kB │ map:     6.38 kB
+public_html/build/assets/list-controls-BQJcjXDe.js             3.15 kB │ gzip:   1.46 kB │ map:     9.72 kB
+public_html/build/assets/dashboard-DfI2MlzE.js                 3.28 kB │ gzip:   1.27 kB │ map:     7.21 kB
+public_html/build/assets/Edit--7hgMea3.js                      3.30 kB │ gzip:   1.48 kB │ map:     7.19 kB
+public_html/build/assets/Edit-C9ydUo6A.js                      3.49 kB │ gzip:   1.58 kB │ map:     7.78 kB
+public_html/build/assets/Register-Bu9h7RDT.js                  3.61 kB │ gzip:   1.51 kB │ map:     7.68 kB
+public_html/build/assets/index-CWsan-rm.js                     3.65 kB │ gzip:   1.62 kB │ map:    19.70 kB
+public_html/build/assets/Create-rtHLIKxt.js                    3.74 kB │ gzip:   1.49 kB │ map:     7.79 kB
+public_html/build/assets/Index-lE9cqIWy.js                     3.92 kB │ gzip:   1.58 kB │ map:    12.31 kB
+public_html/build/assets/Edit-DonNcpAW.js                      4.01 kB │ gzip:   1.69 kB │ map:     8.68 kB
+public_html/build/assets/dialog-BpMY75dn.js                    4.04 kB │ gzip:   1.21 kB │ map:     9.05 kB
+public_html/build/assets/password-BjCV28WK.js                  4.05 kB │ gzip:   1.46 kB │ map:    15.98 kB
+public_html/build/assets/index-BZqaO7NM.js                     4.17 kB │ gzip:   0.86 kB │ map:    32.68 kB
+public_html/build/assets/Create-BqFWXUyh.js                    4.39 kB │ gzip:   1.68 kB │ map:     9.43 kB
+public_html/build/assets/layout-CX93YSB9.js                    4.60 kB │ gzip:   1.83 kB │ map:    19.27 kB
+public_html/build/assets/Edit-CPb7Cpum.js                      4.62 kB │ gzip:   1.92 kB │ map:    10.54 kB
+public_html/build/assets/Index-B_i_aA68.js                     5.04 kB │ gzip:   2.12 kB │ map:    12.30 kB
+public_html/build/assets/Checkout-BxhPl2SO.js                  5.53 kB │ gzip:   2.05 kB │ map:    17.96 kB
+public_html/build/assets/Index-DTrwDbbZ.js                     5.65 kB │ gzip:   2.31 kB │ map:    14.46 kB
+public_html/build/assets/Index-BEOp1SC-.js                     5.73 kB │ gzip:   2.34 kB │ map:    14.71 kB
+public_html/build/assets/Index-CglmUoz5.js                     5.79 kB │ gzip:   2.39 kB │ map:    15.15 kB
+public_html/build/assets/Show-CdIBFuAk.js                      6.58 kB │ gzip:   2.62 kB │ map:    16.05 kB
+public_html/build/assets/profile-DLz-MDN0.js                   7.23 kB │ gzip:   2.53 kB │ map:    27.22 kB
+public_html/build/assets/Landing-DkJ1AWUy.js                   7.46 kB │ gzip:   2.90 kB │ map:    19.49 kB
+public_html/build/assets/Edit-CjZp89U0.js                      8.47 kB │ gzip:   3.00 kB │ map:    17.47 kB
+public_html/build/assets/Create-Bh2lKiWT.js                    9.31 kB │ gzip:   2.99 kB │ map:    19.00 kB
+public_html/build/assets/login-B9g6npED.js                    10.05 kB │ gzip:   4.11 kB │ map:    41.77 kB
+public_html/build/assets/Index-iCgrJKRC.js                    10.93 kB │ gzip:   3.97 kB │ map:    30.61 kB
+public_html/build/assets/use-two-factor-auth-BCs-myqt.js      13.67 kB │ gzip:   5.48 kB │ map:    34.48 kB
+public_html/build/assets/transition-B_AzMRQP.js               14.39 kB │ gzip:   5.76 kB │ map:    39.63 kB
+public_html/build/assets/two-factor-trJwb8B9.js               20.83 kB │ gzip:   7.00 kB │ map:    65.93 kB
+public_html/build/assets/button-D5cNzu-P.js                   30.11 kB │ gzip:  10.09 kB │ map:   156.98 kB
+public_html/build/assets/Show-Bm-OIOIv.js                     49.47 kB │ gzip:  17.15 kB │ map:   158.60 kB
+public_html/build/assets/welcome-CVyyqphg.js                  50.22 kB │ gzip:   9.61 kB │ map:    91.34 kB
+public_html/build/assets/app-layout-Dt617ipy.js              162.23 kB │ gzip:  46.66 kB │ map:   748.50 kB
+public_html/build/assets/app-DPe5UuBX.js                     393.68 kB │ gzip: 128.94 kB │ map: 1,774.15 kB
+✓ built in 9.28s
