@@ -66,16 +66,24 @@ export default function Show({ event }: Props) {
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const xsrf = decodeURIComponent(getCookie('XSRF-TOKEN') || '');
+            const csrfToken = token || xsrf;
             const resp = await fetch('/cart/items', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': token || xsrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
                     ...(xsrf ? { 'X-XSRF-TOKEN': xsrf } : {}),
                 },
-                credentials: 'same-origin',
-                body: JSON.stringify({ ticket_id: ticket.id, event_id: event.id, quantity: 1, price: ticket.price }),
+                credentials: 'include',
+                body: JSON.stringify({
+                    ticket_id: ticket.id,
+                    event_id: event.id,
+                    quantity: 1,
+                    price: ticket.price,
+                    _token: csrfToken,
+                }),
             });
 
             if (resp.ok) {
