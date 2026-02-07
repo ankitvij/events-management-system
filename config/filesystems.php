@@ -40,7 +40,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // Store public files directly under the project's public_html/storage
+            'root' => base_path('public_html/storage'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
         ],
@@ -71,9 +72,9 @@ return [
     |
     */
 
-    'links' => [
-        // Ensure the symbolic link points to public_html/storage in this project
-        base_path('public_html/storage') => storage_path('app/public'),
-    ],
+    // We store public files directly in `public_html/storage`, so no automatic
+    // storage:link mapping is necessary here. Keep links empty to avoid
+    // creating conflicting symlinks on `php artisan storage:link`.
+    'links' => [],
 
 ];
