@@ -100,10 +100,20 @@ composer install --no-dev --optimize-autoloader --classmap-authoritative --no-in
 ```bash
 # ensure Node is available (install or use nvm)
 npm ci
+export RAYON_NUM_THREADS=1
+export LIGHTNINGCSS_NUM_THREADS=1
 npm run build
 ```
 
-4) Webserver document root
+4) Ensure Vite manifest path
+
+Laravel expects the manifest at `public_html/build/manifest.json`. If the build writes it to `public_html/build/.vite/manifest.json`, copy it:
+
+```bash
+cp public_html/build/.vite/manifest.json public_html/build/manifest.json
+```
+
+5) Webserver document root
 
 - Ensure your webserver points to the `public_html` folder inside the project as the DocumentRoot / `root`.
 - Example nginx `server` block snippet:
@@ -118,7 +128,7 @@ server {
 }
 ```
 
-5) Create storage symlink
+6) Create storage symlink
 
 ```bash
 cd /path/to/project
@@ -128,14 +138,14 @@ php artisan storage:link
 
 Note: Locally we use a Windows junction to achieve the same mapping (`public_html/storage` → `storage/app/public`).
 
-6) Database migrations & seeders
+7) Database migrations & seeders
 
 ```bash
 php artisan migrate --force
 php artisan db:seed --force   # optional
 ```
 
-7) Cache & optimize
+8) Cache & optimize
 
 ```bash
 php artisan config:cache
@@ -144,7 +154,7 @@ php artisan view:cache
 php artisan optimize
 ```
 
-8) Restart services
+9) Restart services
 
 ```bash
 php artisan queue:restart
@@ -152,14 +162,14 @@ sudo systemctl reload php-fpm
 sudo systemctl reload nginx
 ```
 
-9) Verification
+10) Verification
 
 ```bash
 curl -I https://chancepass.com
 php artisan migrate:status
 ```
 
-10) Notes
+11) Notes
 
 - If images or assets 404, confirm `public_html` contains `index.php`, `build/` and a `storage` link to `storage/app/public`.
 - This project uses Boost tooling; ensure `laravel/boost` is available if post-update composer scripts reference it.
