@@ -12,8 +12,8 @@ type Props = { event: Event };
 export default function Edit({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
-        { title: event.title, href: `/events/${event.id}` },
-        { title: 'Edit', href: `/events/${event.id}/edit` },
+        { title: event.title, href: `/${event.slug}` },
+        { title: 'Edit', href: `/events/${event.slug}/edit` },
     ];
 
     const form = useForm({
@@ -37,7 +37,7 @@ export default function Edit({ event }: Props) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        form.put(`/events/${event.id}`, { forceFormData: true });
+        form.put(`/events/${event.slug}`, { forceFormData: true });
     }
 
     return (

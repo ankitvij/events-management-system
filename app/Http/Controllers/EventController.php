@@ -12,11 +12,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Only eager-load organisers for authenticated users
         $query = Event::with('user');
@@ -136,8 +137,13 @@ class EventController extends Controller
         } else {
             $events = $query->paginate(10)->withQueryString();
         }
-        if (app()->runningUnitTests()) {
-            return response()->json(['events' => $events, 'showOrganisers' => auth()->check()]);
+        if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
+            return response()->json([
+                'events' => $events,
+                'showOrganisers' => auth()->check(),
+                'cities' => $cities,
+                'countries' => $countries,
+            ]);
         }
 
         return Inertia::render('Events/Index', [
@@ -182,6 +188,16 @@ class EventController extends Controller
             }
 
             $event = Event::create($local);
+
+            // Generate a unique slug based on title
+            $base = Str::slug($event->title ?: 'event');
+            $slug = $base;
+            $i = 1;
+            while (Event::where('slug', $slug)->where('id', '!=', $event->id)->exists()) {
+                $slug = $base.'-'.(++$i);
+            }
+            $event->slug = $slug;
+            $event->save();
 
             $organiserIds = [];
             if (! empty($local['organiser_ids'])) {
@@ -244,7 +260,7 @@ class EventController extends Controller
         return redirect()->route('events.index');
     }
 
-    public function show(Event $event)
+    public function show(Event $event, Request $request)
     {
         $event->load('user');
         if (auth()->check()) {
@@ -293,7 +309,7 @@ class EventController extends Controller
             ];
         })->values();
 
-        if (app()->runningUnitTests()) {
+        if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
                 'organisers' => $organisers,
@@ -348,6 +364,18 @@ class EventController extends Controller
         }
 
         $event->update($data);
+
+        // Ensure slug stays in sync with title on update
+        if (array_key_exists('title', $data)) {
+            $base = Str::slug($data['title'] ?? $event->title ?: 'event');
+            $slug = $base;
+            $i = 1;
+            while (Event::where('slug', $slug)->where('id', '!=', $event->id)->exists()) {
+                $slug = $base.'-'.(++$i);
+            }
+            $event->slug = $slug;
+            $event->save();
+        }
 
         if (array_key_exists('organiser_ids', $data)) {
             $event->organisers()->sync($data['organiser_ids'] ?? []);

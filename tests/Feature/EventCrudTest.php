@@ -53,6 +53,7 @@ class EventCrudTest extends TestCase
             'end_at' => now()->addDays(3)->toDateString(),
         ]);
 
+        $event->refresh();
         $update->assertRedirect(route('events.show', $event));
 
         $this->assertDatabaseHas('events', [

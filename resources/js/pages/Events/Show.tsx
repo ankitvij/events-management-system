@@ -1,4 +1,5 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import DOMPurify from 'dompurify';
 import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
@@ -12,6 +13,7 @@ type Organiser = { id: number; name: string };
 
 type Event = {
     id: number;
+    slug: string;
     title: string;
     description?: string | null;
     address?: string | null;
@@ -36,7 +38,7 @@ type Props = { event: Event };
 export default function Show({ event }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
-        { title: event.title, href: `/events/${event.id}` },
+        { title: event.title, href: `/${event.slug}` },
     ];
     const page = usePage();
     const current = page.props?.auth?.user;
@@ -49,7 +51,7 @@ export default function Show({ event }: Props) {
 
     function saveOrganisers(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        organisersForm.put(`/events/${event.id}`, { forceFormData: true });
+        organisersForm.put(`/events/${event.slug}`, { forceFormData: true });
     }
 
     function getCookie(name: string): string {
@@ -170,7 +172,10 @@ export default function Show({ event }: Props) {
                     )
                 )}
 
-                <div className="mt-4">{event.description}</div>
+                <div
+                    className="mt-4"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
+                />
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
@@ -179,7 +184,7 @@ export default function Show({ event }: Props) {
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
                                 <div key={t.id} className="border p-2 rounded">
                                     {page.props?.canEdit ? (
-                                                <TicketItem eventId={event.id} ticket={t} />
+                                                <TicketItem eventSlug={event.slug} ticket={t} />
                                             ) : (
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -212,7 +217,7 @@ export default function Show({ event }: Props) {
                 {page.props?.canEdit && (
                     <div className="mt-4 border-t pt-4">
                         <h3 className="text-sm font-medium">Create ticket type</h3>
-                        <TicketCreateForm eventId={event.id} />
+                        <TicketCreateForm eventSlug={event.slug} />
                     </div>
                 )}
 
@@ -227,7 +232,7 @@ export default function Show({ event }: Props) {
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <ActionButton href={`/events/${event.id}/edit`}>Edit</ActionButton>
+                            <ActionButton href={`/events/${event.slug}/edit`}>Edit</ActionButton>
                         ) : null}
 
                         {!current && !showHomeHeader && (

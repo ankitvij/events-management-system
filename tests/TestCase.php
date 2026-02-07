@@ -10,9 +10,14 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        if (file_exists(base_path('bootstrap/cache/config.php'))) {
+            $this->fail('Config cache detected. Run `php artisan config:clear` before tests.');
+        }
+
         // Disable only the CSRF middleware during tests to avoid TokenMismatch
         // while keeping session and other middleware active so views relying
         // on the session (e.g. Fortify view callbacks) function correctly.
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     }
 }

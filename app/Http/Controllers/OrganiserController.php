@@ -6,6 +6,7 @@ use App\Http\Requests\StoreOrganiserRequest;
 use App\Http\Requests\UpdateOrganiserRequest;
 use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class OrganiserController extends Controller
@@ -16,7 +17,7 @@ class OrganiserController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Organiser::class);
 
@@ -46,7 +47,7 @@ class OrganiserController extends Controller
 
         $organisers = $query->paginate(20)->withQueryString();
 
-        if (app()->runningUnitTests()) {
+        if ($request->expectsJson() || app()->runningUnitTests()) {
             return response()->json(['organisers' => $organisers]);
         }
 

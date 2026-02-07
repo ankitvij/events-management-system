@@ -6,6 +6,7 @@ export type Customer = { id: number; name?: string | null; email?: string | null
 
 export type Event = {
     id: number;
+    slug?: string | null;
     title: string;
     description?: string | null;
     address?: string | null;

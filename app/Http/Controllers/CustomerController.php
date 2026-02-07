@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class CustomerController extends Controller
@@ -13,7 +14,7 @@ class CustomerController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Customer::class);
 
@@ -44,7 +45,7 @@ class CustomerController extends Controller
 
         $customers = $query->paginate(20)->withQueryString();
 
-        if (app()->runningUnitTests()) {
+        if ($request->expectsJson() || app()->runningUnitTests()) {
             return response()->json(['customers' => $customers]);
         }
 

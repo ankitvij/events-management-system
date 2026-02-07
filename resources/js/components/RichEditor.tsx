@@ -1,33 +1,64 @@
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
 
-export default function RichEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-    const ref = useRef<HTMLDivElement | null>(null);
+type Props = {
+    value: string;
+    onChange: (value: string) => void;
+};
+
+export default function RichEditor({ value, onChange }: Props) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const quillRef = useRef<Quill | null>(null);
+    const lastValueRef = useRef<string>('');
 
     useEffect(() => {
-        if (ref.current && ref.current.innerHTML !== value) {
-            ref.current.innerHTML = value || '';
+        if (!containerRef.current || quillRef.current) {
+            return;
+        }
+
+        const quill = new Quill(containerRef.current, {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ list: 'ordered' }, { list: 'bullet' }],
+                    ['link', 'blockquote', 'code-block'],
+                    ['clean'],
+                ],
+            },
+        });
+
+        quillRef.current = quill;
+        const initial = value || '';
+        quill.clipboard.dangerouslyPasteHTML(initial);
+        lastValueRef.current = initial;
+
+        quill.on('text-change', () => {
+            const html = quill.root.innerHTML;
+            if (html !== lastValueRef.current) {
+                lastValueRef.current = html;
+                onChange(html);
+            }
+        });
+    }, [onChange, value]);
+
+    useEffect(() => {
+        if (!quillRef.current) {
+            return;
+        }
+
+        if (value !== lastValueRef.current) {
+            const next = value || '';
+            quillRef.current.clipboard.dangerouslyPasteHTML(next);
+            lastValueRef.current = next;
         }
     }, [value]);
 
-    function exec(command: string) {
-        document.execCommand(command, false);
-        onChange(ref.current?.innerHTML || '');
-    }
-
     return (
-        <div>
-            <div className="flex gap-2 mb-2">
-                <button type="button" onClick={() => exec('bold')} className="btn">B</button>
-                <button type="button" onClick={() => exec('italic')} className="btn">I</button>
-                <button type="button" onClick={() => exec('insertUnorderedList')} className="btn">•</button>
-            </div>
-            <div
-                ref={ref}
-                contentEditable
-                suppressContentEditableWarning
-                onInput={() => onChange(ref.current?.innerHTML || '')}
-                className="border rounded p-2 min-h-[120px]"
-            />
+        <div className="rounded border border-slate-200 bg-white">
+            <div ref={containerRef} className="min-h-[220px]" />
         </div>
     );
 }

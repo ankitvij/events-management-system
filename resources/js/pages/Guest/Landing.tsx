@@ -50,8 +50,10 @@ export default function GuestLanding({ events }: Props) {
         router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
-    function visitEvent(id: number) {
-        router.visit(`/events/${id}`);
+    function visitEvent(slug?: string | null) {
+        if (slug) {
+            router.visit(`/${slug}`);
+        }
     }
 
     return (
@@ -117,11 +119,11 @@ export default function GuestLanding({ events }: Props) {
                                     className="border rounded p-3 cursor-pointer hover:bg-gray-50 transition"
                                     role="link"
                                     tabIndex={0}
-                                    onClick={() => visitEvent(event.id)}
+                                    onClick={() => visitEvent(event.slug)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter' || e.key === ' ') {
                                             e.preventDefault();
-                                            visitEvent(event.id);
+                                            visitEvent(event.slug);
                                         }
                                     }}
                                 >
@@ -145,7 +147,7 @@ export default function GuestLanding({ events }: Props) {
                                         <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
                                         <div className="md:col-span-1 text-center">
                                             <Link
-                                                href={`/events/${event.id}#tickets`}
+                                                href={`/${event.slug}#tickets`}
                                                 onClick={(e) => e.stopPropagation()}
                                                 className={ticketButtonClass}
                                             >

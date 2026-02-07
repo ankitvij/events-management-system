@@ -10,6 +10,8 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             ssr: 'resources/js/ssr.tsx',
             refresh: true,
+            publicDirectory: 'public_html',
+            buildDirectory: 'build',
         }),
         react({
             babel: {
