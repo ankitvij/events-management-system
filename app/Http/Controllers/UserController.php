@@ -12,7 +12,7 @@ use Inertia\Inertia;
 
 class UserController
 {
-    public function index()
+    public function index(Request $request)
     {
         $query = User::query();
 
@@ -94,7 +94,7 @@ class UserController
 
         $users = $query->paginate(20)->withQueryString();
 
-        if (app()->runningUnitTests()) {
+        if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json(['users' => $users]);
         }
 

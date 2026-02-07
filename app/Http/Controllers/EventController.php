@@ -11,13 +11,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Only eager-load organisers for authenticated users
         $query = Event::with('user');
@@ -137,8 +137,13 @@ class EventController extends Controller
         } else {
             $events = $query->paginate(10)->withQueryString();
         }
-        if (app()->runningUnitTests()) {
-            return response()->json(['events' => $events, 'showOrganisers' => auth()->check()]);
+        if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
+            return response()->json([
+                'events' => $events,
+                'showOrganisers' => auth()->check(),
+                'cities' => $cities,
+                'countries' => $countries,
+            ]);
         }
 
         return Inertia::render('Events/Index', [
@@ -255,7 +260,7 @@ class EventController extends Controller
         return redirect()->route('events.index');
     }
 
-    public function show(Event $event)
+    public function show(Event $event, Request $request)
     {
         $event->load('user');
         if (auth()->check()) {
@@ -304,7 +309,7 @@ class EventController extends Controller
             ];
         })->values();
 
-        if (app()->runningUnitTests()) {
+        if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
                 'organisers' => $organisers,

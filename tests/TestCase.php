@@ -14,5 +14,6 @@ abstract class TestCase extends BaseTestCase
         // while keeping session and other middleware active so views relying
         // on the session (e.g. Fortify view callbacks) function correctly.
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     }
 }
