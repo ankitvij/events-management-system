@@ -1,4 +1,5 @@
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import DOMPurify from 'dompurify';
 import type { FormEvent } from 'react';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
@@ -171,7 +172,10 @@ export default function Show({ event }: Props) {
                     )
                 )}
 
-                <div className="mt-4">{event.description}</div>
+                <div
+                    className="mt-4"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
+                />
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
                     <div className="mt-6">
