@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
 use App\Models\Event;
@@ -140,21 +141,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    $events = [];
-
-    if (auth()->check()) {
-        $events = \App\Models\Event::where('user_id', auth()->id())
-            ->where('start_at', '>=', now())
-            ->orderBy('start_at')
-            ->take(5)
-            ->get();
-    }
-
-    return Inertia::render('dashboard', [
-        'events' => $events,
-    ]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 require __DIR__.'/settings.php';
 
