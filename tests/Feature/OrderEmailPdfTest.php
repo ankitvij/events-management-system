@@ -20,6 +20,8 @@ class OrderEmailPdfTest extends TestCase
             $this->markTestSkipped('Dompdf not available');
         }
 
+        config(['dompdf.public_path' => base_path('public_html')]);
+
         $event = Event::factory()->create();
         $ticket = Ticket::create([
             'event_id' => $event->id,

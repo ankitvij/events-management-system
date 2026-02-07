@@ -7,6 +7,7 @@ use App\Models\OrderItem;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class OrderConfirmed extends Mailable
@@ -92,17 +93,36 @@ class OrderConfirmed extends Mailable
                 'event_embeds' => $event_embeds,
             ]);
 
+        $pdf_qr_codes = [];
+        foreach ($qr_embeds as $itemId => $embed) {
+            $pdf_qr_codes[$itemId] = 'data:'.$embed['mime'].';base64,'.base64_encode($embed['data']);
+        }
+
+        $pdf_event_images = [];
+        foreach ($event_images as $itemId => $image) {
+            if (is_string($image) && str_starts_with($image, 'data:')) {
+                $pdf_event_images[$itemId] = $image;
+            }
+        }
+
         // Try to generate a PDF using the Barryvdh Pdf facade if available
         if (class_exists('\\Barryvdh\\DomPDF\\Facade\\Pdf')) {
             try {
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.order_confirmed_pdf', [
                     'order' => $this->order,
                     'items' => $items,
-                    'qr_codes' => $qr_codes,
-                    'event_images' => $event_images,
+                    'qr_codes' => $pdf_qr_codes,
+                    'event_images' => $pdf_event_images,
+                ])->setOptions([
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
                 ])->output();
                 $mail->attachData($pdf, "order-{$this->order->booking_code}.pdf", ['mime' => 'application/pdf']);
             } catch (\Throwable $e) {
+                Log::warning('OrderConfirmed PDF generation failed', [
+                    'order_id' => $this->order->id,
+                    'exception' => $e->getMessage(),
+                ]);
                 $text = $this->generatePlainReceipt();
                 $mail->attachData($text, "order-{$this->order->id}.txt", ['mime' => 'text/plain']);
             }
@@ -112,14 +132,20 @@ class OrderConfirmed extends Mailable
                 $html = view('emails.order_confirmed_pdf', [
                     'order' => $this->order,
                     'items' => $items,
-                    'qr_codes' => $qr_codes,
-                    'event_images' => $event_images,
+                    'qr_codes' => $pdf_qr_codes,
+                    'event_images' => $pdf_event_images,
                 ])->render();
+                $dompdf->set_option('isRemoteEnabled', true);
+                $dompdf->set_option('isHtml5ParserEnabled', true);
                 $dompdf->loadHtml($html);
                 $dompdf->render();
                 $pdf = $dompdf->output();
                 $mail->attachData($pdf, "order-{$this->order->booking_code}.pdf", ['mime' => 'application/pdf']);
             } catch (\Throwable $e) {
+                Log::warning('OrderConfirmed PDF generation failed', [
+                    'order_id' => $this->order->id,
+                    'exception' => $e->getMessage(),
+                ]);
                 $text = $this->generatePlainReceipt();
                 $mail->attachData($text, "order-{$this->order->booking_code}.txt", ['mime' => 'text/plain']);
             }
