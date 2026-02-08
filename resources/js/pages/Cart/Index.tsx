@@ -128,7 +128,7 @@ export default function CartIndex() {
                                     <div className="mt-2 flex items-center justify-end gap-2">
                                         <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
                                         <div className="px-2">{i.quantity}</div>
-                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1))}>+</button>
+                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1)}>+</button>
                                         <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 ml-3 p-1" onClick={() => removeItemLocal(i.id)}>
                                             <Trash className="h-4 w-4" />
                                         </button>

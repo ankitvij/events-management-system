@@ -126,7 +126,7 @@ export default function CartButton() {
                                         <div className="flex items-center">
                                             <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}>-</button>
                                             <div className="px-3 text-sm">{it.quantity}</div>
-                                            <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1))}>+</button>
+                                            <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1)}>+</button>
                                         </div>
                                         <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 mt-2 p-1" onClick={() => removeItem(it.id)}>
                                             <Trash className="h-4 w-4" />
