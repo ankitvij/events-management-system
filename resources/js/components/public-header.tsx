@@ -8,7 +8,7 @@ export default function PublicHeader() {
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-sidebar-border/80 bg-white">
-                <div className="mx-auto flex h-16 items-center justify-between w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-4 py-3 min-[600px]:h-16 min-[600px]:flex-row min-[600px]:items-center min-[600px]:justify-between min-[600px]:gap-0 min-[600px]:py-0 sm:px-6 lg:px-8">
                     <Link href="/" className="flex items-center space-x-3">
                         <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
                             <span className="text-white font-bold">CP</span>
@@ -35,9 +35,12 @@ export default function PublicHeader() {
                             )}
                         </div>
 
-                        <div className="ml-4">
+                        <div className="ml-4 hidden min-[600px]:block">
                             <CartButton />
                         </div>
+                    </div>
+                    <div className="flex w-full justify-end min-[600px]:hidden">
+                        <CartButton />
                     </div>
                 </div>
             </header>

@@ -170,14 +170,14 @@ export default function Show({ event }: Props) {
                                                         <div className="font-medium">{t.name}</div>
                                                         <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available · Sold: {t.quantity_total - t.quantity_available}</div>
                                                     </div>
-                                                    <div className="flex items-center space-x-3">
+                                                    <div className="flex items-center gap-3">
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
                                                         {t.active && t.quantity_available > 0 ? (
-                                                            <div className="flex items-center">
+                                                            <div className="flex flex-col items-end gap-2">
                                                                 <ActionButton onClick={() => addToCart(t)}>
                                                                     Add to cart
                                                                 </ActionButton>
-                                                                <ActionButton className="ml-3" onClick={async () => { const ok = await addToCart(t); if (ok) { window.location.href = '/cart'; } else { alert('Could not add ticket to cart. Please try again.'); } }}>
+                                                                <ActionButton onClick={async () => { const ok = await addToCart(t); if (ok) { window.location.href = '/cart'; } else { alert('Could not add ticket to cart. Please try again.'); } }}>
                                                                     Buy Now
                                                                 </ActionButton>
                                                             </div>

@@ -78,11 +78,15 @@ export default function OrdersShow() {
                                         {it.quantity && it.quantity > 1 ? 'Download tickets' : 'Download ticket'}
                                     </a>
                                 </div>
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex flex-col gap-4 min-[600px]:flex-row min-[600px]:items-start min-[600px]:justify-between">
                                     {(it.event?.image_thumbnail_url || it.event?.image_url) && (
-                                        <img src={it.event?.image_thumbnail_url ?? it.event?.image_url} alt={it.event?.title} className="rounded" />
+                                        <img
+                                            src={it.event?.image_thumbnail_url ?? it.event?.image_url}
+                                            alt={it.event?.title}
+                                            className="w-full rounded min-[600px]:w-auto"
+                                        />
                                     )}
-                                    <div className="flex-1 text-right">
+                                    <div className="flex-1 text-left min-[600px]:text-right">
                                         <div className="font-medium">{it.event?.title ?? it.ticket?.name ?? 'Item'}</div>
                                         <div className="text-sm text-muted">{it.ticket?.name ? `Ticket type: ${it.ticket.name}` : 'Ticket type'}</div>
                                         {Array.isArray(it.guest_details) && it.guest_details.length > 0 && (
