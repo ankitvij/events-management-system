@@ -60,6 +60,5 @@
 			@endforeach
 		</div>
 
-		<p class="muted">If you have questions, reply to this email and include your booking code.</p>
 	</body>
 </html>

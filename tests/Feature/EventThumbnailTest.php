@@ -39,6 +39,40 @@ class EventThumbnailTest extends TestCase
 
         Storage::disk('public')->assertExists($event->image);
         Storage::disk('public')->assertExists($event->image_thumbnail);
+
+        $path = Storage::disk('public')->path($event->image);
+        $this->assertFileExists($path);
+        $size = getimagesize($path);
+        $this->assertIsArray($size);
+        $this->assertLessThanOrEqual(500, $size[1]);
+    }
+
+    public function test_uploading_small_image_does_not_upscale(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $file = UploadedFile::fake()->image('small.jpg', 600, 300);
+
+        $response = $this->post(route('events.store'), [
+            'title' => 'Small Image Event',
+            'description' => 'Small image should remain',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(2)->toDateString(),
+            'image' => $file,
+        ]);
+
+        $response->assertRedirect(route('events.index'));
+
+        $event = Event::where('title', 'Small Image Event')->firstOrFail();
+
+        $path = Storage::disk('public')->path($event->image);
+        $this->assertFileExists($path);
+        $size = getimagesize($path);
+        $this->assertIsArray($size);
+        $this->assertSame(300, $size[1]);
     }
 
     public function test_event_without_image_returns_null_image_fields_and_frontend_should_use_default(): void

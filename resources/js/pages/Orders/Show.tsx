@@ -8,6 +8,21 @@ export default function OrdersShow() {
     const order = (page.props as any)?.order ?? null;
     const items = Array.isArray(order?.items) ? order.items : [];
 
+    const downloadParams = (() => {
+        if (!order?.booking_code) return '';
+        const params = new URLSearchParams();
+        params.set('booking_code', order.booking_code);
+        const email = order.contact_email ?? order.user?.email;
+        if (email) {
+            params.set('email', email);
+        }
+        const query = params.toString();
+        return query ? `?${query}` : '';
+    })();
+
+    const downloadAllUrl = order?.id ? `/orders/${order.id}/tickets/download-all${downloadParams}` : '#';
+    const totalTickets = items.reduce((sum: number, it: any) => sum + (Number(it?.quantity) || 1), 0);
+
     if (!order) {
         return (
             <AppLayout>
@@ -42,9 +57,27 @@ export default function OrdersShow() {
                 ) }
                 <div className="mt-4">
                     <div className="font-medium">Ticket types</div>
+                    {totalTickets > 1 && (
+                        <div className="mt-2">
+                            <a
+                                href={downloadAllUrl}
+                                className="inline-flex items-center rounded bg-blue-600 px-3 py-2 text-sm text-white"
+                            >
+                                Download all tickets
+                            </a>
+                        </div>
+                    )}
                     <div className="mt-2 space-y-2">
                         {items.map((it: any) => (
                             <div key={it.id} className="border p-3 rounded space-y-3">
+                                <div className="flex justify-end">
+                                    <a
+                                        href={`/orders/${order.id}/tickets/${it.id}/download${downloadParams}`}
+                                        className="inline-flex items-center rounded bg-blue-600 px-3 py-2 text-xs text-white"
+                                    >
+                                        {it.quantity && it.quantity > 1 ? 'Download tickets' : 'Download ticket'}
+                                    </a>
+                                </div>
                                 <div className="flex items-start justify-between gap-4">
                                     {(it.event?.image_thumbnail_url || it.event?.image_url) && (
                                         <img src={it.event?.image_thumbnail_url ?? it.event?.image_url} alt={it.event?.title} className="rounded" />
@@ -83,7 +116,6 @@ export default function OrdersShow() {
 
                 <div className="mt-4 flex items-center justify-between">
                     <div className="text-lg font-medium">Total: €{Number(order.total ?? 0).toFixed(2)}</div>
-                    <a href={`/orders/${order.id}/receipt?booking_code=${encodeURIComponent(order.booking_code ?? '')}${order.contact_email || order.user?.email ? `&email=${encodeURIComponent(order.contact_email ?? order.user?.email ?? '')}` : ''}`} className="inline-flex items-center gap-2 rounded bg-blue-600 px-3 py-2 text-sm text-white">Download tickets</a>
                 </div>
 
                 <div className="mt-4">

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Policies\CustomerPolicy;
 use App\Policies\OrganiserPolicy;
 use Carbon\CarbonImmutable;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Mail\Events\MessageFailed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->prohibitDestructiveArtisanCommands();
 
         config(['dompdf.public_path' => base_path('public_html')]);
 
@@ -64,5 +66,31 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    protected function prohibitDestructiveArtisanCommands(): void
+    {
+        Event::listen(CommandStarting::class, function (CommandStarting $event) {
+            if (! app()->isProduction()) {
+                return;
+            }
+
+            $blocked = [
+                'migrate:fresh',
+                'migrate:refresh',
+                'migrate:rollback',
+                'db:wipe',
+            ];
+
+            if (! in_array($event->command, $blocked, true)) {
+                return;
+            }
+
+            if ($event->input->hasParameterOption('--force', true)) {
+                return;
+            }
+
+            throw new \RuntimeException("Destructive command [{$event->command}] is blocked in production. Use --force to override.");
+        });
     }
 }

@@ -181,6 +181,7 @@ class EventController extends Controller
 
             if ($request->hasFile('image')) {
                 $local['image'] = $request->file('image')->store('events', 'public');
+                $this->resizeImageToMaxHeight($local['image']);
                 $thumb = $this->generateThumbnail($local['image']);
                 if ($thumb) {
                     $local['image_thumbnail'] = $thumb;
@@ -357,6 +358,7 @@ class EventController extends Controller
                 Storage::disk('public')->delete($event->image_thumbnail);
             }
             $data['image'] = $request->file('image')->store('events', 'public');
+            $this->resizeImageToMaxHeight($data['image']);
             $thumb = $this->generateThumbnail($data['image']);
             if ($thumb) {
                 $data['image_thumbnail'] = $thumb;
@@ -500,6 +502,74 @@ class EventController extends Controller
             return $thumbPath;
         } catch (\Throwable $e) {
             return null;
+        }
+    }
+
+    protected function resizeImageToMaxHeight(string $imagePath, int $maxHeight = 500): void
+    {
+        try {
+            $full = Storage::disk('public')->path($imagePath);
+            if (! file_exists($full)) {
+                return;
+            }
+
+            $info = getimagesize($full);
+            $mime = $info['mime'] ?? '';
+            $width = $info[0] ?? null;
+            $height = $info[1] ?? null;
+
+            if (! $width || ! $height || $height <= $maxHeight) {
+                return;
+            }
+
+            switch ($mime) {
+                case 'image/jpeg':
+                    $src = imagecreatefromjpeg($full);
+                    break;
+                case 'image/png':
+                    $src = imagecreatefrompng($full);
+                    break;
+                case 'image/gif':
+                    $src = imagecreatefromgif($full);
+                    break;
+                default:
+                    $src = imagecreatefromstring(file_get_contents($full));
+                    break;
+            }
+
+            if (! $src) {
+                return;
+            }
+
+            $ratio = $width / $height;
+            $newHeight = $maxHeight;
+            $newWidth = (int) floor($maxHeight * $ratio);
+
+            $scaled = imagecreatetruecolor($newWidth, $newHeight);
+            if ($mime === 'image/png' || $mime === 'image/gif') {
+                imagecolortransparent($scaled, imagecolorallocatealpha($scaled, 0, 0, 0, 127));
+                imagealphablending($scaled, false);
+                imagesavealpha($scaled, true);
+            }
+
+            imagecopyresampled($scaled, $src, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+
+            switch ($mime) {
+                case 'image/png':
+                    imagepng($scaled, $full, 6);
+                    break;
+                case 'image/gif':
+                    imagegif($scaled, $full);
+                    break;
+                default:
+                    imagejpeg($scaled, $full, 82);
+                    break;
+            }
+
+            imagedestroy($src);
+            imagedestroy($scaled);
+        } catch (\Throwable $e) {
+            return;
         }
     }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
 use App\Models\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
@@ -14,11 +15,18 @@ Route::get('/', function () {
         // When running unit tests the database may not be migrated and
         // Vite manifest may be unavailable. Return a minimal JSON response
         // to keep tests from triggering view/DB exceptions.
-        if (app()->runningUnitTests()) {
+        if (app()->runningUnitTests() && ! Schema::hasTable('events')) {
             return response()->json(['events' => [], 'cities' => [], 'countries' => []]);
         }
         // Build a public events query for the guest landing page
-        $query = \App\Models\Event::with(['user', 'organisers'])->latest();
+        $query = \App\Models\Event::with(['user', 'organisers'])
+            ->withMin(['tickets as min_ticket_price' => function ($query) {
+                $query->where('active', true)->where('quantity_available', '>', 0);
+            }], 'price')
+            ->withMax(['tickets as max_ticket_price' => function ($query) {
+                $query->where('active', true)->where('quantity_available', '>', 0);
+            }], 'price')
+            ->latest();
 
         // Guests should see only active events
         $query->where('active', true);
@@ -226,6 +234,7 @@ Route::get('cart/summary', [CartController::class, 'summary'])->name('cart.summa
 Route::post('cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
 
 // Customer-facing auth (separate from admin/auth)
+Route::post('customer/email-check', [CustomerAuthController::class, 'checkEmail'])->name('customer.email.check');
 Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])->name('customer.register');
 Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
@@ -254,6 +263,8 @@ Route::get('admin/logs/mail-failures', [LogController::class, 'mailFailures'])
 // Admin orders
 Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::get('orders/{order}/tickets/download-all', [OrderController::class, 'downloadAllTickets'])->name('orders.tickets.downloadAll');
+Route::get('orders/{order}/tickets/{item}/download', [OrderController::class, 'downloadTicket'])->name('orders.tickets.download');
 Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
 
 // Customer: list own orders (session-based customer)

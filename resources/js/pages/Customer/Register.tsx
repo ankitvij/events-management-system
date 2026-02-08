@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
 export default function CustomerRegister() {
-    const form = useForm({ name: '', email: '', password: '', password_confirmation: '' });
+    const initialEmail = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('email') ?? ''
+        : '';
+    const form = useForm({ name: '', email: initialEmail, password: '', password_confirmation: '' });
     const [processing, setProcessing] = useState(false);
 
     function submit(e: any) {

@@ -53,14 +53,14 @@ export default function UsersIndex({ users }: Props) {
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
                     <button
                         onClick={() => applySort('name')}
-                        className="md:col-span-6 text-left"
+                        className="md:col-span-6 text-left min-w-max whitespace-nowrap"
                         aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
                     >
                         Name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <div className="md:col-span-4">Email</div>
-                    <div className="md:col-span-1">Active</div>
+                    <div className="md:col-span-4 min-w-max whitespace-nowrap">Email</div>
+                    <div className="md:col-span-1 min-w-max whitespace-nowrap">Active</div>
                     <div className="md:col-span-1" />
                 </div>
 

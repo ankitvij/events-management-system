@@ -8,7 +8,10 @@ import { request } from '@/routes';
 import { useState } from 'react';
 
 export default function CustomerLogin() {
-    const form = useForm({ email: '', password: '' });
+    const initialEmail = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('email') ?? ''
+        : '';
+    const form = useForm({ email: initialEmail, password: '' });
     const [processing, setProcessing] = useState(false);
 
     function submit(e: any) {
@@ -36,7 +39,7 @@ export default function CustomerLogin() {
                     <InputError message={form.errors.password} />
                 </div>
 
-                <Button type="submit" disabled={processing}>{processing ? 'Logging in...' : 'Log in'}</Button>
+                <Button type="submit" disabled={processing}>{processing ? 'Signing in...' : 'Sign in'}</Button>
             </form>
         </AuthLayout>
     );

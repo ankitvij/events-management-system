@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
+import SignInPrompt from '@/components/SignInPrompt';
 import type { BreadcrumbItem } from '@/types';
 
 type Organiser = {
@@ -102,10 +103,9 @@ export default function EventsIndex({ events }: Props) {
                         {/* top filters removed (kept in pagination area) */}
                     </div>
                     {!current && !showHomeHeader ? (
-                        <div className="text-sm">
-                            <Link href="/login" className="text-blue-600 mr-3">Log in</Link>
-                            <Link href="/register" className="text-blue-600">Sign up</Link>
-                        </div>
+                            <div className="text-sm">
+                                <SignInPrompt />
+                            </div>
                     ) : null}
                 </div>
 
@@ -139,7 +139,7 @@ export default function EventsIndex({ events }: Props) {
                         </div>
                         <button
                             onClick={() => applySort('country')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'country_asc' ? 'ascending' : params?.get('sort') === 'country_desc' ? 'descending' : 'none'}
                         >
                             Country
@@ -147,7 +147,7 @@ export default function EventsIndex({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('city')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'city_asc' ? 'ascending' : params?.get('sort') === 'city_desc' ? 'descending' : 'none'}
                         >
                             City
@@ -155,7 +155,7 @@ export default function EventsIndex({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('start')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
                             Start
@@ -164,13 +164,13 @@ export default function EventsIndex({ events }: Props) {
 
                         <button
                             onClick={() => applySort('active')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'active_asc' ? 'ascending' : params?.get('sort') === 'active_desc' ? 'descending' : 'none'}
                         >
                             Active
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('active_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
-                        <div className="md:col-span-1 text-center">Actions</div>
+                        <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">Actions</div>
                     </div>
 
                     <div className="space-y-3">
@@ -235,11 +235,11 @@ export default function EventsIndex({ events }: Props) {
                                     </div>
                                 </div>
 
-                                <div className="md:col-span-1 text-sm text-muted text-center">{event.country ?? '—'}</div>
-                                <div className="md:col-span-1 text-sm text-muted text-center">{event.city ?? '—'}</div>
-                                <div className="md:col-span-1 text-sm text-muted text-center">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
+                                <div className="md:col-span-1 text-sm text-muted text-center min-w-max whitespace-nowrap">{event.country ?? '—'}</div>
+                                <div className="md:col-span-1 text-sm text-muted text-center min-w-max whitespace-nowrap">{event.city ?? '—'}</div>
+                                <div className="md:col-span-1 text-sm text-muted text-center min-w-max whitespace-nowrap">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
 
-                                <div className="md:col-span-1 text-center">
+                                <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
                                         <button
                                             type="button"
@@ -262,13 +262,13 @@ export default function EventsIndex({ events }: Props) {
                                     )}
 
                                 </div>
-                                <div className="md:col-span-1 text-center">
+                                <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
                                         e.stopPropagation();
                                         router.get(`/events/${event.slug}/edit`);
                                     }}>Edit</ActionButton>
                                 </div>
-                                <div className="md:col-span-1 text-center">
+                                <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <Link href={`/${event.slug}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>
                                 </div>
                             </div>

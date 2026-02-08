@@ -26,6 +26,8 @@ export type Event = {
     end_at?: string | null;
     created_at?: string | null;
     updated_at?: string | null;
+    min_ticket_price?: string | number | null;
+    max_ticket_price?: string | number | null;
 };
 
 export type PaginationLink = { label?: string | null; url?: string | null; active?: boolean };

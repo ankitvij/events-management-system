@@ -42,13 +42,13 @@ export default function Index({ pages }: Props) {
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
                     <button
                         onClick={() => applySort('title')}
-                        className="md:col-span-8 text-left"
+                        className="md:col-span-8 text-left min-w-max whitespace-nowrap"
                         aria-sort={params?.get('sort') === 'title_asc' ? 'ascending' : params?.get('sort') === 'title_desc' ? 'descending' : 'none'}
                     >
                         Title
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <div className="md:col-span-2">Active</div>
+                    <div className="md:col-span-2 min-w-max whitespace-nowrap">Active</div>
                     <div className="md:col-span-2" />
                 </div>
 

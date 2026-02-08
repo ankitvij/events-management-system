@@ -154,6 +154,9 @@
         color: var(--button-foreground);
         font-weight: 600;
         border-radius: var(--radius-sm);
+        min-inline-size: max-content;
+        white-space: nowrap;
+        flex-shrink: 0;
     }
 }
 
@@ -173,7 +176,7 @@
     }
 
     .btn-primary {
-        @apply inline-flex items-center justify-center rounded-md bg-black text-white font-semibold shadow-sm transition-colors cursor-pointer px-4 py-2 text-sm;
+        @apply inline-flex items-center justify-center rounded-md bg-black text-white font-semibold shadow-sm transition-colors cursor-pointer px-4 py-2 text-sm whitespace-nowrap shrink-0 min-w-max;
     }
 
     .btn-primary:hover {
@@ -181,7 +184,7 @@
     }
 
     .btn-ghost {
-        @apply inline-flex items-center justify-center rounded-md text-foreground/80 transition-colors cursor-pointer px-3 py-1 text-sm;
+        @apply inline-flex items-center justify-center rounded-md text-foreground/80 transition-colors cursor-pointer px-3 py-1 text-sm whitespace-nowrap shrink-0 min-w-max;
     }
 
     .btn-ghost:hover {

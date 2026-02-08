@@ -7,6 +7,7 @@ import TicketCreateForm from '@/components/TicketCreateForm';
 import TicketItem from '@/components/TicketItem';
 import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
+import SignInPrompt from '@/components/SignInPrompt';
 import type { BreadcrumbItem } from '@/types';
 
 type Organiser = { id: number; name: string };
@@ -151,46 +152,16 @@ export default function Show({ event }: Props) {
                     const finalUrl = addCacheBust(url, ts);
                     return (
                         <div className="mb-4">
-                            <img src={finalUrl} alt={event.title} className="max-w-full h-auto rounded" />
+                            <img src={finalUrl} alt={event.title} className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto" />
                         </div>
                     );
                 })()}
-                <h1 className="text-2xl font-semibold">{event.title}</h1>
-
-                <div className="text-sm text-muted">
-                    {event.city ? event.city : ''}{event.city && event.country ? ', ' : ''}{event.country ? event.country : ''}
-                </div>
-
-                {/* address intentionally not displayed in public pages */}
-
-                <div className="text-sm text-muted mt-2">
-                    {event.start_at ? `Starts: ${new Date(event.start_at).toLocaleDateString()}` : 'Starts: —'}
-                    {event.end_at ? ` · Ends: ${new Date(event.end_at).toLocaleDateString()}` : ''}
-                </div>
-
-                {current && (
-                    <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
-                )}
-
-                {event.organisers && event.organisers.length > 0 && (
-                    current ? (
-                        <div className="text-sm text-muted mt-2">Organisers: {event.organisers.map((o: Organiser) => o.name).join(', ')}</div>
-                    ) : (
-                        <OrganiserPlaceholder />
-                    )
-                )}
-
-                <div
-                    className="mt-4"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
-                />
 
                 {page.props?.tickets && page.props.tickets.length > 0 && (
-                    <div className="mt-6">
-                        <h2 id="tickets" className="text-lg font-semibold">Tickets</h2>
+                    <div id="tickets" className="mt-3 mb-4">
                         <div className="mt-2 space-y-2">
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
-                                <div key={t.id} className="border p-2 rounded">
+                                <div key={t.id} className="border p-2 rounded bg-blue-100">
                                     {page.props?.canEdit ? (
                                                 <TicketItem eventSlug={event.slug} ticket={t} />
                                             ) : (
@@ -222,6 +193,36 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
+                <h1 className="text-2xl font-semibold">{event.title}</h1>
+
+                <div className="text-sm text-muted">
+                    {event.city ? event.city : ''}{event.city && event.country ? ', ' : ''}{event.country ? event.country : ''}
+                </div>
+
+                {/* address intentionally not displayed in public pages */}
+
+                <div className="text-sm text-muted mt-2">
+                    {event.start_at ? `Starts: ${new Date(event.start_at).toLocaleDateString()}` : 'Starts: —'}
+                    {event.end_at ? ` · Ends: ${new Date(event.end_at).toLocaleDateString()}` : ''}
+                </div>
+
+                {current && (
+                    <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
+                )}
+
+                {event.organisers && event.organisers.length > 0 && (
+                    current ? (
+                        <div className="text-sm text-muted mt-2">Organisers: {event.organisers.map((o: Organiser) => o.name).join(', ')}</div>
+                    ) : (
+                        <OrganiserPlaceholder />
+                    )
+                )}
+
+                <div
+                    className="mt-4"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
+                />
+
                 {page.props?.canEdit && (
                     <div className="mt-4 border-t pt-4">
                         <h3 className="text-sm font-medium">Create ticket type</h3>
@@ -245,8 +246,7 @@ export default function Show({ event }: Props) {
 
                         {!current && !showHomeHeader && (
                             <div className="ml-auto text-sm">
-                                <Link href="/login" className="text-blue-600 mr-3">Log in</Link>
-                                <Link href="/register" className="text-blue-600">Sign up</Link>
+                                <SignInPrompt />
                             </div>
                         )}
                     </div>

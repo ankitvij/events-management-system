@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import * as React from 'react';
 import CartButton from '@/components/CartButton';
+import SignInPrompt from '@/components/SignInPrompt';
 
 export default function PublicHeader() {
     const page = usePage();
@@ -28,9 +29,8 @@ export default function PublicHeader() {
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create event</Link>
-                                    <Link href="/customer/login" className="text-sm text-blue-600 mr-3">Log in</Link>
-                                    <Link href="/customer/register" className="text-sm text-blue-600">Sign up</Link>
+                                    <Link href="/events/create" className="btn-primary mr-3">Create event</Link>
+                                    <SignInPrompt />
                                 </>
                             )}
                         </div>

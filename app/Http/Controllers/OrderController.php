@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Mail\OrderConfirmed;
 use App\Models\Order;
-use Dompdf\Dompdf;
-// for PDF generation
+use App\Models\OrderItem;
+use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Str;
+use ZipArchive;
 
 class OrderController extends Controller
 {
@@ -132,48 +134,15 @@ class OrderController extends Controller
     public function receipt(Order $order)
     {
         $order->load('items.ticket', 'items.event', 'user');
-        $current = auth()->user();
-        $customerId = session('customer_id');
+        $this->authorizeOrderDownload($order, request());
 
-        if ($current) {
-            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
-                abort(404);
-            }
-        } elseif ($customerId) {
-            if (! $order->customer_id || (int) $order->customer_id !== (int) $customerId) {
-                abort(404);
-            }
-        } else {
-            $provided = request('booking_code');
-            $email = request('email');
-            if (! $provided || $provided !== $order->booking_code) {
-                abort(404);
-            }
-            if ($email) {
-                if ($order->contact_email && $email !== $order->contact_email) {
-                    abort(404);
-                }
-                if ($order->user && $email !== $order->user->email) {
-                    abort(404);
-                }
-            }
-        }
-
-        if (class_exists('\\Dompdf\\Dompdf')) {
-            try {
-                $dompdf = new Dompdf;
-                $html = view('emails.order_confirmed_pdf', ['order' => $order])->render();
-                $dompdf->loadHtml($html);
-                $dompdf->render();
-                $pdf = $dompdf->output();
-
-                return Response::make($pdf, 200, [
-                    'Content-Type' => 'application/pdf',
-                    'Content-Disposition' => "attachment; filename=order-{$order->booking_code}.pdf",
-                ]);
-            } catch (\Throwable $e) {
-                // fallthrough to text fallback
-            }
+        $pdfBuilder = app(OrderTicketPdfBuilder::class);
+        $pdf = $pdfBuilder->buildPdf($order, $order->items);
+        if ($pdf) {
+            return Response::make($pdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => "attachment; filename=order-{$order->booking_code}.pdf",
+            ]);
         }
 
         // Fallback: plain text receipt
@@ -186,6 +155,60 @@ class OrderController extends Controller
         $lines[] = sprintf('Total: €%01.2f', $order->total);
 
         return Response::make(implode("\n", $lines), 200, ['Content-Type' => 'text/plain']);
+    }
+
+    public function downloadTicket(Order $order, OrderItem $item, Request $request)
+    {
+        if ($item->order_id !== $order->id) {
+            abort(404);
+        }
+
+        $order->load('items.ticket', 'items.event', 'user');
+        $this->authorizeOrderDownload($order, $request);
+
+        $pdfBuilder = app(OrderTicketPdfBuilder::class);
+        $files = $this->buildTicketFiles($order, $item, $pdfBuilder);
+
+        if (count($files) === 0) {
+            abort(500, 'Unable to generate ticket PDFs');
+        }
+
+        if (count($files) === 1) {
+            $filename = array_key_first($files);
+            $pdf = $files[$filename];
+
+            return Response::make($pdf, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => "attachment; filename={$filename}",
+            ]);
+        }
+
+        $zipPath = $this->buildZip($files, "tickets-{$order->booking_code}-item-{$item->id}.zip");
+
+        return response()->download($zipPath['path'], $zipPath['name'], ['Content-Type' => 'application/zip'])
+            ->deleteFileAfterSend(true);
+    }
+
+    public function downloadAllTickets(Order $order, Request $request)
+    {
+        $order->load('items.ticket', 'items.event', 'user');
+        $this->authorizeOrderDownload($order, $request);
+
+        $pdfBuilder = app(OrderTicketPdfBuilder::class);
+        $files = [];
+
+        foreach ($order->items as $item) {
+            $files = array_merge($files, $this->buildTicketFiles($order, $item, $pdfBuilder));
+        }
+
+        if (count($files) === 0) {
+            abort(500, 'Unable to generate ticket PDFs');
+        }
+
+        $zipPath = $this->buildZip($files, "tickets-{$order->booking_code}.zip");
+
+        return response()->download($zipPath['path'], $zipPath['name'], ['Content-Type' => 'application/zip'])
+            ->deleteFileAfterSend(true);
     }
 
     // List orders for the currently logged-in customer (session-based)
@@ -239,5 +262,81 @@ class OrderController extends Controller
         }
 
         return response()->json(['message' => 'Email sent']);
+    }
+
+    protected function authorizeOrderDownload(Order $order, Request $request): void
+    {
+        $current = $request->user();
+        $customerId = session('customer_id');
+
+        if ($current) {
+            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+                abort(404);
+            }
+
+            return;
+        }
+
+        if ($customerId) {
+            if (! $order->customer_id || (int) $order->customer_id !== (int) $customerId) {
+                abort(404);
+            }
+
+            return;
+        }
+
+        $provided = $request->query('booking_code');
+        $email = $request->query('email');
+
+        if (! $provided || $provided !== $order->booking_code) {
+            abort(404);
+        }
+
+        if ($email) {
+            if ($order->contact_email && $email !== $order->contact_email) {
+                abort(404);
+            }
+            if ($order->user && $email !== $order->user->email) {
+                abort(404);
+            }
+        }
+    }
+
+    protected function buildTicketFiles(Order $order, OrderItem $item, OrderTicketPdfBuilder $pdfBuilder): array
+    {
+        $files = [];
+        $guestDetails = is_array($item->guest_details) ? array_values($item->guest_details) : [];
+        $total = max(1, (int) $item->quantity);
+        $baseName = Str::slug($item->event?->title ?? $item->ticket?->name ?? 'ticket');
+
+        for ($i = 0; $i < $total; $i++) {
+            $guest = $guestDetails[$i] ?? [];
+            $name = is_array($guest) ? ($guest['name'] ?? null) : null;
+            $email = is_array($guest) ? ($guest['email'] ?? null) : null;
+            $pdf = $pdfBuilder->buildSingleItemPdf($order, $item, $name, $email);
+            if (! $pdf) {
+                continue;
+            }
+
+            $suffix = $total > 1 ? '-'.($i + 1) : '';
+            $files["{$baseName}-{$order->booking_code}-{$item->id}{$suffix}.pdf"] = $pdf;
+        }
+
+        return $files;
+    }
+
+    protected function buildZip(array $files, string $zipName): array
+    {
+        $zipPath = tempnam(sys_get_temp_dir(), 'order-tickets-');
+        $zip = new ZipArchive;
+        $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        foreach ($files as $name => $contents) {
+            $zip->addFromString($name, $contents);
+        }
+
+        $zip->close();
+
+        return ['path' => $zipPath, 'name' => $zipName];
     }
 }

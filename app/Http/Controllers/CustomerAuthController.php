@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CustomerEmailCheckRequest;
 use App\Models\Customer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -43,6 +45,14 @@ class CustomerAuthController extends Controller
     public function showLogin()
     {
         return inertia('Customer/Login');
+    }
+
+    public function checkEmail(CustomerEmailCheckRequest $request): JsonResponse
+    {
+        $email = $request->input('email');
+        $exists = Customer::query()->where('email', $email)->exists();
+
+        return response()->json(['exists' => $exists]);
     }
 
     public function login(Request $request)
