@@ -28,8 +28,8 @@ export default function PublicHeader() {
                                 </>
                             ) : (
                                 <>
+                                    <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create event</Link>
                                     <Link href="/customer/login" className="text-sm text-blue-600 mr-3">Log in</Link>
-                                    <Link href="/events/create" className="text-sm text-blue-600 mr-3">Create your event</Link>
                                     <Link href="/customer/register" className="text-sm text-blue-600">Sign up</Link>
                                 </>
                             )}
