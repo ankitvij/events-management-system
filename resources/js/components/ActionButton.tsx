@@ -9,7 +9,7 @@ type Props = {
     className?: string;
 };
 
-const base = 'bg-black text-white px-6 py-2 rounded-full text-lg font-semibold shadow-sm cursor-pointer';
+const base = 'btn-primary';
 
 export default function ActionButton({ href, onClick, type = 'button', children, className = '' }: Props) {
     const cls = `${base} ${className}`.trim();

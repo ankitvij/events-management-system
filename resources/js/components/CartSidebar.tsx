@@ -87,11 +87,11 @@ export default function CartSidebar({ cart }: { cart?: any }) {
                             </div>
                             <div className="flex flex-col items-end">
                                 <div className="flex items-center">
-                                    <button type="button" className="px-2 py-1 border rounded text-sm" onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}>-</button>
+                                    <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}>-</button>
                                     <div className="px-3 text-sm">{it.quantity}</div>
-                                    <button type="button" className="px-2 py-1 border rounded text-sm" onClick={() => updateItem(it.id, it.quantity + 1)}>+</button>
+                                    <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1))}>+</button>
                                 </div>
-                                <button type="button" aria-label="Delete item" className="text-red-600 mt-1 p-1 rounded hover:bg-red-50" onClick={() => removeItem(it.id)}>
+                                <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 mt-1 p-1" onClick={() => removeItem(it.id)}>
                                     <Trash className="h-4 w-4" />
                                 </button>
                             </div>
@@ -103,7 +103,7 @@ export default function CartSidebar({ cart }: { cart?: any }) {
             <div className="mt-2">
                 <div className="flex items-center gap-3">
                     <Link href="/cart" className="text-blue-600">View cart</Link>
-                    <Link href="/cart/checkout" className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-2 py-1 text-sm text-white">Checkout</Link>
+                    <Link href="/cart/checkout" className="btn-primary">Checkout</Link>
                 </div>
             </div>
         </div>

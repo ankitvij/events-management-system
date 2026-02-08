@@ -12,7 +12,7 @@ export default function GuestLanding({ events }: Props) {
     const [search, setSearch] = useState(initial);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
-    const ticketButtonClass = 'inline-flex items-center justify-center rounded bg-black px-3 py-2 text-sm font-medium text-white hover:bg-gray-800';
+    const ticketButtonClass = 'btn-primary';
 
     useEffect(() => {
         if (firstRender.current) {
@@ -74,7 +74,7 @@ export default function GuestLanding({ events }: Props) {
                         <div className="md:col-span-8 flex items-center justify-between">
                             <button
                                 onClick={() => applySort('title')}
-                                className="text-left bg-black text-white px-3 py-2 rounded cursor-pointer"
+                                className="btn-primary text-left"
                                 aria-sort={params?.get('sort') === 'title_asc' ? 'ascending' : params?.get('sort') === 'title_desc' ? 'descending' : 'none'}
                             >
                                 Event
@@ -86,7 +86,7 @@ export default function GuestLanding({ events }: Props) {
                         </div>
                         <button
                             onClick={() => applySort('country')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer btn-primary"
                             aria-sort={params?.get('sort') === 'country_asc' ? 'ascending' : params?.get('sort') === 'country_desc' ? 'descending' : 'none'}
                         >
                             Country
@@ -94,7 +94,7 @@ export default function GuestLanding({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('city')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer btn-primary"
                             aria-sort={params?.get('sort') === 'city_asc' ? 'ascending' : params?.get('sort') === 'city_desc' ? 'descending' : 'none'}
                         >
                             City
@@ -102,7 +102,7 @@ export default function GuestLanding({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('start')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded"
+                            className="md:col-span-1 text-center cursor-pointer btn-primary"
                             aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
                             Date

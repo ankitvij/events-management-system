@@ -126,10 +126,10 @@ export default function CartIndex() {
                                 <div className="text-right">
                                     <div className="font-medium">€{Number(i.price).toFixed(2)}</div>
                                     <div className="mt-2 flex items-center justify-end gap-2">
-                                        <button type="button" className="px-2 py-1 border rounded" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
+                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
                                         <div className="px-2">{i.quantity}</div>
-                                        <button type="button" className="px-2 py-1 border rounded" onClick={() => updateItemLocal(i.id, i.quantity + 1)}>+</button>
-                                        <button type="button" aria-label="Delete item" className="ml-3 text-red-600 p-1 rounded hover:bg-red-50" onClick={() => removeItemLocal(i.id)}>
+                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1))}>+</button>
+                                        <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 ml-3 p-1" onClick={() => removeItemLocal(i.id)}>
                                             <Trash className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -144,7 +144,7 @@ export default function CartIndex() {
                 <div className="mt-4 p-4 border-t text-right">
                     <div className="text-lg font-medium">Total: €{Number(summary.total).toFixed(2)}</div>
                     <div className="mt-2">
-                        <Link href="/cart/checkout" className="ml-2 inline-flex items-center gap-2 rounded bg-green-600 px-3 py-2 text-sm text-white">Checkout</Link>
+                        <Link href="/cart/checkout" className="btn-primary">Checkout</Link>
                     </div>
                 </div>
             </div>
