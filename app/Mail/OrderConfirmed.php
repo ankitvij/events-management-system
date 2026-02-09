@@ -80,6 +80,13 @@ class OrderConfirmed extends Mailable
         }
 
         $viewUrl = config('app.url').route('orders.public.view', ['order' => $this->order->id], false);
+        $recipientEmail = $this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null);
+        $manageUrl = null;
+        if ($recipientEmail) {
+            $manageUrl = config('app.url').route('customer.login', [], false)
+                .'?email='.urlencode($recipientEmail)
+                .'&booking_code='.urlencode($this->order->booking_code);
+        }
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo(config('mail.from.address'), config('mail.from.name'))
@@ -90,6 +97,8 @@ class OrderConfirmed extends Mailable
                 'qr_codes' => $qr_codes,
                 'qr_embeds' => $qr_embeds,
                 'view_url' => $viewUrl,
+                'manage_url' => $manageUrl,
+                'recipient_email' => $recipientEmail,
                 'event_images' => $event_images,
                 'event_embeds' => $event_embeds,
             ]);

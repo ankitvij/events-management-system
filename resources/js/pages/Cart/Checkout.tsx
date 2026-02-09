@@ -12,11 +12,13 @@ type TicketGuestsEntry = { cart_item_id: number; guests: GuestEntry[] };
 export default function CartCheckout() {
     const page = usePage();
     const cart = (page.props as any)?.cart;
-    const items = cart?.items ?? [];
+    const initialItems = cart?.items ?? [];
+    const [items, setItems] = useState<any[]>(initialItems);
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [ticketGuests, setTicketGuests] = useState<TicketGuestsEntry[]>(() => (
-        items.map((item: any) => ({
+        initialItems.map((item: any) => ({
             cart_item_id: item.id,
             guests: Array.from({ length: Math.max(0, Number(item.quantity ?? 0)) }, () => ({ name: '', email: '' })),
         }))
@@ -29,6 +31,27 @@ export default function CartCheckout() {
 
         return { count, total };
     }, [items, page.props]);
+
+    async function removeItem(itemId: number) {
+        try {
+            const token = getCsrf();
+            const resp = await fetch(`/cart/items/${itemId}`, {
+                method: 'DELETE',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                credentials: 'same-origin',
+            });
+
+            if (!resp.ok) {
+                throw new Error('Failed to remove item');
+            }
+
+            setItems((prev) => prev.filter((item) => item.id !== itemId));
+            setTicketGuests((prev) => prev.filter((entry) => entry.cart_item_id !== itemId));
+            window.dispatchEvent(new CustomEvent('cart:updated'));
+        } catch (e) {
+            window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: 'Could not remove item.' } }));
+        }
+    }
 
     function updateGuestField(cartItemId: number, index: number, field: keyof GuestEntry, value: string) {
         setTicketGuests((prev) => prev.map((entry) => {
@@ -62,6 +85,7 @@ export default function CartCheckout() {
             const token = getCsrf();
             const payload = {
                 email: email.trim(),
+                password: password.trim() || null,
                 ticket_guests: ticketGuests.map((entry) => ({
                     cart_item_id: entry.cart_item_id,
                     guests: entry.guests.map((guest) => ({
@@ -124,6 +148,17 @@ export default function CartCheckout() {
                                     placeholder="you@example.com"
                                 />
                             </div>
+                            <div className="mt-3">
+                                <label className="block text-sm font-medium">Password (optional)</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="mt-1 w-full rounded border px-3 py-2"
+                                    placeholder="Create a password"
+                                />
+                                <div className="mt-1 text-xs text-muted">Add a password to create or secure your customer account.</div>
+                            </div>
                         </div>
 
                         {items.length === 0 ? (
@@ -137,7 +172,7 @@ export default function CartCheckout() {
 
                                 return (
                                     <div key={item.id} className="rounded border p-4">
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-start justify-between gap-4">
                                             {eventImage && (
                                                 <img
                                                     src={eventImage}
@@ -145,11 +180,18 @@ export default function CartCheckout() {
                                                     className="h-16 w-24 rounded object-cover"
                                                 />
                                             )}
-                                            <div>
+                                            <div className="flex-1">
                                                 <div className="text-sm text-muted">{item.event?.title ?? 'Event'}</div>
                                                 <div className="text-base font-semibold">{item.ticket?.name ?? 'Ticket'}</div>
                                                 <div className="text-sm text-muted">Qty: {item.quantity}</div>
                                             </div>
+                                            <button
+                                                type="button"
+                                                className="text-xs text-red-600"
+                                                onClick={() => removeItem(item.id)}
+                                            >
+                                                Remove
+                                            </button>
                                         </div>
 
                                         <div className="mt-4 space-y-4">

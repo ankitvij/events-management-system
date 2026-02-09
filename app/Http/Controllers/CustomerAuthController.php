@@ -72,13 +72,47 @@ class CustomerAuthController extends Controller
         }
 
         session()->put('customer_id', $customer->id);
+        session()->forget(['customer_booking_order_id', 'customer_booking_code', 'customer_booking_email']);
 
         return redirect()->route('home')->with('success', 'Logged in');
+    }
+
+    public function bookingLogin(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'booking_code' => ['required', 'string'],
+        ]);
+
+        $order = \App\Models\Order::where('booking_code', $data['booking_code'])->first();
+        if (! $order) {
+            return back()->withErrors(['booking_code' => 'Invalid booking code'])->withInput();
+        }
+
+        $matches = false;
+        if ($order->contact_email && $order->contact_email === $data['email']) {
+            $matches = true;
+        }
+        if ($order->user && $order->user->email === $data['email']) {
+            $matches = true;
+        }
+
+        if (! $matches) {
+            return back()->withErrors(['email' => 'Email does not match our records'])->withInput();
+        }
+
+        session()->forget('customer_id');
+        session()->put('customer_booking_order_id', $order->id);
+        session()->put('customer_booking_code', $order->booking_code);
+        session()->put('customer_booking_email', $data['email']);
+
+        return redirect()->route('customer.orders')->with('success', 'Logged in');
     }
 
     public function logout(Request $request)
     {
         session()->forget('customer_id');
+        session()->forget(['customer_booking_order_id', 'customer_booking_code', 'customer_booking_email']);
 
         return redirect()->route('home')->with('success', 'Logged out');
     }

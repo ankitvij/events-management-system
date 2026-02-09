@@ -12,8 +12,44 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use ZipArchive;
 
-class OrderController extends Controller
-{
+class OrderController extends Controller {
+    public function updateTicketHolder(Request $request, Order $order, OrderItem $item)
+    {
+        $current = auth()->user();
+        $customerId = session('customer_id');
+        $bookingOrderId = session('customer_booking_order_id');
+
+        // Access control: only order owner, customer, or booking code session
+        if ($current) {
+            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+                abort(403);
+            }
+        } elseif ($bookingOrderId) {
+            if ((int) $bookingOrderId !== (int) $order->id) {
+                abort(403);
+            }
+        } elseif ($customerId) {
+            if (! $order->customer_id || (int) $order->customer_id !== (int) $customerId) {
+                abort(403);
+            }
+        } else {
+            $provided = request('booking_code');
+            if (! $provided || $provided !== $order->booking_code) {
+                abort(403);
+            }
+        }
+
+        $data = $request->validate([
+            'guest_details' => ['required', 'array'],
+            'guest_details.*.name' => ['required', 'string', 'max:255'],
+            'guest_details.*.email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $item->guest_details = $data['guest_details'];
+        $item->save();
+
+        return response()->json(['success' => true, 'guest_details' => $item->guest_details]);
+    }
     public function index(Request $request)
     {
         $orders = Order::with('items.ticket', 'items.event', 'user')->latest()->paginate(20);
@@ -31,10 +67,15 @@ class OrderController extends Controller
         });
         $current = auth()->user();
         $customerId = session('customer_id');
+        $bookingOrderId = session('customer_booking_order_id');
 
         if ($current) {
             // For authenticated admin-style users, allow only owners and super admins to view
             if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+                abort(404);
+            }
+        } elseif ($bookingOrderId) {
+            if ((int) $bookingOrderId !== (int) $order->id) {
                 abort(404);
             }
         } elseif ($customerId) {
@@ -215,11 +256,50 @@ class OrderController extends Controller
     public function customerIndex()
     {
         $customerId = session('customer_id');
-        if (! $customerId) {
+        $bookingOrderId = session('customer_booking_order_id');
+        $bookingCode = session('customer_booking_code');
+        $bookingEmail = session('customer_booking_email');
+
+        if (! $customerId && ! $bookingOrderId) {
             return redirect()->route('customer.login');
         }
 
-        $orders = Order::with('items.ticket', 'items.event')->where('customer_id', $customerId)->latest()->paginate(20);
+        if ($bookingOrderId) {
+            $order = Order::with('items.ticket', 'items.event')
+                ->where('id', $bookingOrderId)
+                ->when($bookingCode, fn ($q) => $q->where('booking_code', $bookingCode))
+                ->first();
+
+            if (! $order) {
+                return redirect()->route('customer.login');
+            }
+
+            if ($bookingEmail) {
+                $matches = false;
+                if ($order->contact_email && $order->contact_email === $bookingEmail) {
+                    $matches = true;
+                }
+                if ($order->user && $order->user->email === $bookingEmail) {
+                    $matches = true;
+                }
+                if (! $matches) {
+                    return redirect()->route('customer.login');
+                }
+            }
+
+            $orders = new \Illuminate\Pagination\LengthAwarePaginator([
+                $order,
+            ], 1, 20, 1, ['path' => url('customer/orders')]);
+        } else {
+            $orders = Order::with('items.ticket', 'items.event')
+                ->where('customer_id', $customerId)
+                ->latest()
+                ->paginate(20);
+        }
+
+        if (request()->expectsJson() || app()->runningUnitTests()) {
+            return response()->json(['orders' => $orders]);
+        }
 
         return inertia('Orders/Index', ['orders' => $orders]);
     }

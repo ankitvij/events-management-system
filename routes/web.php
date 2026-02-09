@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\OrderController;
+// Update ticket holder details for an order item
+Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
@@ -239,6 +242,7 @@ Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])
 Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
 Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
+Route::post('customer/login/booking', [CustomerAuthController::class, 'bookingLogin'])->name('customer.login.booking');
 Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
@@ -246,12 +250,14 @@ use App\Http\Controllers\CustomerController;
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
 
 use App\Http\Controllers\Admin\LogController;
-use App\Http\Controllers\OrderController;
+// use App\Http\Controllers\OrderController; // Duplicate removed
 
+// Public order view: show a small form to validate with email + booking code
 // Public order view: show a small form to validate with email + booking code
 Route::get('orders/{order}/view', [OrderController::class, 'publicView'])->name('orders.public.view');
 Route::post('orders/{order}/verify', [OrderController::class, 'publicVerify'])->name('orders.public.verify');
 Route::get('orders/{order}/display', [OrderController::class, 'display'])->name('orders.display');
+// Public API endpoint to send tickets by booking code + email (POST)
 // Public API endpoint to send tickets by booking code + email (POST)
 Route::post('orders/send-ticket', [OrderController::class, 'sendTicket'])->name('orders.sendTicket');
 

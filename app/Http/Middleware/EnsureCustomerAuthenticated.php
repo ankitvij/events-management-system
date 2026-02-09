@@ -9,7 +9,7 @@ class EnsureCustomerAuthenticated
 {
     public function handle(Request $request, Closure $next)
     {
-        if (! session()->has('customer_id')) {
+        if (! session()->has('customer_id') && ! session()->has('customer_booking_order_id')) {
             return redirect()->route('customer.login');
         }
 
