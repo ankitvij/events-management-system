@@ -87,6 +87,7 @@ class OrderConfirmed extends Mailable
                 .'?email='.urlencode($recipientEmail)
                 .'&booking_code='.urlencode($this->order->booking_code);
         }
+        $logoUrl = asset('images/logo.png');
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo(config('mail.from.address'), config('mail.from.name'))
@@ -101,6 +102,7 @@ class OrderConfirmed extends Mailable
                 'recipient_email' => $recipientEmail,
                 'event_images' => $event_images,
                 'event_embeds' => $event_embeds,
+                'logo_url' => $logoUrl,
             ]);
 
         $pdfBuilder = app(OrderTicketPdfBuilder::class);

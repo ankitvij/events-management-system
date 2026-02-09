@@ -27,6 +27,7 @@ export LIGHTNINGCSS_NUM_THREADS=1
 npm run build
 ```
 
+<<<<<<< Updated upstream
 4) Ensure Vite manifest path
 
 Laravel expects the manifest at `public_html/build/manifest.json`. If the build writes it to `public_html/build/.vite/manifest.json`, copy it:
@@ -36,6 +37,29 @@ cp public_html/build/.vite/manifest.json public_html/build/manifest.json
 ```
 
 5) Webserver document root
+=======
+Note: On some CI or constrained hosts Vite's Rust worker (through Rayon) can fail with a panic like "The global thread pool has not been initialized". If you see that error, run the build with the environment variables below to force a single Rayon thread and enable a backtrace for debugging:
+
+```bash
+RAYON_NUM_THREADS=1 RUST_BACKTRACE=1 npm run build
+```
+
+To make this permanent in your project `build` script (cross-platform), install `cross-env` and update the script:
+
+```bash
+npm install --save-dev cross-env
+```
+
+In `package.json` set the build script, for example:
+
+```json
+"scripts": {
+    "build": "cross-env RAYON_NUM_THREADS=1 vite build"
+}
+```
+
+4) Webserver document root
+>>>>>>> Stashed changes
 
 - Ensure your webserver points to the `public_html` folder inside the project as the DocumentRoot / `root`.
 - Example nginx `server` block snippet:

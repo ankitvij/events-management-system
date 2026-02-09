@@ -4,6 +4,7 @@
         $firstItem = $items->first();
         $topEmbed = $firstItem ? ($event_embeds[$firstItem->id] ?? null) : null;
         $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
+        $logoUrl = $logo_url ?? asset('images/logo.png');
     @endphp
     @if($topEmbed)
         <img src="{{ $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime']) }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
@@ -75,4 +76,7 @@
         <p style="margin-top:12px">Manage your order: <a href="{{ $manage_url }}">{{ $manage_url }}</a></p>
         <p style="font-size:0.9em;color:#666">You can sign in with your password or your booking code.</p>
     @endif
+    <div style="margin-top:24px;text-align:center">
+        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+    </div>
 </div>

@@ -28,9 +28,8 @@ export default function GuestHeader() {
         <header className="w-full border-b bg-white shadow-sm">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <img src="/images/logo.svg" alt="ChancePass" className="h-8 w-auto" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                        <span className="text-lg font-semibold">ChancePass</span>
+                    <div className="flex items-center">
+                        <img src="/images/logo.png" alt="ChancePass" className="h-8 w-auto" />
                     </div>
 
                     <div className="flex items-center gap-3">

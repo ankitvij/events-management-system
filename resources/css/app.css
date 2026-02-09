@@ -176,18 +176,23 @@
     }
 
     .btn-primary {
-        @apply inline-flex items-center justify-center rounded-md bg-black text-white font-semibold shadow-sm transition-colors cursor-pointer px-4 py-2 text-sm whitespace-nowrap shrink-0 min-w-max;
+        background-color: #767586;
+        border-radius: 5px;
+        @apply inline-flex items-center justify-center text-white font-semibold shadow-sm transition-colors cursor-pointer px-4 py-2 text-sm whitespace-nowrap shrink-0 min-w-max;
     }
 
     .btn-primary:hover {
+        background-color: #593131;
         @apply bg-neutral-800;
     }
 
     .btn-ghost {
-        @apply inline-flex items-center justify-center rounded-md text-foreground/80 transition-colors cursor-pointer px-3 py-1 text-sm whitespace-nowrap shrink-0 min-w-max;
+        border-radius: 5px;
+        @apply inline-flex items-center justify-center text-foreground/80 transition-colors cursor-pointer px-3 py-1 text-sm whitespace-nowrap shrink-0 min-w-max;
     }
 
     .btn-ghost:hover {
+        background-color: #593131;
         @apply bg-muted text-foreground;
     }
 }
