@@ -50,7 +50,7 @@ class CartController extends Controller
             $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
         }
         if ($cart) {
-            $cart->load('items.ticket', 'items.event');
+            $cart->load('items.ticket', 'items.event.organiser', 'items.event.organisers');
             $count = $cart->items->sum('quantity');
             $total = $cart->items->sum(function ($i) {
                 return $i->quantity * $i->price;
@@ -387,7 +387,7 @@ class CartController extends Controller
                 if ($event->organiser) {
                     $list[] = $event->organiser;
                 }
-                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
+                if (method_exists($event, 'organisers')) {
                     $list = array_merge($list, $event->organisers->all());
                 }
 

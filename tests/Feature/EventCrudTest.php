@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Event;
+use App\Models\Organiser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -66,6 +67,50 @@ class EventCrudTest extends TestCase
         $delete->assertRedirect(route('events.index'));
 
         $this->assertDatabaseMissing('events', ['id' => $event->id]);
+    }
+
+    public function test_store_and_update_syncs_organiser_links(): void
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $primaryOrganiser = Organiser::create([
+            'name' => 'Primary Org',
+            'email' => 'primary@example.test',
+            'active' => true,
+        ]);
+
+        $secondaryOrganiser = Organiser::create([
+            'name' => 'Secondary Org',
+            'email' => 'secondary@example.test',
+            'active' => true,
+        ]);
+
+        $create = $this->post(route('events.store'), [
+            'title' => 'Organiser Link Event',
+            'start_at' => now()->addDay()->toDateString(),
+            'organiser_ids' => [$primaryOrganiser->id],
+        ]);
+
+        $create->assertRedirect(route('events.index'));
+
+        $event = Event::where('title', 'Organiser Link Event')->firstOrFail();
+
+        $this->assertTrue($event->organisers()->whereKey($primaryOrganiser->id)->exists());
+
+        $update = $this->put(route('events.update', $event), [
+            'title' => 'Organiser Link Event Updated',
+            'start_at' => now()->addDays(2)->toDateString(),
+            'end_at' => now()->addDays(3)->toDateString(),
+            'organiser_ids' => [$secondaryOrganiser->id],
+        ]);
+
+        $event->refresh();
+
+        $update->assertRedirect(route('events.show', $event));
+
+        $this->assertFalse($event->organisers()->whereKey($primaryOrganiser->id)->exists());
+        $this->assertTrue($event->organisers()->whereKey($secondaryOrganiser->id)->exists());
     }
 
     public function test_guests_cannot_see_organisers_and_see_placeholder(): void
