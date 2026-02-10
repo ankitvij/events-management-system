@@ -84,8 +84,8 @@ export default function GuestLanding({ events }: Props) {
 
 
 
-            <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-                <section className="mt-16">
+            <main className="w-full">
+                <section className="mt-6">
                     <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />
 
                     <div className="hidden max-[799px]:block mt-3">
@@ -153,7 +153,7 @@ export default function GuestLanding({ events }: Props) {
                                 return (
                                     <div
                                         key={event.id}
-                                        className="border rounded p-3 cursor-pointer hover:bg-gray-50 transition max-[799px]:relative"
+                                        className="box max-[799px]:relative"
                                         role="link"
                                         tabIndex={0}
                                         onClick={() => visitEvent(event.slug)}
@@ -196,7 +196,7 @@ export default function GuestLanding({ events }: Props) {
                                                     Buy Tickets
                                                 </Link>
                                                 {priceRange ? (
-                                                    <div className="mt-1 w-full text-center text-xs text-muted">
+                                                    <div className="mt-1 w-full text-center text-sm text-base">
                                                         {priceRange}
                                                     </div>
                                                 ) : null}
@@ -210,16 +210,29 @@ export default function GuestLanding({ events }: Props) {
                         )}
                     </div>
                     {events?.links && (
-                        <nav className="mt-6 flex items-center justify-center gap-2">
-                            {events.links.map((l: PaginationLink, idx: number) => (
-                                l.url ? (
-                                    <Link key={idx} href={l.url} className={`px-3 py-1 rounded ${l.active ? 'bg-gray-900 text-white' : 'bg-white border'}`}>
-                                        <span dangerouslySetInnerHTML={{ __html: l.label }} />
+                        <nav className="mt-6 flex items-center justify-start gap-2 pagination">
+                            {events.links.map((l: PaginationLink, idx: number) => {
+                                let label = l.label || '';
+                                label = label.replace(/Previous/gi, '‹').replace(/Next/gi, '›');
+                                label = label.replace(/&laquo;|«|&lsaquo;|‹/g, '‹').replace(/&raquo;|»|&rsaquo;|›/g, '›');
+                                label = label.replace(/\s*‹\s*‹\s*/g, '‹').replace(/\s*›\s*›\s*/g, '›');
+                                label = label.replace(/‹+/g, '‹').replace(/›+/g, '›');
+                                return l.url ? (
+                                    <Link
+                                        key={idx}
+                                        href={l.url}
+                                        className={l.active ? 'btn-primary' : 'btn-ghost'}
+                                    >
+                                        <span dangerouslySetInnerHTML={{ __html: label }} />
                                     </Link>
                                 ) : (
-                                    <span key={idx} className="px-3 py-1 rounded text-muted" dangerouslySetInnerHTML={{ __html: l.label }} />
-                                )
-                            ))}
+                                    <span
+                                        key={idx}
+                                        className="btn-ghost opacity-60 cursor-not-allowed"
+                                        dangerouslySetInnerHTML={{ __html: label }}
+                                    />
+                                );
+                            })}
                         </nav>
                     )}
                 </section>

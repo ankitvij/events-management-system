@@ -66,22 +66,29 @@ export default function ListControls({
 
     return (
         <div className="mb-4 flex items-center justify-between">
-            <div>
+            <div className="pagination">
                 {links?.map((l: LinkItem, idx: number) => {
-                    // Replace explicit Previous/Next text with arrows for compact pagination
+                    // Normalize to single arrows for prev/next
                     let label = l.label || '';
-                    // Use « and » for previous/next and collapse repeated arrows
-                    label = label.replace(/Previous/gi, '«').replace(/Next/gi, '»');
-                    // fallback for common entities -> normalize to « and »
-                    label = label.replace(/&laquo;|«/g, '«').replace(/&raquo;|»/g, '»').replace(/&lsaquo;|‹/g, '«').replace(/&rsaquo;|›/g, '»');
-                    // collapse any repeated arrows to a single char
-                    label = label.replace(/«+/g, '«').replace(/»+/g, '»');
+                    label = label.replace(/Previous/gi, '‹').replace(/Next/gi, '›');
+                    label = label.replace(/&laquo;|«|&lsaquo;|‹/g, '‹').replace(/&raquo;|»|&rsaquo;|›/g, '›');
+                    // collapse any repeated arrows or arrows separated by whitespace
+                    label = label.replace(/\s*‹\s*‹\s*/g, '‹').replace(/\s*›\s*›\s*/g, '›');
+                    label = label.replace(/‹+/g, '‹').replace(/›+/g, '›');
                     return l.url ? (
-                        <Link key={idx} href={l.url} className={`px-3 py-1 rounded ${l.active ? 'bg-gray-900 text-white' : 'bg-white border'}`}>
+                        <Link
+                            key={idx}
+                            href={l.url}
+                            className={l.active ? 'btn-primary' : 'btn-ghost'}
+                        >
                             <span dangerouslySetInnerHTML={{ __html: label }} />
                         </Link>
                     ) : (
-                        <span key={idx} className="px-3 py-1 rounded text-muted" dangerouslySetInnerHTML={{ __html: label }} />
+                        <span
+                            key={idx}
+                            className="btn-ghost opacity-60 cursor-not-allowed"
+                            dangerouslySetInnerHTML={{ __html: label }}
+                        />
                     );
                 })}
             </div>

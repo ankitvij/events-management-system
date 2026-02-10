@@ -72,10 +72,6 @@
 
     <p>If you have any questions, reply to this email and include your booking code when contacting us.</p>
     <p style="margin-top:12px">View your order online: <a href="{{ $view_url }}">{{ $view_url }}</a></p>
-    @if($manage_url && $recipient_email && ($recipient_email === $order->contact_email || $recipient_email === ($order->user?->email ?? null)))
-        <p style="margin-top:12px">Manage your order: <a href="{{ $manage_url }}">{{ $manage_url }}</a></p>
-        <p style="font-size:0.9em;color:#666">You can sign in with your password or your booking code.</p>
-    @endif
     <div style="margin-top:24px;text-align:center">
         <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
     </div>

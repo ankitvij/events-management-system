@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import React, { useMemo, useState } from 'react';
+import { Trash } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
@@ -135,34 +136,8 @@ export default function CartCheckout() {
 
                 <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
                     <div className="space-y-6">
-                        <div className="rounded border p-4">
-                            <h2 className="text-base font-semibold">Customer details</h2>
-                            <div className="mt-3">
-                                <label className="block text-sm font-medium">Email address</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="mt-1 w-full rounded border px-3 py-2"
-                                    placeholder="you@example.com"
-                                />
-                            </div>
-                            <div className="mt-3">
-                                <label className="block text-sm font-medium">Password (optional)</label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="mt-1 w-full rounded border px-3 py-2"
-                                    placeholder="Create a password"
-                                />
-                                <div className="mt-1 text-xs text-muted">Add a password to create or secure your customer account.</div>
-                            </div>
-                        </div>
-
                         {items.length === 0 ? (
-                            <div className="rounded border p-4 text-sm text-muted">Your cart is empty.</div>
+                            <div className="box cursor-auto text-sm text-muted">Your cart is empty.</div>
                         ) : (
                             items.map((item: any) => {
                                 const entry = ticketGuests.find((guestEntry) => guestEntry.cart_item_id === item.id);
@@ -171,7 +146,7 @@ export default function CartCheckout() {
                                     ?? (item.event?.image_thumbnail ? `/storage/${item.event.image_thumbnail}` : (item.event?.image ? `/storage/${item.event.image}` : null));
 
                                 return (
-                                    <div key={item.id} className="rounded border p-4">
+                                    <div key={item.id} className="box cursor-auto">
                                         <div className="flex items-start justify-between gap-4">
                                             {eventImage && (
                                                 <img
@@ -187,10 +162,11 @@ export default function CartCheckout() {
                                             </div>
                                             <button
                                                 type="button"
-                                                className="text-xs text-red-600"
+                                                aria-label="Delete item"
+                                                className="btn-danger ml-3"
                                                 onClick={() => removeItem(item.id)}
                                             >
-                                                Remove
+                                                <Trash className="h-4 w-4" />
                                             </button>
                                         </div>
 
@@ -227,20 +203,50 @@ export default function CartCheckout() {
                         )}
                     </div>
 
-                    <div className="rounded border p-4 h-fit">
-                        <div className="text-sm text-muted">Items: {totals.count}</div>
-                        <div className="mt-2 text-lg font-semibold">Total: €{Number(totals.total).toFixed(2)}</div>
+                    <div className="self-start">
+                        <div className="box cursor-auto space-y-6">
+                            <div>
+                                <h2 className="text-base font-semibold">Customer details</h2>
+                                <div className="mt-3">
+                                    <label className="block text-sm font-medium">Email address</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="mt-1 w-full rounded border px-3 py-2"
+                                        placeholder="you@example.com"
+                                    />
+                                </div>
+                                <div className="mt-3">
+                                    <label className="block text-sm font-medium">Password (optional)</label>
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="mt-1 w-full rounded border px-3 py-2"
+                                        placeholder="Create a password"
+                                    />
+                                    <div className="mt-1 text-xs text-muted">Add a password to create or secure your customer account.</div>
+                                </div>
+                            </div>
 
-                        <div className="mt-6 flex items-center gap-2">
-                            <Link href="/cart" className="px-3 py-2 rounded border">Back to cart</Link>
-                            <button
-                                type="button"
-                                className="px-3 py-2 rounded bg-green-600 text-white"
-                                onClick={handleConfirm}
-                                disabled={loading || items.length === 0}
-                            >
-                                {loading ? 'Processing…' : 'Confirm Checkout'}
-                            </button>
+                            <div className="border-t border-border pt-4">
+                                <div className="text-sm text-muted">Items: {totals.count}</div>
+                                <div className="mt-2 text-lg font-semibold">Total: €{Number(totals.total).toFixed(2)}</div>
+
+                                <div className="mt-6 flex items-center gap-2">
+                                    <Link href="/cart" className="btn-secondary" onClick={() => window.dispatchEvent(new CustomEvent('cart:updated'))}>Back to cart</Link>
+                                    <button
+                                        type="button"
+                                        className="btn-confirm"
+                                        onClick={handleConfirm}
+                                        disabled={loading || items.length === 0}
+                                    >
+                                        {loading ? 'Processing…' : 'Confirm Checkout'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

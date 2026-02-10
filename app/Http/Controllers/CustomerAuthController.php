@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerEmailCheckRequest;
 use App\Models\Customer;
+use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -115,5 +116,36 @@ class CustomerAuthController extends Controller
         session()->forget(['customer_booking_order_id', 'customer_booking_code', 'customer_booking_email']);
 
         return redirect()->route('home')->with('success', 'Logged out');
+    }
+
+    public function bookingAccess(Request $request, Order $order)
+    {
+        if (! $request->hasValidSignature()) {
+            abort(403);
+        }
+
+        $email = $request->query('email');
+        if (! $email) {
+            abort(403);
+        }
+
+        $matches = false;
+        if ($order->contact_email && $order->contact_email === $email) {
+            $matches = true;
+        }
+        if ($order->user && $order->user->email === $email) {
+            $matches = true;
+        }
+
+        if (! $matches) {
+            abort(403);
+        }
+
+        session()->forget('customer_id');
+        session()->put('customer_booking_order_id', $order->id);
+        session()->put('customer_booking_code', $order->booking_code);
+        session()->put('customer_booking_email', $email);
+
+        return redirect()->route('customer.orders');
     }
 }

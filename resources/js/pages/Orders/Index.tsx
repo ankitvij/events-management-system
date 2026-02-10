@@ -17,7 +17,7 @@ export default function OrdersIndex() {
                         <div className="text-sm text-muted">No orders yet.</div>
                     ) : (
                         orders.data.map((o: any) => (
-                            <Link key={o.id} href={`/orders/${o.id}`} className="block p-3 border rounded hover:bg-gray-50" as="a">
+                            <Link key={o.id} href={`/orders/${o.id}`} className="box block" as="a">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <div className="font-medium">Order #{o.id}</div>

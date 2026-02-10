@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
+use App\Mail\CustomerAccountCreated;
 use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -232,6 +233,7 @@ class CartController extends Controller
 
                 // associate a customer when an email was provided
                 $customerId = null;
+                $customerCreated = false;
                 if ($incomingEmail) {
                     $customer = Customer::where('email', $incomingEmail)->first();
                     if (! $customer) {
@@ -245,21 +247,15 @@ class CartController extends Controller
                             $attrs['password'] = Hash::make($incomingPassword);
                         }
                         $customer = Customer::create($attrs);
-                    } else {
-                        // if password provided and customer has no password, set it (only when column exists)
-                        if ($incomingPassword && Schema::hasColumn('customers', 'password')) {
-                            if (! $customer->password) {
-                                $customer->password = Hash::make($incomingPassword);
-                                $customer->save();
-                            }
-                        }
+                        $customerCreated = true;
                     }
+
                     $customerId = $customer->id;
                     $order->customer_id = $customerId;
                     $order->save();
                 }
 
-                return ['order' => $order, 'customer_id' => $customerId];
+                return ['order' => $order, 'customer_id' => $customerId, 'customer_created' => $customerCreated];
             });
 
             // attempt to send confirmation email outside transaction
@@ -279,8 +275,16 @@ class CartController extends Controller
                 $order->save();
             }
 
-            // If customer created/identified and password was provided, log them into customer session
-            if (! empty($result['customer_id']) && $incomingPassword) {
+            if (! empty($result['customer_created']) && $result['customer_created'] === true && $incomingPassword && $incomingEmail && Schema::hasColumn('customers', 'password')) {
+                try {
+                    Mail::to($incomingEmail)->send(new CustomerAccountCreated($incomingName, $incomingEmail, route('customer.login')));
+                } catch (\Throwable $e) {
+                    logger()->error('Customer account mail failed: '.$e->getMessage());
+                }
+            }
+
+            // Only auto-login when a new customer was created as part of checkout
+            if (! empty($result['customer_created']) && $result['customer_created'] === true && ! empty($result['customer_id'])) {
                 session()->put('customer_id', $result['customer_id']);
             }
             if (isset($order)) {
@@ -331,10 +335,7 @@ class CartController extends Controller
         $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
 
         if ($request->wantsJson() || $request->ajax()) {
-            $customerCreated = false;
-            if (isset($result) && is_array($result) && ! empty($result['customer_id'])) {
-                $customerCreated = true;
-            }
+            $customerCreated = isset($result['customer_created']) ? (bool) $result['customer_created'] : false;
 
             return response()->json([
                 'success' => true,

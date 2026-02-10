@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\CustomerAccountCreated;
 use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -75,6 +76,10 @@ class CheckoutCreatesCustomerTest extends TestCase
         });
 
         Mail::assertSent(OrderConfirmed::class, function (OrderConfirmed $mail) {
+            return $mail->hasTo('checkout@example.com');
+        });
+
+        Mail::assertSent(CustomerAccountCreated::class, function (CustomerAccountCreated $mail) {
             return $mail->hasTo('checkout@example.com');
         });
     }

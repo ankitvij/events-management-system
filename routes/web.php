@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\OrderController;
+
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
 use App\Http\Controllers\DashboardController;
@@ -243,6 +244,7 @@ Route::post('customer/register', [CustomerAuthController::class, 'register'])->n
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
 Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
 Route::post('customer/login/booking', [CustomerAuthController::class, 'bookingLogin'])->name('customer.login.booking');
+Route::get('customer/booking/access/{order}', [CustomerAuthController::class, 'bookingAccess'])->middleware('signed')->name('customer.booking.access');
 Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
@@ -250,6 +252,7 @@ use App\Http\Controllers\CustomerController;
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
 
 use App\Http\Controllers\Admin\LogController;
+
 // use App\Http\Controllers\OrderController; // Duplicate removed
 
 // Public order view: show a small form to validate with email + booking code

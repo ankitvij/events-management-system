@@ -95,15 +95,14 @@ export default function CartButton() {
                 aria-expanded={open}
                 title={`${summary.count} items — €${Number(summary.total).toFixed(2)}`}
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900"
+                className="btn-ghost border border-border px-3 py-1 text-sm text-white"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
                     <circle cx="10" cy="20" r="1" />
                     <circle cx="18" cy="20" r="1" />
                 </svg>
-                <span className="font-medium">{summary.count}</span>
-                <span className="text-xs text-muted">€{Number(summary.total).toFixed(2)}</span>
+                <span className="text-xs text-white/70">€{Number(summary.total).toFixed(2)}</span>
 
                 {summary.count > 0 && (
                     <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-red-600 text-white text-xs">{summary.count}</span>
@@ -111,7 +110,7 @@ export default function CartButton() {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg p-3 z-50">
+                <div className="absolute right-0 mt-2 w-80 box z-50">
                     <div className="text-sm font-medium">Cart</div>
                     <div className="mt-2 max-h-56 overflow-auto">
                         {summary.items && summary.items.length > 0 ? (
@@ -128,7 +127,12 @@ export default function CartButton() {
                                             <div className="px-3 text-sm">{it.quantity}</div>
                                             <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1)}>+</button>
                                         </div>
-                                        <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 mt-2 p-1" onClick={() => removeItem(it.id)}>
+                                        <button
+                                            type="button"
+                                            aria-label="Delete item"
+                                            className="btn-danger mt-2"
+                                            onClick={() => removeItem(it.id)}
+                                        >
                                             <Trash className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -138,12 +142,12 @@ export default function CartButton() {
                             <div className="text-sm text-muted">Cart is empty</div>
                         )}
                     </div>
-                    <div className="mt-3 flex items-center justify-between">
-                        <div className="text-sm text-muted">Total: €{Number(summary.total).toFixed(2)}</div>
-                        <div className="flex items-center gap-2">
-                            <Link href="/cart" className="text-sm text-blue-600">View cart</Link>
+                    <div className="mt-3 space-y-3">
+                        <div className="text-sm text-muted text-right">Total: €{Number(summary.total).toFixed(2)}</div>
+                        <div className="flex items-center justify-between gap-2">
+                            <Link href="/cart" className="btn-ghost border border-border px-3 py-1 text-sm" onClick={() => setOpen(false)}>View cart</Link>
                             {summary.count > 0 && (
-                                <Link href="/cart/checkout" className="btn-primary" onClick={() => setOpen(false)}>Checkout</Link>
+                                <Link href="/cart/checkout" className="btn-confirm" onClick={() => setOpen(false)}>Checkout</Link>
                             )}
                         </div>
                     </div>

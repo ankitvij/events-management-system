@@ -107,7 +107,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                                         <Link href={`/organisers/${org.id}/edit`} className="text-sm text-blue-600">Edit</Link>
                                         <form action={`/organisers/${org.id}`} method="post" className="inline">
                                             <input type="hidden" name="_method" value="delete" />
-                                            <button className="text-sm text-red-600" type="submit">Delete</button>
+                                            <button className="btn-danger" type="submit">Delete</button>
                                         </form>
                                     </div>
                                 </div>

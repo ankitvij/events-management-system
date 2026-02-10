@@ -104,7 +104,7 @@ export default function CustomersIndex({ customers }: Props) {
                                         <Link href={`/customers/${customer.id}/edit`} className="text-sm text-blue-600">Edit</Link>
                                         <form action={`/customers/${customer.id}`} method="post" className="inline">
                                             <input type="hidden" name="_method" value="delete" />
-                                            <button className="text-sm text-red-600" type="submit">Delete</button>
+                                            <button className="btn-danger" type="submit">Delete</button>
                                         </form>
                                     </div>
                                 </div>
