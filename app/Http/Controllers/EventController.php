@@ -205,6 +205,12 @@ class EventController extends Controller
                 $organiserIds = array_values($local['organiser_ids']);
             }
 
+            if (! empty($local['organiser_id'])) {
+                $organiserIds[] = (int) $local['organiser_id'];
+                $event->organiser_id = (int) $local['organiser_id'];
+                $event->save();
+            }
+
             // Handle comma-separated organiser emails
             $emailsRaw = $request->input('organiser_emails', '');
             if (is_string($emailsRaw) && trim($emailsRaw) !== '') {
@@ -337,7 +343,7 @@ class EventController extends Controller
             return response()->json(['event' => $event]);
         }
 
-        $event->load('organisers', 'user');
+        $event->load('organisers', 'organiser', 'user');
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('Events/Edit', [
@@ -379,8 +385,18 @@ class EventController extends Controller
             $event->save();
         }
 
+        if (array_key_exists('organiser_id', $data)) {
+            $event->organiser_id = $data['organiser_id'];
+            $event->save();
+        }
+
         if (array_key_exists('organiser_ids', $data)) {
-            $event->organisers()->sync($data['organiser_ids'] ?? []);
+            $organiserIds = $data['organiser_ids'] ?? [];
+            if (! empty($data['organiser_id'])) {
+                $organiserIds[] = (int) $data['organiser_id'];
+            }
+
+            $event->organisers()->sync(array_values(array_unique($organiserIds)));
         }
 
         $this->clearPublicEventsCache();

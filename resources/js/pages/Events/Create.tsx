@@ -25,6 +25,7 @@ export default function Create() {
         country: '',
         active: true,
         image: null,
+        organiser_id: null,
         organiser_ids: [],
         organiser_emails: '',
         organiser_name: '',
@@ -106,6 +107,22 @@ export default function Create() {
                     <label className="block text-sm font-medium">Organisers</label>
                     {showOrganisers ? (
                         <>
+                            <div className="mb-3">
+                                <label className="block text-sm font-medium">Main organiser <span className="text-red-600">*</span></label>
+                                <select
+                                    className="input"
+                                    required
+                                    value={form.data.organiser_id ?? ''}
+                                    onChange={e => form.setData('organiser_id', e.target.value ? Number(e.target.value) : null)}
+                                >
+                                    <option value="">Select organiser</option>
+                                    {organisers.map((o: any) => (
+                                        <option key={o.id} value={o.id}>{o.name}</option>
+                                    ))}
+                                </select>
+                                <p className="text-sm text-muted mt-1">Required: used as the primary organiser for bank details and display.</p>
+                            </div>
+
                             <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
                             <p className="text-sm text-muted mt-2">Or add organiser email addresses (comma-separated) to create organisers on submit.</p>
                             <input name="organiser_emails" value={form.data.organiser_emails} onChange={e => form.setData('organiser_emails', e.target.value)} placeholder="organiser1@example.com, organiser2@example.com" className="input mt-2" />

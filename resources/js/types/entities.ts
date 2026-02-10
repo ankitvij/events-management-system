@@ -30,6 +30,8 @@ export type Event = {
     image_url?: string | null;
     image_thumbnail_url?: string | null;
     active?: boolean;
+    organiser_id?: number | null;
+    organiser?: Organiser | null;
     organisers?: Organiser[];
     user?: UserShort | null;
     start_at?: string | null;
