@@ -4,6 +4,7 @@
 /public/build
 /public_html/build
 /public_html/storage
+/public_html/hot
 /public/hot
 /public_html/storage
 /storage/*.key
