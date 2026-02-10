@@ -32,7 +32,7 @@ class OrderConfirmed extends Mailable
     public function build()
     {
         // ensure related models are loaded for the email view (tickets + events)
-        $this->order->loadMissing('items.ticket.event.organiser', 'user');
+        $this->order->loadMissing('items.ticket.event.organiser', 'items.ticket.event.organisers', 'user');
         $items = $this->order->items;
         if ($this->item) {
             if ($this->ticketHolderName) {
@@ -235,7 +235,22 @@ class OrderConfirmed extends Mailable
     protected function resolveBankDetailsFromOrder($items): ?array
     {
         $organiser = collect($items)
-            ->map(fn ($item) => $item->event?->organiser)
+            ->flatMap(function ($item) {
+                $event = $item->event;
+                if (! $event) {
+                    return [];
+                }
+
+                $list = [];
+                if ($event->organiser) {
+                    $list[] = $event->organiser;
+                }
+                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
+                    $list = array_merge($list, $event->organisers->all());
+                }
+
+                return $list;
+            })
             ->filter()
             ->first();
 

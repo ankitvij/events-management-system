@@ -61,7 +61,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load('items.ticket', 'items.event.organiser', 'user');
+        $order->load('items.ticket', 'items.event.organiser', 'items.event.organisers', 'user');
         $order->items->each(function ($item) {
             if ($item->event) {
                 $item->event->append(['image_url', 'image_thumbnail_url']);
@@ -104,7 +104,22 @@ class OrderController extends Controller
     protected function resolveBankDetailsFromOrder(Order $order): ?array
     {
         $organiser = $order->items
-            ->map(fn ($item) => $item->event?->organiser)
+            ->flatMap(function ($item) {
+                $event = $item->event;
+                if (! $event) {
+                    return [];
+                }
+
+                $list = [];
+                if ($event->organiser) {
+                    $list[] = $event->organiser;
+                }
+                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
+                    $list = array_merge($list, $event->organisers->all());
+                }
+
+                return $list;
+            })
             ->filter()
             ->first();
 

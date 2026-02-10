@@ -27,7 +27,7 @@ class CartController extends Controller
             $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
         }
         if ($cart) {
-            $cart->load('items.ticket', 'items.event.organiser');
+            $cart->load('items.ticket', 'items.event.organiser', 'items.event.organisers');
             $count = $cart->items->sum('quantity');
             $total = $cart->items->sum(function ($i) {
                 return $i->quantity * $i->price;
@@ -377,7 +377,22 @@ class CartController extends Controller
         }
 
         $organiser = $cart->items
-            ->map(fn ($item) => $item->event?->organiser)
+            ->flatMap(function ($item) {
+                $event = $item->event;
+                if (! $event) {
+                    return [];
+                }
+
+                $list = [];
+                if ($event->organiser) {
+                    $list[] = $event->organiser;
+                }
+                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
+                    $list = array_merge($list, $event->organisers->all());
+                }
+
+                return $list;
+            })
             ->filter()
             ->first();
 
