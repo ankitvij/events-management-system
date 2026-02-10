@@ -32,7 +32,7 @@ class OrderConfirmed extends Mailable
     public function build()
     {
         // ensure related models are loaded for the email view (tickets + events)
-        $this->order->loadMissing('items.ticket.event', 'user');
+        $this->order->loadMissing('items.ticket.event.organiser', 'user');
         $items = $this->order->items;
         if ($this->item) {
             if ($this->ticketHolderName) {
@@ -87,7 +87,7 @@ class OrderConfirmed extends Mailable
         ]);
         $paymentMethod = $this->order->payment_method ?? 'bank_transfer';
         $paymentStatus = $this->order->payment_status ?? ($this->order->paid ? 'paid' : 'pending');
-        $bank = config('payments.bank_transfer');
+        $bank = $this->resolveBankDetailsFromOrder($items) ?? config('payments.bank_transfer');
         $logoUrl = asset('images/logo.png');
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
@@ -230,5 +230,30 @@ class OrderConfirmed extends Mailable
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    protected function resolveBankDetailsFromOrder($items): ?array
+    {
+        $organiser = collect($items)
+            ->map(fn ($item) => $item->event?->organiser)
+            ->filter()
+            ->first();
+
+        if (! $organiser) {
+            return null;
+        }
+
+        $base = config('payments.bank_transfer');
+
+        return [
+            'method' => $base['method'] ?? 'bank_transfer',
+            'display_name' => $base['display_name'] ?? 'Bank transfer',
+            'enabled' => $base['enabled'] ?? true,
+            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
+            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
+            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
+            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
+            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
+        ];
     }
 }

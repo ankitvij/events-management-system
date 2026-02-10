@@ -27,7 +27,7 @@ class CartController extends Controller
             $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
         }
         if ($cart) {
-            $cart->load('items.ticket', 'items.event');
+            $cart->load('items.ticket', 'items.event.organiser');
             $count = $cart->items->sum('quantity');
             $total = $cart->items->sum(function ($i) {
                 return $i->quantity * $i->price;
@@ -62,11 +62,13 @@ class CartController extends Controller
             $total = 0;
         }
 
+        $bankTransfer = $this->resolveBankDetailsFromCart($cart) ?? config('payments.bank_transfer');
+
         return inertia('Cart/Checkout', [
             'cart' => $cart,
             'cart_count' => $count,
             'cart_total' => $total,
-            'bank_transfer' => config('payments.bank_transfer'),
+            'bank_transfer' => $bankTransfer,
         ]);
     }
 
@@ -366,6 +368,35 @@ class CartController extends Controller
 
         // Include booking_code as query param so guests can view their order confirmation
         return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', $message);
+    }
+
+    protected function resolveBankDetailsFromCart(?Cart $cart): ?array
+    {
+        if (! $cart) {
+            return null;
+        }
+
+        $organiser = $cart->items
+            ->map(fn ($item) => $item->event?->organiser)
+            ->filter()
+            ->first();
+
+        if (! $organiser) {
+            return null;
+        }
+
+        $base = config('payments.bank_transfer');
+
+        return [
+            'method' => $base['method'] ?? 'bank_transfer',
+            'display_name' => $base['display_name'] ?? 'Bank transfer',
+            'enabled' => $base['enabled'] ?? true,
+            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
+            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
+            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
+            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
+            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
+        ];
     }
 
     public function updateItem(Request $request, CartItem $item)

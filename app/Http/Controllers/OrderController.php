@@ -61,7 +61,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load('items.ticket', 'items.event', 'user');
+        $order->load('items.ticket', 'items.event.organiser', 'user');
         $order->items->each(function ($item) {
             if ($item->event) {
                 $item->event->append(['image_url', 'image_thumbnail_url']);
@@ -93,10 +93,37 @@ class OrderController extends Controller
             }
         }
 
+        $bankTransfer = $this->resolveBankDetailsFromOrder($order) ?? config('payments.bank_transfer');
+
         return inertia('Orders/Show', [
             'order' => $order,
-            'bank_transfer' => config('payments.bank_transfer'),
+            'bank_transfer' => $bankTransfer,
         ]);
+    }
+
+    protected function resolveBankDetailsFromOrder(Order $order): ?array
+    {
+        $organiser = $order->items
+            ->map(fn ($item) => $item->event?->organiser)
+            ->filter()
+            ->first();
+
+        if (! $organiser) {
+            return null;
+        }
+
+        $base = config('payments.bank_transfer');
+
+        return [
+            'method' => $base['method'] ?? 'bank_transfer',
+            'display_name' => $base['display_name'] ?? 'Bank transfer',
+            'enabled' => $base['enabled'] ?? true,
+            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
+            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
+            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
+            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
+            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
+        ];
     }
 
     // Public view: render a simple form asking for email + booking code
