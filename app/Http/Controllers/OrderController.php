@@ -93,7 +93,10 @@ class OrderController extends Controller
             }
         }
 
-        return inertia('Orders/Show', ['order' => $order]);
+        return inertia('Orders/Show', [
+            'order' => $order,
+            'bank_transfer' => config('payments.bank_transfer'),
+        ]);
     }
 
     // Public view: render a simple form asking for email + booking code

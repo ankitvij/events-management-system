@@ -13,9 +13,11 @@ type TicketGuestsEntry = { cart_item_id: number; guests: GuestEntry[] };
 export default function CartCheckout() {
     const page = usePage();
     const cart = (page.props as any)?.cart;
+    const bankTransfer = (page.props as any)?.bank_transfer;
     const initialItems = cart?.items ?? [];
     const [items, setItems] = useState<any[]>(initialItems);
     const [loading, setLoading] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [ticketGuests, setTicketGuests] = useState<TicketGuestsEntry[]>(() => (
@@ -87,6 +89,7 @@ export default function CartCheckout() {
             const payload = {
                 email: email.trim(),
                 password: password.trim() || null,
+                payment_method: paymentMethod,
                 ticket_guests: ticketGuests.map((entry) => ({
                     cart_item_id: entry.cart_item_id,
                     guests: entry.guests.map((guest) => ({
@@ -232,6 +235,37 @@ export default function CartCheckout() {
                             </div>
 
                             <div className="border-t border-border pt-4">
+                                <div>
+                                    <h2 className="text-base font-semibold">Payment method</h2>
+                                    <div className="mt-3 space-y-2">
+                                        <label className="flex items-start gap-2 text-sm">
+                                            <input
+                                                type="radio"
+                                                name="payment_method"
+                                                value="bank_transfer"
+                                                checked={paymentMethod === 'bank_transfer'}
+                                                onChange={() => setPaymentMethod('bank_transfer')}
+                                            />
+                                            <span>
+                                                <div className="font-semibold">Bank transfer</div>
+                                                <div className="text-muted text-sm">You will receive instructions to complete payment.</div>
+                                            </span>
+                                        </label>
+                                        {paymentMethod === 'bank_transfer' && bankTransfer && (
+                                            <div className="rounded-md border border-border bg-muted/30 p-3 text-sm leading-relaxed">
+                                                <div><strong>Account name:</strong> {bankTransfer.account_name}</div>
+                                                <div><strong>IBAN:</strong> {bankTransfer.iban}</div>
+                                                <div><strong>BIC/SWIFT:</strong> {bankTransfer.bic}</div>
+                                                {bankTransfer.instructions && (
+                                                    <div className="mt-2">{bankTransfer.instructions}</div>
+                                                )}
+                                                {bankTransfer.reference_hint && (
+                                                    <div className="mt-1 text-xs text-muted">{bankTransfer.reference_hint}</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="text-sm text-muted">Items: {totals.count}</div>
                                 <div className="mt-2 text-lg font-semibold">Total: €{Number(totals.total).toFixed(2)}</div>
 

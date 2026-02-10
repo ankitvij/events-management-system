@@ -42,6 +42,7 @@ class OrderCreationTest extends TestCase
         $resp = $this->postJson('/cart/checkout', array_merge([
             'email' => 'guest@example.com',
             'name' => 'Guest Buyer',
+            'payment_method' => 'bank_transfer',
             'ticket_guests' => [
                 [
                     'cart_item_id' => $cartItem->id,
@@ -106,6 +107,7 @@ class OrderCreationTest extends TestCase
         $resp = $this->postJson('/cart/checkout', [
             'email' => $customer->email,
             'name' => 'Imposter',
+            'payment_method' => 'bank_transfer',
             'ticket_guests' => [
                 [
                     'cart_item_id' => $cartItem->id,

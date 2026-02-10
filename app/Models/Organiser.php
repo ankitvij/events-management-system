@@ -14,6 +14,11 @@ class Organiser extends Model
         'name',
         'email',
         'active',
+        'bank_account_name',
+        'bank_iban',
+        'bank_bic',
+        'bank_reference_hint',
+        'bank_instructions',
     ];
 
     protected $casts = [

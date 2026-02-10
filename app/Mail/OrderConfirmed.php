@@ -85,6 +85,9 @@ class OrderConfirmed extends Mailable
             'order' => $this->order->id,
             'email' => $recipientEmail,
         ]);
+        $paymentMethod = $this->order->payment_method ?? 'bank_transfer';
+        $paymentStatus = $this->order->payment_status ?? ($this->order->paid ? 'paid' : 'pending');
+        $bank = config('payments.bank_transfer');
         $logoUrl = asset('images/logo.png');
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
@@ -100,6 +103,9 @@ class OrderConfirmed extends Mailable
                 'event_images' => $event_images,
                 'event_embeds' => $event_embeds,
                 'logo_url' => $logoUrl,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentStatus,
+                'bank' => $bank,
             ]);
 
         $pdfBuilder = app(OrderTicketPdfBuilder::class);

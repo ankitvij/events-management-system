@@ -69,6 +69,30 @@
     </ul>
 
     <p><strong>Total: €{{ number_format($order->total, 2) }}</strong></p>
+    @if(($payment_method ?? null) === 'bank_transfer')
+        <div style="margin-top:12px;padding:12px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;">
+            <p style="margin:0 0 6px 0;"><strong>Payment method:</strong> Bank transfer</p>
+            <p style="margin:0 0 6px 0;">Status: {{ ($payment_status ?? 'pending') === 'paid' ? 'Paid' : 'Pending payment' }}</p>
+            <p style="margin:0 0 6px 0;">Please transfer the total and include your booking code ({{ $order->booking_code }}) in the reference.</p>
+            <ul style="margin:0 0 6px 18px;padding:0;">
+                @if(!empty($bank['account_name']))
+                    <li><strong>Account name:</strong> {{ $bank['account_name'] }}</li>
+                @endif
+                @if(!empty($bank['iban']))
+                    <li><strong>IBAN:</strong> {{ $bank['iban'] }}</li>
+                @endif
+                @if(!empty($bank['bic']))
+                    <li><strong>BIC/SWIFT:</strong> {{ $bank['bic'] }}</li>
+                @endif
+            </ul>
+            @if(!empty($bank['instructions']))
+                <p style="margin:0 0 6px 0;">{{ $bank['instructions'] }}</p>
+            @endif
+            @if(!empty($bank['reference_hint']))
+                <p style="margin:0;">{{ $bank['reference_hint'] }}</p>
+            @endif
+        </div>
+    @endif
 
     <p>If you have any questions, reply to this email and include your booking code when contacting us.</p>
     <p style="margin-top:12px">View your order online: <a href="{{ $view_url }}">{{ $view_url }}</a></p>

@@ -1,4 +1,14 @@
-export type Organiser = { id: number; name: string; email?: string | null; active?: boolean };
+export type Organiser = {
+    id: number;
+    name: string;
+    email?: string | null;
+    active?: boolean;
+    bank_account_name?: string | null;
+    bank_iban?: string | null;
+    bank_bic?: string | null;
+    bank_reference_hint?: string | null;
+    bank_instructions?: string | null;
+};
 
 export type UserShort = { id: number; name?: string | null; email?: string | null; role?: string | null; is_super_admin?: boolean };
 

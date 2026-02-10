@@ -62,7 +62,12 @@ class CartController extends Controller
             $total = 0;
         }
 
-        return inertia('Cart/Checkout', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
+        return inertia('Cart/Checkout', [
+            'cart' => $cart,
+            'cart_count' => $count,
+            'cart_total' => $total,
+            'bank_transfer' => config('payments.bank_transfer'),
+        ]);
     }
 
     public function storeItem(Request $request)
@@ -146,6 +151,7 @@ class CartController extends Controller
         $incomingEmail = $validated['email'] ?? null;
         $incomingName = $validated['name'] ?? null;
         $incomingPassword = $validated['password'] ?? null;
+        $paymentMethod = $validated['payment_method'] ?? 'bank_transfer';
         $ticketGuests = $validated['ticket_guests'] ?? [];
         if (! is_array($ticketGuests)) {
             $ticketGuests = [];
@@ -155,7 +161,7 @@ class CartController extends Controller
         })->keyBy('cart_item_id');
 
         try {
-            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem) {
+            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem, $paymentMethod) {
                 $cart->load('items');
                 foreach ($cart->items as $item) {
                     if ($item->ticket_id) {
@@ -185,10 +191,13 @@ class CartController extends Controller
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
                     'session_id' => $cart->session_id ?? null,
-                    'status' => 'confirmed',
+                    'status' => 'pending',
+                    'payment_method' => $paymentMethod,
+                    'payment_status' => 'pending',
                     'total' => $total,
                     'contact_name' => null,
                     'contact_email' => null,
+                    'paid' => false,
                 ]);
 
                 foreach ($cart->items as $item) {
@@ -347,6 +356,9 @@ class CartController extends Controller
         }
 
         $message = 'Order placed successfully.';
+        if ($paymentMethod === 'bank_transfer') {
+            $message .= ' Please complete your bank transfer using the details we emailed you.';
+        }
         if ($recipientEmail) {
             $message .= " A confirmation has been sent to {$recipientEmail}.";
         }

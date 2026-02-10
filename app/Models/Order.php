@@ -9,7 +9,7 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'session_id', 'status', 'total', 'contact_name', 'contact_email', 'booking_code', 'paid', 'checked_in', 'customer_id'];
+    protected $fillable = ['user_id', 'session_id', 'status', 'payment_method', 'payment_status', 'total', 'contact_name', 'contact_email', 'booking_code', 'paid', 'checked_in', 'customer_id'];
 
     protected $casts = [
         'paid' => 'boolean',
