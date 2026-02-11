@@ -46,17 +46,24 @@ if ($detectedHost) {
     } elseif (str_contains($lower, 'events.test')) {
         // Use public_html locally so Herd's webroot and Laravel match
         $publicFolder = 'public_html';
+    } elseif (str_contains($lower, 'hostingersite.com')) {
+        $publicFolder = 'public_html';
     }
 } else {
     // No host detected (CLI). Use APP_ENV or presence of public_html as indicators.
-    if (env('APP_ENV') === 'production' && is_dir($basePath . DIRECTORY_SEPARATOR . 'public_html')) {
+    if (env('APP_ENV') === 'production' && is_dir($basePath.DIRECTORY_SEPARATOR.'public_html')) {
         $publicFolder = 'public_html';
-    } elseif (is_dir($basePath . DIRECTORY_SEPARATOR . 'public_html') && ! is_dir($basePath . DIRECTORY_SEPARATOR . 'public')) {
+    } elseif (is_dir($basePath.DIRECTORY_SEPARATOR.'public_html') && ! is_dir($basePath.DIRECTORY_SEPARATOR.'public')) {
         // If public does not exist but public_html does, prefer public_html.
         $publicFolder = 'public_html';
     }
 }
 
-$app->usePublicPath($basePath . DIRECTORY_SEPARATOR . $publicFolder);
+// If a host was detected but we still defaulted to public, prefer public_html when it exists.
+if ($publicFolder === 'public' && is_dir($basePath.DIRECTORY_SEPARATOR.'public_html')) {
+    $publicFolder = 'public_html';
+}
+
+$app->usePublicPath($basePath.DIRECTORY_SEPARATOR.$publicFolder);
 
 return $app;
