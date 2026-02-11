@@ -158,17 +158,12 @@ export default function Create() {
                             {form.errors.organiser_name && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_name}</p>}
                             <label className="block text-sm font-medium mt-2">Organiser email <span className="text-red-600">*</span></label>
                             <input required name="organiser_email" type="email" value={form.data.organiser_email} onChange={e => form.setData('organiser_email', e.target.value)} placeholder="organiser@example.com" className="input mt-1" />
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
                             {form.errors.organiser_email && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_email}</p>}
                             <label className="block text-sm font-medium mt-2">Edit password (optional)</label>
                             <input name="edit_password" type="password" value={form.data.edit_password} onChange={e => form.setData('edit_password', e.target.value)} placeholder="Set a password to protect the edit link" className="input mt-1" />
                             {form.errors.edit_password && <p className="mt-1 text-sm text-red-600">{form.errors.edit_password}</p>}
->>>>>>> Stashed changes
-=======
                             {form.errors.organiser_email && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_email}</p>}
->>>>>>> develop
+
                         </>
                     )}
                 </div>
