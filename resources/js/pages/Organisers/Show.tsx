@@ -28,14 +28,13 @@ export default function Show({ organiser }: { organiser: Organiser }) {
                 <div className="space-y-2">
                     <div><strong>Email:</strong> {organiser.email || '—'}</div>
                     <div><strong>Active:</strong> {organiser.active ? 'Yes' : 'No'}</div>
-                    {(organiser.bank_account_name || organiser.bank_iban || organiser.bank_bic || organiser.bank_instructions) && (
+                    {(organiser.bank_account_name || organiser.bank_iban || organiser.bank_bic || organiser.bank_reference_hint) && (
                         <div className="mt-3 space-y-1">
                             <div className="font-semibold">Bank details</div>
                             {organiser.bank_account_name && <div><strong>Account name:</strong> {organiser.bank_account_name}</div>}
                             {organiser.bank_iban && <div><strong>IBAN:</strong> {organiser.bank_iban}</div>}
                             {organiser.bank_bic && <div><strong>BIC/SWIFT:</strong> {organiser.bank_bic}</div>}
                             {organiser.bank_reference_hint && <div><strong>Reference hint:</strong> {organiser.bank_reference_hint}</div>}
-                            {organiser.bank_instructions && <div><strong>Instructions:</strong> {organiser.bank_instructions}</div>}
                         </div>
                     )}
                 </div>

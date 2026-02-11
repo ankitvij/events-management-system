@@ -27,7 +27,7 @@ class CheckoutRequest extends FormRequest
             'email' => ['required', 'email', 'max:255'],
             'name' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'min:8'],
-            'payment_method' => ['required', 'string', 'in:bank_transfer'],
+            'payment_method' => ['required', 'string', 'in:bank_transfer,paypal_transfer,revolut_transfer'],
             'ticket_guests' => ['nullable', 'array'],
             'ticket_guests.*.cart_item_id' => ['required', 'integer'],
             'ticket_guests.*.guests' => ['nullable', 'array'],

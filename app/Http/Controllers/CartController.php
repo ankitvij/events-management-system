@@ -10,6 +10,7 @@ use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,13 +63,18 @@ class CartController extends Controller
             $total = 0;
         }
 
-        $bankTransfer = $this->resolveBankDetailsFromCart($cart) ?? config('payments.bank_transfer');
+        $paymentMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer'])
+            ->mapWithKeys(function ($method) {
+                $details = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+
+                return [$method => $details];
+            })->filter();
 
         return inertia('Cart/Checkout', [
             'cart' => $cart,
             'cart_count' => $count,
             'cart_total' => $total,
-            'bank_transfer' => $bankTransfer,
+            'payment_methods' => $paymentMethods,
         ]);
     }
 
@@ -358,8 +364,9 @@ class CartController extends Controller
         }
 
         $message = 'Order placed successfully.';
-        if ($paymentMethod === 'bank_transfer') {
-            $message .= ' Please complete your bank transfer using the details we emailed you.';
+        if (in_array($paymentMethod, ['bank_transfer', 'paypal_transfer', 'revolut_transfer'], true)) {
+            $label = config('payments.'.$paymentMethod.'.display_name') ?? 'payment';
+            $message .= ' Please complete your '.$label.' using the details we emailed you.';
         }
         if ($recipientEmail) {
             $message .= " A confirmation has been sent to {$recipientEmail}.";
@@ -370,48 +377,11 @@ class CartController extends Controller
         return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', $message);
     }
 
-    protected function resolveBankDetailsFromCart(?Cart $cart): ?array
+    protected function resolvePaymentDetailsFromCart(?Cart $cart, string $method): ?array
     {
-        if (! $cart) {
-            return null;
-        }
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
 
-        $organiser = $cart->items
-            ->flatMap(function ($item) {
-                $event = $item->event;
-                if (! $event) {
-                    return [];
-                }
-
-                $list = [];
-                if ($event->organiser) {
-                    $list[] = $event->organiser;
-                }
-                if (method_exists($event, 'organisers')) {
-                    $list = array_merge($list, $event->organisers->all());
-                }
-
-                return $list;
-            })
-            ->filter()
-            ->first();
-
-        if (! $organiser) {
-            return null;
-        }
-
-        $base = config('payments.bank_transfer');
-
-        return [
-            'method' => $base['method'] ?? 'bank_transfer',
-            'display_name' => $base['display_name'] ?? 'Bank transfer',
-            'enabled' => $base['enabled'] ?? true,
-            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
-            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
-            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
-            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
-            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
-        ];
+        return is_array($base) ? $base : null;
     }
 
     public function updateItem(Request $request, CartItem $item)

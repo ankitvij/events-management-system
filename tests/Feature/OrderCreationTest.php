@@ -53,8 +53,6 @@ class OrderCreationTest extends TestCase
                 ],
             ],
         ], ['cart_id' => $cart->id]));
-        // dump response for debugging when tests fail
-        $resp->dump();
         $resp->assertStatus(200);
         $resp->assertJson(['success' => true]);
 

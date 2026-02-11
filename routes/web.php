@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderPaymentMethodsController;
 
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
@@ -271,6 +272,12 @@ Route::get('admin/logs/mail-failures', [LogController::class, 'mailFailures'])
 
 // Admin orders
 Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
+Route::get('orders/payment-methods', [OrderPaymentMethodsController::class, 'edit'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('orders.payment-methods.edit');
+Route::put('orders/payment-methods', [OrderPaymentMethodsController::class, 'update'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('orders.payment-methods.update');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('orders/{order}/tickets/download-all', [OrderController::class, 'downloadAllTickets'])->name('orders.tickets.downloadAll');
 Route::get('orders/{order}/tickets/{item}/download', [OrderController::class, 'downloadTicket'])->name('orders.tickets.download');

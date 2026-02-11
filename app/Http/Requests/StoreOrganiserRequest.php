@@ -21,7 +21,8 @@ class StoreOrganiserRequest extends FormRequest
             'bank_iban' => ['nullable', 'string', 'max:64'],
             'bank_bic' => ['nullable', 'string', 'max:64'],
             'bank_reference_hint' => ['nullable', 'string', 'max:255'],
-            'bank_instructions' => ['nullable', 'string', 'max:1000'],
+            'paypal_id' => ['nullable', 'string', 'max:255'],
+            'revolut_id' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

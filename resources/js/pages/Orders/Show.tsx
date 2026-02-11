@@ -6,7 +6,7 @@ import { useState } from 'react';
 export default function OrdersShow() {
     const page = usePage();
     const order = (page.props as any)?.order ?? null;
-    const bankTransfer = (page.props as any)?.bank_transfer;
+    const paymentDetails = (page.props as any)?.payment_details;
     const items = Array.isArray(order?.items) ? order.items : [];
 
     const downloadParams = (() => {
@@ -116,17 +116,24 @@ export default function OrdersShow() {
                 <div className="space-y-2">
                     <h1 className="text-xl font-semibold">Booking code: {order.booking_code ?? '—'}</h1>
                     <div className="text-sm text-muted">Placed on: {order.created_at ? new Date(order.created_at).toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}</div>
-                    {order.payment_method === 'bank_transfer' && (
+                    {order.payment_method && (
                         <div className="mt-2 space-y-1 text-sm">
-                            <div className="font-semibold">Payment method: Bank transfer</div>
+                            <div className="font-semibold">Payment method: {paymentDetails?.display_name || order.payment_method.replace('_', ' ')}</div>
                             <div className="text-muted">Status: {order.payment_status === 'paid' || order.paid ? 'Paid' : 'Pending payment'}</div>
-                            {bankTransfer && (
+                            {paymentDetails && (
                                 <div className="rounded-md border border-border bg-muted/30 p-3 leading-relaxed">
-                                    <div><strong>Account name:</strong> {bankTransfer.account_name}</div>
-                                    <div><strong>IBAN:</strong> {bankTransfer.iban}</div>
-                                    <div><strong>BIC/SWIFT:</strong> {bankTransfer.bic}</div>
-                                    {bankTransfer.instructions && <div className="mt-2 text-sm">{bankTransfer.instructions}</div>}
-                                    {bankTransfer.reference_hint && <div className="mt-1 text-xs text-muted">{bankTransfer.reference_hint}</div>}
+                                    {order.payment_method === 'bank_transfer' && (
+                                        <>
+                                            <div><strong>Account name:</strong> {paymentDetails.account_name}</div>
+                                            <div><strong>IBAN:</strong> {paymentDetails.iban}</div>
+                                            <div><strong>BIC/SWIFT:</strong> {paymentDetails.bic}</div>
+                                        </>
+                                    )}
+                                    {(order.payment_method === 'paypal_transfer' || order.payment_method === 'revolut_transfer') && (
+                                        <div><strong>Account ID:</strong> {paymentDetails.account_id}</div>
+                                    )}
+                                    {paymentDetails.instructions && <div className="mt-2 text-sm">{paymentDetails.instructions}</div>}
+                                    {paymentDetails.reference_hint && <div className="mt-1 text-xs text-muted">{paymentDetails.reference_hint}</div>}
                                 </div>
                             )}
                         </div>

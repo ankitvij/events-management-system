@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\OrderConfirmed;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -93,52 +94,22 @@ class OrderController extends Controller
             }
         }
 
-        $bankTransfer = $this->resolveBankDetailsFromOrder($order) ?? config('payments.bank_transfer');
+        $paymentMethod = $order->payment_method ?? 'bank_transfer';
+        $paymentDetails = $this->resolvePaymentDetailsFromOrder($order, $paymentMethod)
+            ?? config('payments.'.$paymentMethod)
+            ?? config('payments.bank_transfer');
 
         return inertia('Orders/Show', [
             'order' => $order,
-            'bank_transfer' => $bankTransfer,
+            'payment_details' => $paymentDetails,
         ]);
     }
 
-    protected function resolveBankDetailsFromOrder(Order $order): ?array
+    protected function resolvePaymentDetailsFromOrder(Order $order, string $method): ?array
     {
-        $organiser = $order->items
-            ->flatMap(function ($item) {
-                $event = $item->event;
-                if (! $event) {
-                    return [];
-                }
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
 
-                $list = [];
-                if ($event->organiser) {
-                    $list[] = $event->organiser;
-                }
-                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
-                    $list = array_merge($list, $event->organisers->all());
-                }
-
-                return $list;
-            })
-            ->filter()
-            ->first();
-
-        if (! $organiser) {
-            return null;
-        }
-
-        $base = config('payments.bank_transfer');
-
-        return [
-            'method' => $base['method'] ?? 'bank_transfer',
-            'display_name' => $base['display_name'] ?? 'Bank transfer',
-            'enabled' => $base['enabled'] ?? true,
-            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
-            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
-            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
-            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
-            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
-        ];
+        return is_array($base) ? $base : null;
     }
 
     // Public view: render a simple form asking for email + booking code

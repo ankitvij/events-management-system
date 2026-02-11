@@ -18,7 +18,8 @@ class Organiser extends Model
         'bank_iban',
         'bank_bic',
         'bank_reference_hint',
-        'bank_instructions',
+        'paypal_id',
+        'revolut_id',
     ];
 
     protected $casts = [

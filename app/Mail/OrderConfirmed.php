@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -87,7 +88,9 @@ class OrderConfirmed extends Mailable
         ]);
         $paymentMethod = $this->order->payment_method ?? 'bank_transfer';
         $paymentStatus = $this->order->payment_status ?? ($this->order->paid ? 'paid' : 'pending');
-        $bank = $this->resolveBankDetailsFromOrder($items) ?? config('payments.bank_transfer');
+        $bank = $this->resolvePaymentDetailsFromOrder($items, $paymentMethod)
+            ?? config('payments.'.$paymentMethod)
+            ?? config('payments.bank_transfer');
         $logoUrl = asset('images/logo.png');
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
@@ -232,43 +235,10 @@ class OrderConfirmed extends Mailable
         }
     }
 
-    protected function resolveBankDetailsFromOrder($items): ?array
+    protected function resolvePaymentDetailsFromOrder($items, string $method): ?array
     {
-        $organiser = collect($items)
-            ->flatMap(function ($item) {
-                $event = $item->event;
-                if (! $event) {
-                    return [];
-                }
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
 
-                $list = [];
-                if ($event->organiser) {
-                    $list[] = $event->organiser;
-                }
-                if (method_exists($event, 'organisers') && $event->relationLoaded('organisers')) {
-                    $list = array_merge($list, $event->organisers->all());
-                }
-
-                return $list;
-            })
-            ->filter()
-            ->first();
-
-        if (! $organiser) {
-            return null;
-        }
-
-        $base = config('payments.bank_transfer');
-
-        return [
-            'method' => $base['method'] ?? 'bank_transfer',
-            'display_name' => $base['display_name'] ?? 'Bank transfer',
-            'enabled' => $base['enabled'] ?? true,
-            'instructions' => $organiser->bank_instructions ?: ($base['instructions'] ?? null),
-            'account_name' => $organiser->bank_account_name ?: ($base['account_name'] ?? null),
-            'iban' => $organiser->bank_iban ?: ($base['iban'] ?? null),
-            'bic' => $organiser->bank_bic ?: ($base['bic'] ?? null),
-            'reference_hint' => $organiser->bank_reference_hint ?: ($base['reference_hint'] ?? null),
-        ];
+        return is_array($base) ? $base : null;
     }
 }

@@ -13,11 +13,15 @@ type TicketGuestsEntry = { cart_item_id: number; guests: GuestEntry[] };
 export default function CartCheckout() {
     const page = usePage();
     const cart = (page.props as any)?.cart;
-    const bankTransfer = (page.props as any)?.bank_transfer;
+    const paymentMethods = (page.props as any)?.payment_methods || {};
     const initialItems = cart?.items ?? [];
     const [items, setItems] = useState<any[]>(initialItems);
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
+    const availableMethod = useMemo(() => {
+        const entries = Object.entries(paymentMethods).filter(([, details]: any) => details && details.enabled !== false);
+        return (entries[0]?.[0] as string) || 'bank_transfer';
+    }, [paymentMethods]);
+    const [paymentMethod, setPaymentMethod] = useState<string>(availableMethod);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [ticketGuests, setTicketGuests] = useState<TicketGuestsEntry[]>(() => (
@@ -34,6 +38,7 @@ export default function CartCheckout() {
 
         return { count, total };
     }, [items, page.props]);
+
 
     async function removeItem(itemId: number) {
         try {
@@ -238,32 +243,49 @@ export default function CartCheckout() {
                                 <div>
                                     <h2 className="text-base font-semibold">Payment method</h2>
                                     <div className="mt-3 space-y-2">
-                                        <label className="flex items-start gap-2 text-sm">
-                                            <input
-                                                type="radio"
-                                                name="payment_method"
-                                                value="bank_transfer"
-                                                checked={paymentMethod === 'bank_transfer'}
-                                                onChange={() => setPaymentMethod('bank_transfer')}
-                                            />
-                                            <span>
-                                                <div className="font-semibold">Bank transfer</div>
-                                                <div className="text-muted text-sm">You will receive instructions to complete payment.</div>
-                                            </span>
-                                        </label>
-                                        {paymentMethod === 'bank_transfer' && bankTransfer && (
-                                            <div className="rounded-md border border-border bg-muted/30 p-3 text-sm leading-relaxed">
-                                                <div><strong>Account name:</strong> {bankTransfer.account_name}</div>
-                                                <div><strong>IBAN:</strong> {bankTransfer.iban}</div>
-                                                <div><strong>BIC/SWIFT:</strong> {bankTransfer.bic}</div>
-                                                {bankTransfer.instructions && (
-                                                    <div className="mt-2">{bankTransfer.instructions}</div>
-                                                )}
-                                                {bankTransfer.reference_hint && (
-                                                    <div className="mt-1 text-xs text-muted">{bankTransfer.reference_hint}</div>
-                                                )}
-                                            </div>
-                                        )}
+                                        {Object.entries(paymentMethods).map(([method, details]: any) => {
+                                            if (!details || details.enabled === false) return null;
+                                            const isBankTransfer = method === 'bank_transfer';
+                                            const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer';
+
+                                            return (
+                                                <label key={method} className="block text-sm space-y-1">
+                                                    <span className="flex items-start gap-2">
+                                                        <input
+                                                            type="radio"
+                                                            name="payment_method"
+                                                            value={method}
+                                                            checked={paymentMethod === method}
+                                                            onChange={() => setPaymentMethod(method)}
+                                                        />
+                                                        <span>
+                                                            <div className="font-semibold">{details.display_name || method}</div>
+                                                            <div className="text-muted text-sm">You will receive instructions to complete payment.</div>
+                                                        </span>
+                                                    </span>
+                                                    {paymentMethod === method && (
+                                                        <div className="rounded-md border border-border bg-muted/30 p-3 text-sm leading-relaxed">
+                                                            {isBankTransfer && (
+                                                                <>
+                                                                    <div><strong>Account name:</strong> {details.account_name}</div>
+                                                                    <div><strong>IBAN:</strong> {details.iban}</div>
+                                                                    <div><strong>BIC/SWIFT:</strong> {details.bic}</div>
+                                                                </>
+                                                            )}
+                                                            {isIdOnlyTransfer && (
+                                                                <div><strong>Account ID:</strong> {details.account_id}</div>
+                                                            )}
+                                                            {details.instructions && (
+                                                                <div className="mt-2">{details.instructions}</div>
+                                                            )}
+                                                            {details.reference_hint && (
+                                                                <div className="mt-1 text-xs text-muted">{details.reference_hint}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </label>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                                 <div className="text-sm text-muted">Items: {totals.count}</div>

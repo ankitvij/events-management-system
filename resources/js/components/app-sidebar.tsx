@@ -1,5 +1,19 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Calendar, Folder, LayoutGrid, Users, Shield, Bug } from 'lucide-react';
+import {
+    BookOpen,
+    Calendar,
+    CreditCard,
+    FileText,
+    LayoutGrid,
+    ScrollText,
+    Settings,
+    Shield,
+    Users,
+    Users2,
+    UserSquare2,
+    ClipboardList,
+    Folder,
+} from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -15,20 +29,6 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Events',
-        href: '/events',
-        icon: Calendar,
-    },
-
-];
 
 const footerNavItems: NavItem[] = [
     {
@@ -49,27 +49,34 @@ export function AppSidebar() {
 
     const isAdmin = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
 
-    const items = [...mainNavItems];
-    // show organisers/customers to any authenticated user
-    if (page.props?.auth?.user) {
-        items.splice(2, 0, { title: 'Organisers', href: '/organisers', icon: Folder });
-        items.splice(3, 0, { title: 'Customers', href: '/customers', icon: Folder });
-    }
+    const items: NavItem[] = [];
 
-    // show Users only to admins/super_admin
+    items.push({ title: 'Dashboard', href: dashboard(), icon: LayoutGrid });
+    if (isAdmin) {
+        items.push({ title: 'Orders', href: '/orders', icon: ClipboardList });
+    }
+    items.push({ title: 'Events', href: '/events', icon: Calendar });
+    if (isAdmin) {
+        items.push({ title: 'Pages', href: '/pages', icon: FileText });
+    }
+    if (isSuper) {
+        items.push({ title: 'Roles', href: '/roles', icon: Shield });
+    }
     if (isAdmin) {
         items.push({ title: 'Users', href: '/users', icon: Users });
     }
-
-    if (isSuper) {
-        items.push({ title: 'Roles', href: '/roles', icon: Shield });
-        items.push({ title: 'Error Logs', href: '/admin/error-logs', icon: Bug });
+    if (page.props?.auth?.user) {
+        items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
+        items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
     }
-
-    // show Pages module to admins
-    if (isAdmin) {
-        items.push({ title: 'Pages', href: '/pages', icon: Folder });
-        items.push({ title: 'Orders', href: '/orders', icon: Folder });
+    if (isSuper) {
+        items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });
+    }
+    if (page.props?.auth?.user) {
+        items.push({ title: 'Settings', href: '/settings/profile', icon: Settings });
+    }
+    if (isSuper) {
+        items.push({ title: 'Logs', href: '/admin/error-logs', icon: ScrollText });
     }
 
     return (

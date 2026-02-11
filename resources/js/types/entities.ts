@@ -7,7 +7,8 @@ export type Organiser = {
     bank_iban?: string | null;
     bank_bic?: string | null;
     bank_reference_hint?: string | null;
-    bank_instructions?: string | null;
+    paypal_id?: string | null;
+    revolut_id?: string | null;
 };
 
 export type UserShort = { id: number; name?: string | null; email?: string | null; role?: string | null; is_super_admin?: boolean };
