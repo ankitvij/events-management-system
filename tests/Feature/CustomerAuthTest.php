@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Customer;
 use App\Models\Order;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class CustomerAuthTest extends TestCase
@@ -52,5 +53,21 @@ class CustomerAuthTest extends TestCase
         // as customer cannot access admin orders index (requires auth)
         $res3 = $this->withSession(['customer_id' => $customer->id])->get('/orders');
         $res3->assertStatus(302);
+    }
+
+    public function test_customer_password_login_redirects_to_orders(): void
+    {
+        $customer = Customer::factory()->create([
+            'email' => 'cust@example.com',
+            'password' => Hash::make('secret123'),
+        ]);
+
+        $response = $this->post('/customer/login', [
+            'email' => $customer->email,
+            'password' => 'secret123',
+        ]);
+
+        $response->assertRedirect(route('customer.orders'));
+        $this->assertSame($customer->id, session('customer_id'));
     }
 }

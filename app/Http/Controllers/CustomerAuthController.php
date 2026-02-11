@@ -5,11 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CustomerEmailCheckRequest;
 use App\Mail\LoginTokenMail;
 use App\Models\Customer;
-<<<<<<< HEAD
 use App\Models\LoginToken;
-=======
 use App\Models\Order;
->>>>>>> develop
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -93,7 +90,7 @@ class CustomerAuthController extends Controller
         session()->put('customer_id', $customer->id);
         session()->forget(['customer_booking_order_id', 'customer_booking_code', 'customer_booking_email']);
 
-        return redirect()->route('home')->with('success', 'Logged in');
+        return redirect()->route('customer.orders')->with('success', 'Logged in');
     }
 
     public function consumeLoginToken(string $token)
