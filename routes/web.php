@@ -3,10 +3,7 @@
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\LoginTokenController;
 use App\Http\Controllers\OrderController;
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\OrderPaymentMethodsController;
->>>>>>> develop
 
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
@@ -253,12 +250,7 @@ Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])
 Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
 Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
-<<<<<<< HEAD
 Route::get('customer/login/token/{token}', [CustomerAuthController::class, 'consumeLoginToken'])->middleware('guest')->name('customer.login.token.consume');
-=======
-Route::post('customer/login/booking', [CustomerAuthController::class, 'bookingLogin'])->name('customer.login.booking');
-Route::get('customer/booking/access/{order}', [CustomerAuthController::class, 'bookingAccess'])->middleware('signed')->name('customer.booking.access');
->>>>>>> develop
 Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
