@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerEmailCheckRequest;
+use App\Mail\LoginTokenMail;
 use App\Models\Customer;
+use App\Models\LoginToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class CustomerAuthController extends Controller
 {
@@ -59,8 +63,19 @@ class CustomerAuthController extends Controller
     {
         $data = $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string',
+            'password' => 'nullable|string',
         ]);
+
+        if (! $data['password']) {
+            $customer = Customer::query()->where('email', $data['email'])->first();
+            if (! $customer) {
+                return back()->withErrors(['email' => 'No account found for that email'])->withInput();
+            }
+
+            $this->sendLoginToken($customer);
+
+            return back()->with('status', 'We emailed you a sign-in link.');
+        }
 
         $customer = Customer::where('email', $data['email'])->first();
         if (! Schema::hasColumn('customers', 'password')) {
@@ -77,36 +92,55 @@ class CustomerAuthController extends Controller
         return redirect()->route('home')->with('success', 'Logged in');
     }
 
-    public function bookingLogin(Request $request)
+    public function consumeLoginToken(string $token)
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'booking_code' => ['required', 'string'],
+        $hash = hash('sha256', $token);
+        $record = LoginToken::query()
+            ->valid()
+            ->where('type', 'customer')
+            ->where('token_hash', $hash)
+            ->firstOrFail();
+
+        $customer = Customer::query()->find($record->customer_id);
+        if (! $customer || $customer->email !== $record->email) {
+            abort(404);
+        }
+
+        $record->update(['used_at' => now()]);
+        LoginToken::query()
+            ->where('type', 'customer')
+            ->where('customer_id', $customer->id)
+            ->whereNull('used_at')
+            ->delete();
+
+        session()->put('customer_id', $customer->id);
+        session()->forget(['customer_booking_order_id', 'customer_booking_code', 'customer_booking_email']);
+
+        return redirect()->route('customer.orders')->with('success', 'You are signed in.');
+    }
+
+    protected function sendLoginToken(Customer $customer): void
+    {
+        $plain = Str::random(64);
+        $hash = hash('sha256', $plain);
+
+        LoginToken::query()
+            ->where('type', 'customer')
+            ->where('customer_id', $customer->id)
+            ->delete();
+
+        LoginToken::query()->create([
+            'email' => $customer->email,
+            'token_hash' => $hash,
+            'type' => 'customer',
+            'customer_id' => $customer->id,
+            'expires_at' => now()->addMinutes(30),
         ]);
 
-        $order = \App\Models\Order::where('booking_code', $data['booking_code'])->first();
-        if (! $order) {
-            return back()->withErrors(['booking_code' => 'Invalid booking code'])->withInput();
-        }
-
-        $matches = false;
-        if ($order->contact_email && $order->contact_email === $data['email']) {
-            $matches = true;
-        }
-        if ($order->user && $order->user->email === $data['email']) {
-            $matches = true;
-        }
-
-        if (! $matches) {
-            return back()->withErrors(['email' => 'Email does not match our records'])->withInput();
-        }
-
-        session()->forget('customer_id');
-        session()->put('customer_booking_order_id', $order->id);
-        session()->put('customer_booking_code', $order->booking_code);
-        session()->put('customer_booking_email', $data['email']);
-
-        return redirect()->route('customer.orders')->with('success', 'Logged in');
+        $url = route('customer.login.token.consume', ['token' => $plain]);
+        $subject = 'Your sign-in link';
+        $intro = 'Click the link below to sign in to your account.';
+        Mail::to($customer->email)->send(new LoginTokenMail($url, $subject, $intro));
     }
 
     public function logout(Request $request)

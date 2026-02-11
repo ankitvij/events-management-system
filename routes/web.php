@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\LoginTokenController;
 use App\Http\Controllers\OrderController;
+
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
 use App\Http\Controllers\DashboardController;
@@ -159,6 +161,8 @@ require __DIR__.'/settings.php';
 // Events listing (public)
 Route::get('events', [EventController::class, 'index'])->name('events.index');
 
+Route::post('login/token', [LoginTokenController::class, 'send'])->middleware('guest')->name('login.token.send');
+Route::get('login/token/{token}', [LoginTokenController::class, 'consume'])->middleware('guest')->name('login.token.consume');
 // Allow public access to the create form and allow guests to submit new events
 Route::get('events/create', [EventController::class, 'create'])->name('events.create');
 // Public store route so guests can submit event creations
@@ -245,7 +249,7 @@ Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])
 Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
 Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
-Route::post('customer/login/booking', [CustomerAuthController::class, 'bookingLogin'])->name('customer.login.booking');
+Route::get('customer/login/token/{token}', [CustomerAuthController::class, 'consumeLoginToken'])->middleware('guest')->name('customer.login.token.consume');
 Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
@@ -253,6 +257,7 @@ use App\Http\Controllers\CustomerController;
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
 
 use App\Http\Controllers\Admin\LogController;
+
 // use App\Http\Controllers\OrderController; // Duplicate removed
 
 // Public order view: show a small form to validate with email + booking code

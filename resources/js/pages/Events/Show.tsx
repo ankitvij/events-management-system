@@ -190,6 +190,17 @@ export default function Show({ event }: Props) {
                                 </div>
                             ))}
                         </div>
+                        {!page.props.canEdit && page.props.tickets.every((t: { active: boolean; quantity_available: number; quantity_total: number }) => !t.active || t.quantity_available < 1) && (
+                            <div className="mt-3 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
+                                No tickets are currently available for this event.
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {(!page.props?.tickets || page.props.tickets.length === 0) && !page.props?.canEdit && (
+                    <div className="mt-3 mb-4 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
+                        No tickets are currently available for this event.
                     </div>
                 )}
 
