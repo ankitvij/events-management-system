@@ -26,6 +26,11 @@ class StoreEventRequest extends FormRequest
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'whatsapp_url' => ['nullable', 'string', 'max:255'],
             'active' => ['nullable', 'boolean'],
+            'organiser_id' => [
+                $this->user() ? 'required' : 'nullable',
+                'integer',
+                'exists:organisers,id',
+            ],
             'organiser_ids' => ['nullable', 'array'],
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
             'organiser_emails' => ['nullable', 'string'],

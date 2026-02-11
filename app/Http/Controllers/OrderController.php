@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\OrderConfirmed;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -12,7 +13,8 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 use ZipArchive;
 
-class OrderController extends Controller {
+class OrderController extends Controller
+{
     public function updateTicketHolder(Request $request, Order $order, OrderItem $item)
     {
         $current = auth()->user();
@@ -50,6 +52,7 @@ class OrderController extends Controller {
 
         return response()->json(['success' => true, 'guest_details' => $item->guest_details]);
     }
+
     public function index(Request $request)
     {
         $orders = Order::with('items.ticket', 'items.event', 'user')->latest()->paginate(20);
@@ -59,7 +62,7 @@ class OrderController extends Controller {
 
     public function show(Order $order)
     {
-        $order->load('items.ticket', 'items.event', 'user');
+        $order->load('items.ticket', 'items.event.organiser', 'items.event.organisers', 'user');
         $order->items->each(function ($item) {
             if ($item->event) {
                 $item->event->append(['image_url', 'image_thumbnail_url']);
@@ -91,7 +94,22 @@ class OrderController extends Controller {
             }
         }
 
-        return inertia('Orders/Show', ['order' => $order]);
+        $paymentMethod = $order->payment_method ?? 'bank_transfer';
+        $paymentDetails = $this->resolvePaymentDetailsFromOrder($order, $paymentMethod)
+            ?? config('payments.'.$paymentMethod)
+            ?? config('payments.bank_transfer');
+
+        return inertia('Orders/Show', [
+            'order' => $order,
+            'payment_details' => $paymentDetails,
+        ]);
+    }
+
+    protected function resolvePaymentDetailsFromOrder(Order $order, string $method): ?array
+    {
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+
+        return is_array($base) ? $base : null;
     }
 
     // Public view: render a simple form asking for email + booking code
@@ -150,6 +168,19 @@ class OrderController extends Controller {
         $provided = request('booking_code');
         $email = request('email');
         $customerId = session('customer_id');
+
+        if (request()->hasValidSignature()) {
+            if ($email) {
+                if ($order->contact_email && $email !== $order->contact_email) {
+                    abort(404);
+                }
+                if ($order->user && $email !== $order->user->email) {
+                    abort(404);
+                }
+            }
+
+            return inertia('Orders/Show', ['order' => $order]);
+        }
 
         // If a customer is logged in and owns this order, allow access without booking code
         if ($customerId && $order->customer_id && (int) $order->customer_id === (int) $customerId) {
@@ -348,6 +379,7 @@ class OrderController extends Controller {
     {
         $current = $request->user();
         $customerId = session('customer_id');
+        $email = $request->query('email');
 
         if ($current) {
             if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
@@ -365,8 +397,20 @@ class OrderController extends Controller {
             return;
         }
 
+        if ($request->hasValidSignature()) {
+            if ($email) {
+                if ($order->contact_email && $email !== $order->contact_email) {
+                    abort(404);
+                }
+                if ($order->user && $email !== $order->user->email) {
+                    abort(404);
+                }
+            }
+
+            return;
+        }
+
         $provided = $request->query('booking_code');
-        $email = $request->query('email');
 
         if (! $provided || $provided !== $order->booking_code) {
             abort(404);

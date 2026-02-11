@@ -4,6 +4,7 @@
         $firstItem = $items->first();
         $topEmbed = $firstItem ? ($event_embeds[$firstItem->id] ?? null) : null;
         $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
+        $logoUrl = $logo_url ?? asset('images/logo.png');
     @endphp
     @if($topEmbed)
         <img src="{{ $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime']) }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
@@ -56,11 +57,46 @@
     </ul>
 
     <p><strong>Total: €{{ number_format($order->total, 2) }}</strong></p>
+    @php
+        $paymentMethod = $payment_method ?? null;
+        $paymentLabel = $bank['display_name'] ?? ($paymentMethod ? ucfirst(str_replace('_', ' ', $paymentMethod)) : 'Transfer');
+    @endphp
+    @if(in_array($paymentMethod, ['bank_transfer', 'paypal_transfer', 'revolut_transfer'], true))
+        <div style="margin-top:12px;padding:12px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;">
+            <p style="margin:0 0 6px 0;"><strong>Payment method:</strong> {{ $paymentLabel }}</p>
+            <p style="margin:0 0 6px 0;">Status: {{ ($payment_status ?? 'pending') === 'paid' ? 'Paid' : 'Pending payment' }}</p>
+            <p style="margin:0 0 6px 0;">Please transfer the total and include your booking code ({{ $order->booking_code }}) in the reference.</p>
+            @if($paymentMethod === 'bank_transfer')
+                <ul style="margin:0 0 6px 18px;padding:0;">
+                    @if(!empty($bank['account_name']))
+                        <li><strong>Account name:</strong> {{ $bank['account_name'] }}</li>
+                    @endif
+                    @if(!empty($bank['iban']))
+                        <li><strong>IBAN:</strong> {{ $bank['iban'] }}</li>
+                    @endif
+                    @if(!empty($bank['bic']))
+                        <li><strong>BIC/SWIFT:</strong> {{ $bank['bic'] }}</li>
+                    @endif
+                </ul>
+            @else
+                <ul style="margin:0 0 6px 18px;padding:0;">
+                    @if(!empty($bank['account_id']))
+                        <li><strong>Account ID:</strong> {{ $bank['account_id'] }}</li>
+                    @endif
+                </ul>
+            @endif
+            @if(!empty($bank['instructions']))
+                <p style="margin:0 0 6px 0;">{{ $bank['instructions'] }}</p>
+            @endif
+            @if(!empty($bank['reference_hint']))
+                <p style="margin:0;">{{ $bank['reference_hint'] }}</p>
+            @endif
+        </div>
+    @endif
 
     <p>If you have any questions, reply to this email and include your booking code when contacting us.</p>
     <p style="margin-top:12px">View your order online: <a href="{{ $view_url }}">{{ $view_url }}</a></p>
-    @if($manage_url && $recipient_email && ($recipient_email === $order->contact_email || $recipient_email === ($order->user?->email ?? null)))
-        <p style="margin-top:12px">Manage your order: <a href="{{ $manage_url }}">{{ $manage_url }}</a></p>
-        <p style="font-size:0.9em;color:#666">You can sign in with your password or your booking code.</p>
-    @endif
+    <div style="margin-top:24px;text-align:center">
+        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+    </div>
 </div>

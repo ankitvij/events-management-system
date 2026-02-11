@@ -20,6 +20,12 @@ class EventThumbnailTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
+        $organiserId = \App\Models\Organiser::create([
+            'name' => 'Thumb Org',
+            'email' => 'thumb@example.test',
+            'active' => true,
+        ])->id;
+
         $file = UploadedFile::fake()->image('large.jpg', 1200, 800);
 
         $response = $this->post(route('events.store'), [
@@ -27,6 +33,7 @@ class EventThumbnailTest extends TestCase
             'description' => 'With image',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'organiser_id' => $organiserId,
             'image' => $file,
         ]);
 
@@ -54,6 +61,12 @@ class EventThumbnailTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
+        $organiserId = \App\Models\Organiser::create([
+            'name' => 'Small Org',
+            'email' => 'small@example.test',
+            'active' => true,
+        ])->id;
+
         $file = UploadedFile::fake()->image('small.jpg', 600, 300);
 
         $response = $this->post(route('events.store'), [
@@ -61,6 +74,7 @@ class EventThumbnailTest extends TestCase
             'description' => 'Small image should remain',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'organiser_id' => $organiserId,
             'image' => $file,
         ]);
 
@@ -80,11 +94,18 @@ class EventThumbnailTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
+        $organiserId = \App\Models\Organiser::create([
+            'name' => 'No Image Org',
+            'email' => 'noimg@example.test',
+            'active' => true,
+        ])->id;
+
         $response = $this->post(route('events.store'), [
             'title' => 'No Image Event',
             'description' => 'No image here',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'organiser_id' => $organiserId,
         ]);
 
         $response->assertRedirect(route('events.index'));

@@ -3,6 +3,10 @@
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\LoginTokenController;
 use App\Http\Controllers\OrderController;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\OrderPaymentMethodsController;
+>>>>>>> develop
 
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
@@ -249,7 +253,12 @@ Route::get('customer/register', [CustomerAuthController::class, 'showRegister'])
 Route::post('customer/register', [CustomerAuthController::class, 'register'])->name('customer.register.post');
 Route::get('customer/login', [CustomerAuthController::class, 'showLogin'])->name('customer.login');
 Route::post('customer/login', [CustomerAuthController::class, 'login'])->name('customer.login.post');
+<<<<<<< HEAD
 Route::get('customer/login/token/{token}', [CustomerAuthController::class, 'consumeLoginToken'])->middleware('guest')->name('customer.login.token.consume');
+=======
+Route::post('customer/login/booking', [CustomerAuthController::class, 'bookingLogin'])->name('customer.login.booking');
+Route::get('customer/booking/access/{order}', [CustomerAuthController::class, 'bookingAccess'])->middleware('signed')->name('customer.booking.access');
+>>>>>>> develop
 Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
 use App\Http\Controllers\CustomerController;
@@ -276,6 +285,12 @@ Route::get('admin/logs/mail-failures', [LogController::class, 'mailFailures'])
 
 // Admin orders
 Route::get('orders', [OrderController::class, 'index'])->middleware(['auth'])->name('orders.index');
+Route::get('orders/payment-methods', [OrderPaymentMethodsController::class, 'edit'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('orders.payment-methods.edit');
+Route::put('orders/payment-methods', [OrderPaymentMethodsController::class, 'update'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
+    ->name('orders.payment-methods.update');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 Route::get('orders/{order}/tickets/download-all', [OrderController::class, 'downloadAllTickets'])->name('orders.tickets.downloadAll');
 Route::get('orders/{order}/tickets/{item}/download', [OrderController::class, 'downloadTicket'])->name('orders.tickets.download');

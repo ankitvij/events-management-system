@@ -1,4 +1,15 @@
-export type Organiser = { id: number; name: string; email?: string | null; active?: boolean };
+export type Organiser = {
+    id: number;
+    name: string;
+    email?: string | null;
+    active?: boolean;
+    bank_account_name?: string | null;
+    bank_iban?: string | null;
+    bank_bic?: string | null;
+    bank_reference_hint?: string | null;
+    paypal_id?: string | null;
+    revolut_id?: string | null;
+};
 
 export type UserShort = { id: number; name?: string | null; email?: string | null; role?: string | null; is_super_admin?: boolean };
 
@@ -20,6 +31,8 @@ export type Event = {
     image_url?: string | null;
     image_thumbnail_url?: string | null;
     active?: boolean;
+    organiser_id?: number | null;
+    organiser?: Organiser | null;
     organisers?: Organiser[];
     user?: UserShort | null;
     start_at?: string | null;

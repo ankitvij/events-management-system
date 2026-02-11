@@ -38,6 +38,7 @@ class OrderEmailPdfTest extends TestCase
         $resp = $this->postJson('/cart/checkout', [
             'cart_id' => $cart->id,
             'email' => 'pdf@example.com',
+            'payment_method' => 'bank_transfer',
             'ticket_guests' => [
                 [
                     'cart_item_id' => $item->id,

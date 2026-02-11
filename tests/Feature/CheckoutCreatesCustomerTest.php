@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\CustomerAccountCreated;
 use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -44,6 +45,7 @@ class CheckoutCreatesCustomerTest extends TestCase
             'name' => 'Checkout Customer',
             'email' => 'checkout@example.com',
             'password' => 'checkoutpass',
+            'payment_method' => 'bank_transfer',
             'cart_id' => $cart->id,
             'ticket_guests' => [
                 [
@@ -65,6 +67,9 @@ class CheckoutCreatesCustomerTest extends TestCase
         $order = Order::latest()->first();
         $this->assertNotNull($order);
         $this->assertEquals($customer->id, $order->customer_id);
+        $this->assertEquals('bank_transfer', $order->payment_method);
+        $this->assertEquals('pending', $order->payment_status);
+        $this->assertFalse($order->paid);
 
         $order->load('items');
         $details = $order->items->first()->guest_details ?? [];
@@ -75,6 +80,10 @@ class CheckoutCreatesCustomerTest extends TestCase
         });
 
         Mail::assertSent(OrderConfirmed::class, function (OrderConfirmed $mail) {
+            return $mail->hasTo('checkout@example.com');
+        });
+
+        Mail::assertSent(CustomerAccountCreated::class, function (CustomerAccountCreated $mail) {
             return $mail->hasTo('checkout@example.com');
         });
     }

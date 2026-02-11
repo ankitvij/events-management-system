@@ -4,12 +4,14 @@ namespace App\Mail;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class OrderConfirmed extends Mailable
 {
@@ -31,7 +33,7 @@ class OrderConfirmed extends Mailable
     public function build()
     {
         // ensure related models are loaded for the email view (tickets + events)
-        $this->order->loadMissing('items.ticket.event', 'user');
+        $this->order->loadMissing('items.ticket.event.organiser', 'items.ticket.event.organisers', 'user');
         $items = $this->order->items;
         if ($this->item) {
             if ($this->ticketHolderName) {
@@ -53,14 +55,17 @@ class OrderConfirmed extends Mailable
             }
         }
 
-        $viewUrl = config('app.url').route('orders.public.view', ['order' => $this->order->id], false);
         $recipientEmail = $this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null);
-        $manageUrl = null;
-        if ($recipientEmail) {
-            $manageUrl = config('app.url').route('customer.login', [], false)
-                .'?email='.urlencode($recipientEmail)
-                .'&booking_code='.urlencode($this->order->booking_code);
-        }
+        $viewUrl = URL::signedRoute('orders.display', [
+            'order' => $this->order->id,
+            'email' => $recipientEmail,
+        ]);
+        $paymentMethod = $this->order->payment_method ?? 'bank_transfer';
+        $paymentStatus = $this->order->payment_status ?? ($this->order->paid ? 'paid' : 'pending');
+        $bank = $this->resolvePaymentDetailsFromOrder($items, $paymentMethod)
+            ?? config('payments.'.$paymentMethod)
+            ?? config('payments.bank_transfer');
+        $logoUrl = asset('images/logo.png');
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo(config('mail.from.address'), config('mail.from.name'))
@@ -69,10 +74,13 @@ class OrderConfirmed extends Mailable
                 'order' => $this->order,
                 'items' => $items,
                 'view_url' => $viewUrl,
-                'manage_url' => $manageUrl,
                 'recipient_email' => $recipientEmail,
                 'event_images' => $event_images,
                 'event_embeds' => $event_embeds,
+                'logo_url' => $logoUrl,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentStatus,
+                'bank' => $bank,
             ]);
 
         $pdfBuilder = app(OrderTicketPdfBuilder::class);
@@ -197,5 +205,12 @@ class OrderConfirmed extends Mailable
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    protected function resolvePaymentDetailsFromOrder($items, string $method): ?array
+    {
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+
+        return is_array($base) ? $base : null;
     }
 }

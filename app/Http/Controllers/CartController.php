@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
+use App\Mail\CustomerAccountCreated;
 use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentSetting;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +28,7 @@ class CartController extends Controller
             $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
         }
         if ($cart) {
-            $cart->load('items.ticket', 'items.event');
+            $cart->load('items.ticket', 'items.event.organiser', 'items.event.organisers');
             $count = $cart->items->sum('quantity');
             $total = $cart->items->sum(function ($i) {
                 return $i->quantity * $i->price;
@@ -49,7 +51,7 @@ class CartController extends Controller
             $cart = Cart::create(['session_id' => $request->session()->getId() ?? null]);
         }
         if ($cart) {
-            $cart->load('items.ticket', 'items.event');
+            $cart->load('items.ticket', 'items.event.organiser', 'items.event.organisers');
             $count = $cart->items->sum('quantity');
             $total = $cart->items->sum(function ($i) {
                 return $i->quantity * $i->price;
@@ -61,7 +63,19 @@ class CartController extends Controller
             $total = 0;
         }
 
-        return inertia('Cart/Checkout', ['cart' => $cart, 'cart_count' => $count, 'cart_total' => $total]);
+        $paymentMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer'])
+            ->mapWithKeys(function ($method) {
+                $details = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+
+                return [$method => $details];
+            })->filter();
+
+        return inertia('Cart/Checkout', [
+            'cart' => $cart,
+            'cart_count' => $count,
+            'cart_total' => $total,
+            'payment_methods' => $paymentMethods,
+        ]);
     }
 
     public function storeItem(Request $request)
@@ -145,6 +159,7 @@ class CartController extends Controller
         $incomingEmail = $validated['email'] ?? null;
         $incomingName = $validated['name'] ?? null;
         $incomingPassword = $validated['password'] ?? null;
+        $paymentMethod = $validated['payment_method'] ?? 'bank_transfer';
         $ticketGuests = $validated['ticket_guests'] ?? [];
         if (! is_array($ticketGuests)) {
             $ticketGuests = [];
@@ -154,7 +169,7 @@ class CartController extends Controller
         })->keyBy('cart_item_id');
 
         try {
-            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem) {
+            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem, $paymentMethod) {
                 $cart->load('items');
                 foreach ($cart->items as $item) {
                     if ($item->ticket_id) {
@@ -184,10 +199,13 @@ class CartController extends Controller
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
                     'session_id' => $cart->session_id ?? null,
-                    'status' => 'confirmed',
+                    'status' => 'pending',
+                    'payment_method' => $paymentMethod,
+                    'payment_status' => 'pending',
                     'total' => $total,
                     'contact_name' => null,
                     'contact_email' => null,
+                    'paid' => false,
                 ]);
 
                 foreach ($cart->items as $item) {
@@ -232,6 +250,7 @@ class CartController extends Controller
 
                 // associate a customer when an email was provided
                 $customerId = null;
+                $customerCreated = false;
                 if ($incomingEmail) {
                     $customer = Customer::where('email', $incomingEmail)->first();
                     if (! $customer) {
@@ -245,21 +264,15 @@ class CartController extends Controller
                             $attrs['password'] = Hash::make($incomingPassword);
                         }
                         $customer = Customer::create($attrs);
-                    } else {
-                        // if password provided and customer has no password, set it (only when column exists)
-                        if ($incomingPassword && Schema::hasColumn('customers', 'password')) {
-                            if (! $customer->password) {
-                                $customer->password = Hash::make($incomingPassword);
-                                $customer->save();
-                            }
-                        }
+                        $customerCreated = true;
                     }
+
                     $customerId = $customer->id;
                     $order->customer_id = $customerId;
                     $order->save();
                 }
 
-                return ['order' => $order, 'customer_id' => $customerId];
+                return ['order' => $order, 'customer_id' => $customerId, 'customer_created' => $customerCreated];
             });
 
             // attempt to send confirmation email outside transaction
@@ -279,8 +292,16 @@ class CartController extends Controller
                 $order->save();
             }
 
-            // If customer created/identified and password was provided, log them into customer session
-            if (! empty($result['customer_id']) && $incomingPassword) {
+            if (! empty($result['customer_created']) && $result['customer_created'] === true && $incomingPassword && $incomingEmail && Schema::hasColumn('customers', 'password')) {
+                try {
+                    Mail::to($incomingEmail)->send(new CustomerAccountCreated($incomingName, $incomingEmail, route('customer.login')));
+                } catch (\Throwable $e) {
+                    logger()->error('Customer account mail failed: '.$e->getMessage());
+                }
+            }
+
+            // Only auto-login when a new customer was created as part of checkout
+            if (! empty($result['customer_created']) && $result['customer_created'] === true && ! empty($result['customer_id'])) {
                 session()->put('customer_id', $result['customer_id']);
             }
             if (isset($order)) {
@@ -331,10 +352,7 @@ class CartController extends Controller
         $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
 
         if ($request->wantsJson() || $request->ajax()) {
-            $customerCreated = false;
-            if (isset($result) && is_array($result) && ! empty($result['customer_id'])) {
-                $customerCreated = true;
-            }
+            $customerCreated = isset($result['customer_created']) ? (bool) $result['customer_created'] : false;
 
             return response()->json([
                 'success' => true,
@@ -346,6 +364,10 @@ class CartController extends Controller
         }
 
         $message = 'Order placed successfully.';
+        if (in_array($paymentMethod, ['bank_transfer', 'paypal_transfer', 'revolut_transfer'], true)) {
+            $label = config('payments.'.$paymentMethod.'.display_name') ?? 'payment';
+            $message .= ' Please complete your '.$label.' using the details we emailed you.';
+        }
         if ($recipientEmail) {
             $message .= " A confirmation has been sent to {$recipientEmail}.";
         }
@@ -353,6 +375,13 @@ class CartController extends Controller
 
         // Include booking_code as query param so guests can view their order confirmation
         return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', $message);
+    }
+
+    protected function resolvePaymentDetailsFromCart(?Cart $cart, string $method): ?array
+    {
+        $base = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+
+        return is_array($base) ? $base : null;
     }
 
     public function updateItem(Request $request, CartItem $item)

@@ -161,7 +161,10 @@ export default function Show({ event }: Props) {
                     <div id="tickets" className="mt-3 mb-4">
                         <div className="mt-2 space-y-2">
                             {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
-                                <div key={t.id} className="border p-2 rounded bg-blue-100">
+                                <div
+                                    key={t.id}
+                                    className="box cursor-default hover:bg-[#eef2f7] hover:shadow-[0_14px_32px_rgba(7,8,10,0.18)]"
+                                >
                                     {page.props?.canEdit ? (
                                                 <TicketItem eventSlug={event.slug} ticket={t} />
                                             ) : (
@@ -173,7 +176,7 @@ export default function Show({ event }: Props) {
                                                     <div className="flex items-center gap-3">
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
                                                         {t.active && t.quantity_available > 0 ? (
-                                                            <div className="flex flex-col items-end gap-2">
+                                                            <div className="flex items-center gap-2">
                                                                 <ActionButton onClick={() => addToCart(t)}>
                                                                     Add to cart
                                                                 </ActionButton>

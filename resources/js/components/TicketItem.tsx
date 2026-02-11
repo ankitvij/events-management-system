@@ -72,7 +72,7 @@ export default function TicketItem({ eventSlug, ticket }: Props) {
                         <input type="checkbox" checked={form.data.active} onChange={(e) => form.setData('active', e.target.checked)} /> Active
                     </label>
                     <ActionButton type="submit">Save</ActionButton>
-                    <button type="button" onClick={onDelete} className="btn-ghost">Delete</button>
+                    <button type="button" onClick={onDelete} className="btn-danger">Delete</button>
                 </div>
             </div>
         </form>

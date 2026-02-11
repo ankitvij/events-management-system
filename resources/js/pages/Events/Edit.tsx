@@ -29,6 +29,7 @@ export default function Edit({ event }: Props) {
         whatsapp_url: event.whatsapp_url || '',
         active: event.active ?? true,
         image: null,
+        organiser_id: event.organiser_id ?? event.organiser?.id ?? null,
         organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
         edit_password: '',
     });
@@ -142,8 +143,11 @@ export default function Edit({ event }: Props) {
 
                 <div>
                     <label className="block text-sm font-medium">Organisers</label>
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> develop
                     <div className="mb-3">
                         <label className="block text-sm font-medium">Main organiser <span className="text-red-600">*</span></label>
                         <select
@@ -151,7 +155,10 @@ export default function Edit({ event }: Props) {
                             required
                             value={form.data.organiser_id ?? ''}
                             onChange={e => form.setData('organiser_id', e.target.value ? Number(e.target.value) : null)}
+<<<<<<< HEAD
                             disabled={! allowOrganiserChange}
+=======
+>>>>>>> develop
                         >
                             <option value="">Select organiser</option>
                             {organisers.map((o: any) => (
@@ -159,11 +166,16 @@ export default function Edit({ event }: Props) {
                             ))}
                         </select>
                         <p className="text-sm text-muted mt-1">Required: used as the primary organiser for bank details and display.</p>
+<<<<<<< HEAD
                         {! allowOrganiserChange && <p className="text-sm text-muted">Organiser changes are disabled for this link.</p>}
                         {form.errors.organiser_id && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_id}</p>}
                     </div>
 
 >>>>>>> Stashed changes
+=======
+                    </div>
+
+>>>>>>> develop
                     <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
                 </div>
 

@@ -103,12 +103,19 @@ export default function CartIndex() {
         <AppLayout>
             <Head title="Your Cart" />
 
-            <div className="p-4">
-                <h1 className="text-xl font-semibold">Shopping Cart</h1>
+            <div className="px-4 pt-4 pb-6 space-y-4">
+                <div className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
+                    <h1 className="text-xl font-semibold">Shopping Cart</h1>
+                    <div className="text-sm text-muted">Items in cart: {summary.count}</div>
+                    <div className="text-sm text-muted">Current total: €{Number(summary.total).toFixed(2)}</div>
+                </div>
                 {summary.items && summary.items.length > 0 ? (
-                    <div className="mt-4 space-y-2">
+                    <div className="space-y-3">
                         {summary.items.map((i: any) => (
-                            <div key={i.id ?? `${i.ticket_id}_${i.event_id}` } className="border p-2 rounded flex items-center justify-between">
+                            <div
+                                key={i.id ?? `${i.ticket_id}_${i.event_id}` }
+                                className="box flex items-center justify-between cursor-auto hover:bg-[#eef2f7] hover:shadow-[0_14px_32px_rgba(7,8,10,0.18)]"
+                            >
                                 <div className="flex items-center gap-3">
                                     {(i.event?.image_thumbnail_url || i.event?.image_url || i.event?.image_thumbnail || i.event?.image) && (
                                         <img
@@ -129,7 +136,12 @@ export default function CartIndex() {
                                         <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
                                         <div className="px-2">{i.quantity}</div>
                                         <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1)}>+</button>
-                                        <button type="button" aria-label="Delete item" className="btn-ghost text-red-600 ml-3 p-1" onClick={() => removeItemLocal(i.id)}>
+                                        <button
+                                            type="button"
+                                            aria-label="Delete item"
+                                            className="btn-danger ml-3"
+                                            onClick={() => removeItemLocal(i.id)}
+                                        >
                                             <Trash className="h-4 w-4" />
                                         </button>
                                     </div>
@@ -138,13 +150,13 @@ export default function CartIndex() {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-sm text-muted mt-4">Your cart is empty.</div>
+                    <div className="text-sm text-muted">Your cart is empty.</div>
                 )}
 
-                <div className="mt-4 p-4 border-t text-right">
+                <div className="text-right px-4 py-3">
                     <div className="text-lg font-medium">Total: €{Number(summary.total).toFixed(2)}</div>
                     <div className="mt-2">
-                        <Link href="/cart/checkout" className="btn-primary">Checkout</Link>
+                        <Link href="/cart/checkout" className="btn-confirm">Checkout</Link>
                     </div>
                 </div>
             </div>

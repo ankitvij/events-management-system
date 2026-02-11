@@ -44,6 +44,7 @@ class OrderTicketPdfBuilder
             'items' => $itemsForPdf,
             'qr_codes' => $qrCodes,
             'event_images' => $eventImages,
+            'logo_url' => asset('images/logo.png'),
         ];
 
         if (class_exists('\\Barryvdh\\DomPDF\\Facade\\Pdf')) {
