@@ -31,7 +31,7 @@ class UpdateEventRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'max:5120'],
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
             'city' => ['nullable', 'string', 'max:100'],
@@ -43,6 +43,15 @@ class UpdateEventRequest extends FormRequest
             'active' => ['nullable', 'boolean'],
             'organiser_ids' => ['nullable', 'array'],
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'image.image' => 'Please upload a valid image (jpg, png, webp, etc.).',
+            'image.max' => 'Image must be 5MB or smaller.',
+            'image.uploaded' => 'The image failed to upload. Try a smaller file (max 5MB).',
         ];
     }
 }

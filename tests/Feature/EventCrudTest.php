@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\EventOrganiserCreated;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class EventCrudTest extends TestCase
@@ -120,5 +123,67 @@ class EventCrudTest extends TestCase
         $show->assertStatus(200);
         $show->assertJsonFragment(['showOrganisers' => true]);
         $show->assertJsonFragment(['email' => 'alice2@example.test']);
+    }
+
+    public function test_guest_can_edit_event_via_signed_link_with_password(): void
+    {
+        Mail::fake();
+
+        $response = $this->post(route('events.store'), [
+            'title' => 'Guest Event',
+            'start_at' => now()->addDay()->toDateString(),
+            'organiser_name' => 'Guest Org',
+            'organiser_email' => 'guest@org.test',
+            'edit_password' => 'secret123',
+        ]);
+
+        $response->assertRedirect(route('events.index'));
+
+        $event = Event::firstOrFail();
+
+        $this->assertNotNull($event->edit_token);
+        $signedUpdateUrl = URL::signedRoute('events.update-link', [
+            'event' => $event->slug,
+            'token' => $event->edit_token,
+        ]);
+
+        $update = $this->put($signedUpdateUrl, [
+            'title' => 'Updated via link',
+            'start_at' => now()->addDays(2)->toDateString(),
+            'edit_password' => 'secret123',
+        ]);
+
+        $event->refresh();
+
+        $update->assertRedirect(route('events.show', $event));
+        $this->assertSame('Updated via link', $event->title);
+
+        Mail::assertQueued(EventOrganiserCreated::class);
+    }
+
+    public function test_organiser_cannot_use_their_link_on_another_event(): void
+    {
+        $eventA = Event::factory()->create([
+            'slug' => 'event-a',
+            'edit_token' => 'token-a',
+            'edit_token_expires_at' => null,
+        ]);
+
+        $eventB = Event::factory()->create([
+            'slug' => 'event-b',
+            'edit_token' => 'token-b',
+            'edit_token_expires_at' => null,
+        ]);
+
+        $linkForA = URL::signedRoute('events.edit-link', [
+            'event' => $eventA->slug,
+            'token' => $eventA->edit_token,
+        ]);
+
+        // Tamper the link to point to event B but keep token/signature from event A.
+        $tampered = str_replace('/event-a/', '/event-b/', $linkForA);
+
+        $resp = $this->get($tampered);
+        $resp->assertStatus(403);
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventRequest;
+use App\Http\Requests\UpdateEventFromLinkRequest;
 use App\Http\Requests\UpdateEventRequest;
+use App\Mail\EventOrganiserCreated;
 use App\Models\Event;
 use App\Models\Organiser;
 use Illuminate\Http\JsonResponse;
@@ -11,7 +13,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -175,8 +180,12 @@ class EventController extends Controller
         $data = $request->validated();
         // Allow guest-created events: user_id may be null for guests
         $data['user_id'] = $request->user()?->id;
+        $rawEditToken = Str::random(64);
+        $data['edit_token'] = $rawEditToken;
+        $data['edit_token_expires_at'] = null;
+        $data['edit_password'] = $request->filled('edit_password') ? Hash::make($request->string('edit_password')) : null;
 
-        DB::transaction(function () use ($request, $data) {
+        DB::transaction(function () use ($request, $data, $rawEditToken) {
             $local = $data;
 
             if ($request->hasFile('image')) {
@@ -253,6 +262,21 @@ class EventController extends Controller
                     $event->organiser_id = $organiser->id;
                     $event->save();
                 }
+            }
+
+            $primaryOrganiser = $event->organiser_id ? Organiser::find($event->organiser_id) : null;
+            if ($primaryOrganiser && $primaryOrganiser->email) {
+                $signedEditUrl = URL::signedRoute('events.edit-link', [
+                    'event' => $event->slug,
+                    'token' => $rawEditToken,
+                ]);
+
+                Mail::to($primaryOrganiser->email)->queue(new EventOrganiserCreated(
+                    $event,
+                    $primaryOrganiser,
+                    $signedEditUrl,
+                    $request->input('edit_password')
+                ));
             }
         });
 
@@ -331,6 +355,27 @@ class EventController extends Controller
 
     // publicShow removed; `show` now handles guest access.
 
+    public function editViaToken(Request $request, Event $event, string $token)
+    {
+        $this->assertValidEditToken($event, $token);
+
+        $event->load('organisers', 'organiser', 'user');
+        $organisers = $event->organiser ? [$event->organiser] : [];
+
+        $editUrl = URL::signedRoute('events.update-link', [
+            'event' => $event->slug,
+            'token' => $token,
+        ]);
+
+        return Inertia::render('Events/Edit', [
+            'event' => $event,
+            'organisers' => $organisers,
+            'editUrl' => $editUrl,
+            'requiresPassword' => (bool) $event->edit_password,
+            'allowOrganiserChange' => false,
+        ]);
+    }
+
     public function edit(Event $event)
     {
         if (app()->runningUnitTests()) {
@@ -381,6 +426,55 @@ class EventController extends Controller
 
         if (array_key_exists('organiser_ids', $data)) {
             $event->organisers()->sync($data['organiser_ids'] ?? []);
+        }
+
+        $this->clearPublicEventsCache();
+
+        return redirect()->route('events.show', $event);
+    }
+
+    public function updateViaToken(UpdateEventFromLinkRequest $request, Event $event, string $token): RedirectResponse
+    {
+        $this->assertValidEditToken($event, $token);
+
+        if ($event->edit_password) {
+            $provided = $request->input('edit_password');
+            if (! $provided || ! Hash::check($provided, $event->edit_password)) {
+                return back()->withErrors(['edit_password' => 'Password is incorrect for this edit link.'])->withInput();
+            }
+        }
+
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+            if ($event->image_thumbnail) {
+                Storage::disk('public')->delete($event->image_thumbnail);
+            }
+            $data['image'] = $request->file('image')->store('events', 'public');
+            $this->resizeImageToMaxHeight($data['image']);
+            $thumb = $this->generateThumbnail($data['image']);
+            if ($thumb) {
+                $data['image_thumbnail'] = $thumb;
+            }
+        }
+
+        // Prevent organiser changes through the shared link
+        unset($data['organiser_id'], $data['organiser_ids']);
+
+        $event->update($data);
+
+        if (array_key_exists('title', $data)) {
+            $base = Str::slug($data['title'] ?? $event->title ?: 'event');
+            $slug = $base;
+            $i = 1;
+            while (Event::where('slug', $slug)->where('id', '!=', $event->id)->exists()) {
+                $slug = $base.'-'.(++$i);
+            }
+            $event->slug = $slug;
+            $event->save();
         }
 
         $this->clearPublicEventsCache();
@@ -439,7 +533,6 @@ class EventController extends Controller
             if (! file_exists($full)) {
                 return null;
             }
-
             $info = getimagesize($full);
             $mime = $info['mime'] ?? '';
 
@@ -502,6 +595,13 @@ class EventController extends Controller
             return $thumbPath;
         } catch (\Throwable $e) {
             return null;
+        }
+    }
+
+    protected function assertValidEditToken(Event $event, string $token): void
+    {
+        if (empty($event->edit_token) || ! hash_equals($event->edit_token, $token)) {
+            abort(403);
         }
     }
 

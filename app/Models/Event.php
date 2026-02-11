@@ -34,6 +34,9 @@ class Event extends Model
         'user_id',
         'active',
         'organiser_id',
+        'edit_token',
+        'edit_token_expires_at',
+        'edit_password',
     ];
 
     /**
@@ -48,6 +51,7 @@ class Event extends Model
         'start_at' => 'date',
         'end_at' => 'date',
         'active' => 'boolean',
+        'edit_token_expires_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

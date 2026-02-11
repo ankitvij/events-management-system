@@ -51,18 +51,6 @@
                         @endif
                     </div>
                 </div>
-                @php
-                    $qrEmbed = $qr_embeds[$item->id] ?? null;
-                @endphp
-                @if($qrEmbed)
-                    <div style="margin-top:8px">
-                        <img src="{{ $message->embedData($qrEmbed['data'], $qrEmbed['name'], $qrEmbed['mime']) }}" alt="QR code" style="width:180px;height:180px" />
-                    </div>
-                @elseif(isset($qr_codes[$item->id]))
-                    <div style="margin-top:8px">
-                        <img src="{{ $qr_codes[$item->id] }}" alt="QR code" style="width:180px;height:180px" />
-                    </div>
-                @endif
             </li>
         @endforeach
     </ul>

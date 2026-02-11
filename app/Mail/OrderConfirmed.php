@@ -43,35 +43,9 @@ class OrderConfirmed extends Mailable
             $items = collect([$this->item]);
         }
 
-        // generate QR codes for each order item (embed as data URIs when possible)
-        $qr_codes = [];
-        $qr_embeds = [];
         $event_images = [];
         $event_embeds = [];
         foreach ($items as $item) {
-            $guestName = $this->ticketHolderName ?: ($this->order->contact_name ?? $this->order->user?->name ?? null);
-            $guestEmail = $this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null);
-            $payload = json_encode([
-                'booking_code' => $this->order->booking_code,
-                'customer_name' => $guestName,
-                'customer_email' => $guestEmail,
-                'event' => $item->event?->title ?? null,
-                'start_at' => $item->event?->start_at?->toDateString() ?? null,
-                'ticket_type' => $item->ticket?->name ?? null,
-            ]);
-            $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data='.urlencode($payload);
-            $data = @file_get_contents($qrUrl);
-            if ($data !== false) {
-                $qr_codes[$item->id] = 'data:image/png;base64,'.base64_encode($data);
-                $qr_embeds[$item->id] = [
-                    'data' => $data,
-                    'mime' => 'image/png',
-                    'name' => "qr-{$this->order->booking_code}-{$item->id}.png",
-                ];
-            } else {
-                $qr_codes[$item->id] = $qrUrl;
-            }
-
             $event_images[$item->id] = $this->resolveEventImage($item->event?->image_thumbnail, $item->event?->image_thumbnail_url, $item->event?->image);
             $embed = $this->resolveEventImageEmbed($item->event?->image_thumbnail, $item->event?->image, $item->id);
             if ($embed) {
@@ -94,8 +68,6 @@ class OrderConfirmed extends Mailable
             ->view('emails.order_confirmed', [
                 'order' => $this->order,
                 'items' => $items,
-                'qr_codes' => $qr_codes,
-                'qr_embeds' => $qr_embeds,
                 'view_url' => $viewUrl,
                 'manage_url' => $manageUrl,
                 'recipient_email' => $recipientEmail,

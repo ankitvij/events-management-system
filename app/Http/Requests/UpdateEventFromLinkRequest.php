@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreEventRequest extends FormRequest
+class UpdateEventFromLinkRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -26,12 +26,9 @@ class StoreEventRequest extends FormRequest
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'whatsapp_url' => ['nullable', 'string', 'max:255'],
             'active' => ['nullable', 'boolean'],
+            'organiser_id' => ['nullable', 'integer', 'exists:organisers,id'],
             'organiser_ids' => ['nullable', 'array'],
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
-            'organiser_emails' => ['nullable', 'string'],
-            // Allow guests to supply a single organiser name/email when creating an event
-            'organiser_name' => ['nullable', 'string', 'max:255'],
-            'organiser_email' => ['nullable', 'email', 'max:255'],
             'edit_password' => ['nullable', 'string', 'min:6', 'max:64'],
         ];
     }

@@ -29,6 +29,7 @@ export default function Create() {
         organiser_emails: '',
         organiser_name: '',
         organiser_email: '',
+        edit_password: '',
     });
 
     const page = usePage();
@@ -117,6 +118,13 @@ export default function Create() {
                             <input required name="organiser_name" value={form.data.organiser_name} onChange={e => form.setData('organiser_name', e.target.value)} placeholder="Organiser name" className="input mt-1" />
                             <label className="block text-sm font-medium mt-2">Organiser email <span className="text-red-600">*</span></label>
                             <input required name="organiser_email" type="email" value={form.data.organiser_email} onChange={e => form.setData('organiser_email', e.target.value)} placeholder="organiser@example.com" className="input mt-1" />
+<<<<<<< Updated upstream
+=======
+                            {form.errors.organiser_email && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_email}</p>}
+                            <label className="block text-sm font-medium mt-2">Edit password (optional)</label>
+                            <input name="edit_password" type="password" value={form.data.edit_password} onChange={e => form.setData('edit_password', e.target.value)} placeholder="Set a password to protect the edit link" className="input mt-1" />
+                            {form.errors.edit_password && <p className="mt-1 text-sm text-red-600">{form.errors.edit_password}</p>}
+>>>>>>> Stashed changes
                         </>
                     )}
                 </div>

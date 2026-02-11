@@ -155,6 +155,7 @@ export default function OrdersShow() {
                             const guests = Array.isArray(guestDetails[itemIdx]) ? guestDetails[itemIdx] : [];
                             const defaultEmail = guests.length > 0 ? guests[0]?.email ?? null : null;
 
+<<<<<<< Updated upstream
                             return (
                                 <div key={it.id} className="border p-3 rounded">
                                     <div className="flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-start min-[700px]:justify-between">
@@ -165,6 +166,61 @@ export default function OrdersShow() {
                                                     alt={it.event?.title}
                                                     className="w-full rounded min-[600px]:w-auto"
                                                 />
+=======
+                <div className="space-y-2">
+                    {items.map((it: any, itemIdx: number) => {
+                        const guests = Array.isArray(guestDetails[itemIdx]) ? guestDetails[itemIdx] : [];
+                        const defaultEmail = guests.length > 0 ? guests[0]?.email ?? null : null;
+
+                        return (
+                            <div key={it.id} className="box">
+                                <div className="flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-start min-[700px]:justify-between">
+                                    <div className="flex-1 space-y-3">
+                                        {(it.event?.image_thumbnail_url || it.event?.image_url) && (
+                                            <img
+                                                src={it.event?.image_thumbnail_url ?? it.event?.image_url}
+                                                alt={it.event?.title}
+                                                className="w-full rounded min-[600px]:w-auto"
+                                            />
+                                        )}
+                                        <div className="text-left mt-2 min-[700px]:mt-3">
+                                            <div className="font-medium">{it.event?.title ?? it.ticket?.name ?? 'Item'}</div>
+                                            <div className="text-sm text-muted">{it.ticket?.name ? `Ticket type: ${it.ticket.name}` : 'Ticket type'}</div>
+                                            {guests.length > 0 && (
+                                                <div className="space-y-2 mt-2">
+                                                    {guests.map((g: any, guestIdx: number) => (
+                                                        <div key={guestIdx} className="flex flex-col gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={g.name || ''}
+                                                                onChange={e => handleGuestDetailChange(itemIdx, guestIdx, 'name', e.target.value)}
+                                                                className="border rounded px-2 py-1 text-sm w-[300px]"
+                                                                placeholder="Ticket holder name"
+                                                            />
+                                                            <input
+                                                                type="email"
+                                                                value={g.email || ''}
+                                                                onChange={e => handleGuestDetailChange(itemIdx, guestIdx, 'email', e.target.value)}
+                                                                className="border rounded px-2 py-1 text-sm w-[300px]"
+                                                                placeholder="Ticket holder email (optional)"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                    <div className="mt-2">
+                                                        <button
+                                                            type="button"
+                                                            className={`btn-primary ${saving === it.id ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                            disabled={saving === it.id}
+                                                            onClick={() => handleSaveGuestDetails(itemIdx, it.id)}
+                                                        >
+                                                            {saving === it.id ? 'Saving...' : 'Update this ticket'}
+                                                        </button>
+                                                    </div>
+                                                    {saveError && saving === it.id && (
+                                                        <div className="text-sm text-red-600 mt-1">{saveError}</div>
+                                                    )}
+                                                </div>
+>>>>>>> Stashed changes
                                             )}
                                             <div className="text-left mt-2 min-[700px]:mt-3">
                                                 <div className="font-medium">{it.event?.title ?? it.ticket?.name ?? 'Item'}</div>
@@ -228,6 +284,20 @@ export default function OrdersShow() {
                                             </div>
                                         </div>
                                     </div>
+<<<<<<< Updated upstream
+=======
+                                    <div className="min-[700px]:ml-6 flex flex-col items-end gap-3 mt-3 min-[700px]:mt-5">
+                                        <a
+                                            href={`/orders/${order.id}/tickets/${it.id}/download${downloadParams}`}
+                                            className="btn-download"
+                                        >
+                                            {it.quantity && it.quantity > 1 ? 'Download tickets' : 'Download ticket'}
+                                        </a>
+                                            <div className="flex flex-col items-center min-[700px]:items-end gap-2">
+                                                <div className="text-lg font-semibold">€{Number(it.price).toFixed(2)}</div>
+                                            </div>
+                                    </div>
+>>>>>>> Stashed changes
                                 </div>
                             );
                         })}

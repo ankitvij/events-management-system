@@ -163,6 +163,9 @@ Route::get('events', [EventController::class, 'index'])->name('events.index');
 Route::get('events/create', [EventController::class, 'create'])->name('events.create');
 // Public store route so guests can submit event creations
 Route::post('events', [EventController::class, 'store'])->name('events.store');
+// Token-based edit routes for organisers (emailed links)
+Route::get('events/{event:slug}/edit-link/{token}', [EventController::class, 'editViaToken'])->middleware('signed')->name('events.edit-link');
+Route::put('events/{event:slug}/edit-link/{token}', [EventController::class, 'updateViaToken'])->middleware('signed')->name('events.update-link');
 // Protect all other event resource routes with auth
 Route::resource('events', EventController::class)->middleware(['auth'])->except(['index', 'show', 'create', 'store']);
 
