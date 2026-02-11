@@ -7,7 +7,6 @@ import TicketCreateForm from '@/components/TicketCreateForm';
 import TicketItem from '@/components/TicketItem';
 import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
-import SignInPrompt from '@/components/SignInPrompt';
 import type { BreadcrumbItem } from '@/types';
 
 type Organiser = { id: number; name: string };
@@ -258,11 +257,7 @@ export default function Show({ event }: Props) {
                             <ActionButton href={`/events/${event.slug}/edit`}>Edit</ActionButton>
                         ) : null}
 
-                        {!current && !showHomeHeader && (
-                            <div className="ml-auto text-sm">
-                                <SignInPrompt />
-                            </div>
-                        )}
+                        {!current && !showHomeHeader && null}
                     </div>
 
                     {page.props?.canEdit && (

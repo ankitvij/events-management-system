@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
-import SignInPrompt from '@/components/SignInPrompt';
 import type { BreadcrumbItem } from '@/types';
 
 type Organiser = {
@@ -50,7 +49,7 @@ export default function EventsIndex({ events }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
-    const showSignInPromptRow = !current && !showHomeHeader;
+    const showSignInPromptRow = false;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
 
     function applySort(key: string) {
@@ -99,13 +98,7 @@ export default function EventsIndex({ events }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8' : 'px-4 pt-4 pb-4'}>
-                {showSignInPromptRow && (
-                    <div className="flex items-center justify-end mb-4">
-                        <div className="text-sm">
-                            <SignInPrompt />
-                        </div>
-                    </div>
-                )}
+                {showSignInPromptRow && null}
 
                 <div className="mb-4 flex items-center justify-between">
                     <ListControls path="/events" links={events.links} showSearch={false} />
