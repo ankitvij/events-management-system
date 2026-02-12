@@ -84,6 +84,11 @@ class Event extends Model
         return $this->belongsToMany(Vendor::class, 'vendor_event')->withTimestamps();
     }
 
+    public function promoters(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'event_promoter', 'event_id', 'user_id')->withTimestamps();
+    }
+
     /**
      * Return a full URL for the image with cache-busting based on file mtime when available.
      */

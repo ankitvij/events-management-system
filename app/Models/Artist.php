@@ -23,6 +23,7 @@ class Artist extends Model
         'city',
         'experience_years',
         'skills',
+        'artist_types',
         'description',
         'equipment',
         'photo',
@@ -34,6 +35,7 @@ class Artist extends Model
     protected $casts = [
         'active' => 'boolean',
         'experience_years' => 'integer',
+        'artist_types' => 'array',
         'email_verified_at' => 'datetime',
     ];
 

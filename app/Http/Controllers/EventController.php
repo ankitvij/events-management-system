@@ -11,6 +11,7 @@ use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\Ticket;
+use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorBookingRequest;
 use Illuminate\Http\JsonResponse;
@@ -278,6 +279,15 @@ class EventController extends Controller
             if (! empty($organiserIds)) {
                 $event->organisers()->sync(array_values(array_unique($organiserIds)));
             }
+
+            if (array_key_exists('promoter_ids', $local)) {
+                $event->promoters()->sync($local['promoter_ids'] ?? []);
+            }
+
+            if (array_key_exists('vendor_ids', $local)) {
+                $event->vendors()->sync($local['vendor_ids'] ?? []);
+            }
+
             // If guest supplied a single organiser name/email, create organiser and attach
             $guestName = $request->input('organiser_name');
             $guestEmail = $request->input('organiser_email');
@@ -355,6 +365,7 @@ class EventController extends Controller
         }
         $event->load('artists');
         $event->load('vendors');
+        $event->load('promoters');
 
         $current = auth()->user();
 
@@ -416,6 +427,14 @@ class EventController extends Controller
             ];
         })->values();
 
+        $promoters = $event->promoters->map(function (User $promoter) {
+            return [
+                'id' => $promoter->id,
+                'name' => $promoter->name,
+                'email' => $promoter->email,
+            ];
+        })->values();
+
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
@@ -425,6 +444,7 @@ class EventController extends Controller
                 'tickets' => $tickets,
                 'artists' => $artists,
                 'vendors' => $vendors,
+                'promoters' => $promoters,
             ]);
         }
 
@@ -436,6 +456,7 @@ class EventController extends Controller
             'tickets' => $tickets,
             'artists' => $artists,
             'vendors' => $vendors,
+            'promoters' => $promoters,
         ]);
     }
 
@@ -468,8 +489,14 @@ class EventController extends Controller
             return response()->json(['event' => $event]);
         }
 
-        $event->load('organisers', 'organiser', 'user');
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters');
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        $promoters = User::query()
+            ->where('is_super_admin', false)
+            ->where('active', true)
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
         $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
 
@@ -494,6 +521,7 @@ class EventController extends Controller
             'bookingRequests' => $bookingRequests,
             'vendors' => $vendors,
             'vendorBookingRequests' => $vendorBookingRequests,
+            'promoters' => $promoters,
         ]);
     }
 
@@ -542,6 +570,14 @@ class EventController extends Controller
             }
 
             $event->organisers()->sync(array_values(array_unique($organiserIds)));
+        }
+
+        if (array_key_exists('promoter_ids', $data)) {
+            $event->promoters()->sync($data['promoter_ids'] ?? []);
+        }
+
+        if (array_key_exists('vendor_ids', $data)) {
+            $event->vendors()->sync($data['vendor_ids'] ?? []);
         }
 
         $this->clearPublicEventsCache();

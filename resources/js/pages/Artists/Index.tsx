@@ -42,7 +42,7 @@ export default function ArtistsIndex({ artists }: Props) {
                         <ListControls path="/artists" links={artists.links} showSearch searchPlaceholder="Search artists..." />
                     </div>
                     <div className="flex gap-2">
-                        {canManage ? <ActionButton href="/artists/create">New Artist</ActionButton> : null}
+                        <ActionButton href={canManage ? '/artists/create' : '/artists/signup'}>New Artist</ActionButton>
                     </div>
                 </div>
 

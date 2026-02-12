@@ -26,6 +26,7 @@ class ArtistSignupTest extends TestCase
             'city' => 'Berlin',
             'experience_years' => 5,
             'skills' => 'DJ, House, Techno',
+            'artist_types' => ['dj', 'performer'],
             'description' => 'Bio',
             'equipment' => 'CDJs',
             'photo' => UploadedFile::fake()->image('artist.jpg', 600, 600),
@@ -38,6 +39,7 @@ class ArtistSignupTest extends TestCase
         $this->assertFalse((bool) $artist->active);
         $this->assertNull($artist->email_verified_at);
         $this->assertNotNull($artist->verify_token);
+        $this->assertSame(['dj', 'performer'], $artist->artist_types);
 
         Storage::disk('public')->assertExists($artist->photo);
 

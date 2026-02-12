@@ -10,9 +10,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ArtistSignupController extends Controller
 {
+    public function create(): Response
+    {
+        return Inertia::render('Artists/Signup');
+    }
+
     public function store(StoreArtistSignupRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -29,6 +36,7 @@ class ArtistSignupController extends Controller
                 'city' => $data['city'],
                 'experience_years' => $data['experience_years'],
                 'skills' => $data['skills'],
+                'artist_types' => $data['artist_types'],
                 'description' => $data['description'] ?? null,
                 'equipment' => $data['equipment'] ?? null,
                 'photo' => $photoPath,

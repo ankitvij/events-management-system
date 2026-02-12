@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -82,5 +83,10 @@ class User extends Authenticatable
     public function roleChanges()
     {
         return $this->hasMany(RoleChange::class);
+    }
+
+    public function promotedEvents(): BelongsToMany
+    {
+        return $this->belongsToMany(Event::class, 'event_promoter', 'user_id', 'event_id')->withTimestamps();
     }
 }

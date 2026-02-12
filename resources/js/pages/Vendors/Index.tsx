@@ -38,7 +38,7 @@ export default function VendorsIndex({ vendors }: Props) {
                         <ListControls path="/vendors" links={vendors.links} showSearch searchPlaceholder="Search vendors..." />
                     </div>
                     <div className="flex gap-2">
-                        {canManage ? <ActionButton href="/vendors/create">New Vendor</ActionButton> : null}
+                        <ActionButton href={canManage ? '/vendors/create' : '/vendors/signup'}>New Vendor</ActionButton>
                     </div>
                 </div>
 

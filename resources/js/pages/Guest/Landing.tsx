@@ -65,128 +65,142 @@ export default function GuestLanding({ events }: Props) {
             clearTimeout(timeoutRef.current);
         }
 
-                {/* Artist signup and login form removed from guest landing */}
-                                    onSuccess: () => artistForm.reset('name', 'email', 'city', 'experience_years', 'skills', 'description', 'equipment', 'photo'),
-                                });
-                            }}
-                            className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
-                        >
-                            <div>
-                                <label htmlFor="artist_name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
-                                <input id="artist_name" name="name" required value={artistForm.data.name} onChange={e => artistForm.setData('name', e.target.value)} className="input" />
-                            </div>
+        timeoutRef.current = window.setTimeout(() => {
+            const qs = new URLSearchParams(window.location.search);
+            if (search) {
+                qs.set('q', search);
+            } else {
+                qs.delete('q');
+            }
 
-                            <div>
-                                <label htmlFor="artist_email" className="block text-sm font-medium">Email <span className="text-red-600">*</span></label>
-                                <input id="artist_email" name="email" type="email" required value={artistForm.data.email} onChange={e => artistForm.setData('email', e.target.value)} className="input" />
-                            </div>
+            router.get(`${window.location.pathname}${qs.toString() ? `?${qs.toString()}` : ''}`);
+        }, delay);
 
-                            <div>
-                                <label htmlFor="artist_city" className="block text-sm font-medium">City <span className="text-red-600">*</span></label>
-                                <input id="artist_city" name="city" required value={artistForm.data.city} onChange={e => artistForm.setData('city', e.target.value)} className="input" />
-                            </div>
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, [search]);
 
-                            <div>
-                                <label htmlFor="artist_experience" className="block text-sm font-medium">Experience (years) <span className="text-red-600">*</span></label>
-                                <input id="artist_experience" name="experience_years" type="number" min={0} max={80} required value={artistForm.data.experience_years} onChange={e => artistForm.setData('experience_years', Number(e.target.value))} className="input" />
-                            </div>
+    function applySort(key: string) {
+        if (typeof window === 'undefined') {
+            return;
+        }
 
-                            <div className="md:col-span-2">
-                                <label htmlFor="artist_skills" className="block text-sm font-medium">Skills <span className="text-red-600">*</span></label>
-                                <textarea id="artist_skills" name="skills" required value={artistForm.data.skills} onChange={e => artistForm.setData('skills', e.target.value)} className="input" rows={3} />
-                            </div>
+        const sp = new URLSearchParams(window.location.search);
+        const cur = sp.get('sort') ?? '';
+        let next = '';
 
-                            <div className="md:col-span-2">
-                                <label htmlFor="artist_equipment" className="block text-sm font-medium">Equipment</label>
-                                <textarea id="artist_equipment" name="equipment" value={artistForm.data.equipment} onChange={e => artistForm.setData('equipment', e.target.value)} className="input" rows={3} />
-                            </div>
+        if (cur === `${key}_asc`) {
+            next = `${key}_desc`;
+        } else if (cur === `${key}_desc`) {
+            next = '';
+        } else {
+            next = `${key}_asc`;
+        }
 
-                            <div className="md:col-span-2">
-                                <label htmlFor="artist_description" className="block text-sm font-medium">Description</label>
-                                <textarea id="artist_description" name="description" value={artistForm.data.description} onChange={e => artistForm.setData('description', e.target.value)} className="input" rows={4} />
-                            </div>
+        if (next === '') {
+            sp.delete('sort');
+        } else {
+            sp.set('sort', next);
+        }
 
-                            <div className="md:col-span-2">
-                                <label htmlFor="artist_photo" className="block text-sm font-medium">Photo <span className="text-red-600">*</span></label>
-                                <input id="artist_photo" name="photo" type="file" required onChange={e => artistForm.setData('photo', e.target.files?.[0] ?? null)} accept="image/*" />
-                            </div>
+        sp.delete('page');
+        router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
 
-                            <div className="md:col-span-2">
-                                <button type="submit" className="btn-primary" disabled={artistForm.processing}>
-                                    Sign up as an artist
-                                </button>
-                            </div>
-                        </form>
+    function visitEvent(slug?: string | null) {
+        if (slug) {
+            router.visit(`/${slug}`);
+        }
+    }
 
-                        <p className="mt-3 text-sm text-muted">
-                            After signing up, we’ll email you a verification link to activate your account.
-                        </p>
+    const guestMenuItems = [
+        { href: '/customer/orders', label: 'My orders', shortLabel: 'Orders', icon: ShoppingCart },
+        { href: '/customer/orders', label: 'My tickets', shortLabel: 'Tickets', icon: Ticket },
+        { href: '/events/create', label: 'Create event', shortLabel: 'Create', icon: PlusCircle },
+        { href: '/events', label: 'My events', shortLabel: 'Events', icon: Calendar },
+        { href: '/organisers', label: 'Organisers', shortLabel: 'Orgs', icon: Users },
+        { href: '/artists', label: 'Artists', shortLabel: 'Artists', icon: Mic2 },
+        { href: '/promoters', label: 'Promoters', shortLabel: 'Promoters', icon: Megaphone },
+        { href: '/vendors', label: 'Vendors', shortLabel: 'Vendors', icon: Store },
+    ];
 
-                        <div className="mt-6 border-t pt-4">
-                            <h3 className="text-sm font-medium">Already an artist?</h3>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    artistLoginForm.post('/artists/login/token', {
-                                        onSuccess: () => artistLoginForm.reset('email'),
-                                    });
-                                }}
-                                className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
+    return (
+        <AppLayout>
+            <Head title="Welcome to Events">
+                {[
+                    <meta key="description" name="description" content="Public landing page for guests" />,
+                ]}
+            </Head>
+
+            <main className="w-full mt-6">
+                <div className="flex items-start gap-4">
+                    <aside className={`box sticky top-4 shrink-0 transition-all duration-200 ${guestSidebarCollapsed ? 'w-24' : 'w-64'}`}>
+                        <div className="flex items-center justify-between gap-2">
+                            <h2 className="text-xl font-semibold">Menu</h2>
+                            <button
+                                type="button"
+                                className="btn-secondary px-2 py-1"
+                                onClick={() => setGuestSidebarCollapsed((value) => !value)}
+                                aria-label={guestSidebarCollapsed ? 'Expand guest menu' : 'Collapse guest menu'}
                             >
-                                <div>
-                                    <label htmlFor="artist_login_email" className="block text-sm font-medium">Email</label>
-                                    <input
-                                        id="artist_login_email"
-                                        name="email"
-                                        type="email"
-                                        required
-                                        value={artistLoginForm.data.email}
-                                        onChange={e => artistLoginForm.setData('email', e.target.value)}
-                                        className="input"
-                                    />
-                                    {artistLoginForm.errors.email && <div className="mt-1 text-sm text-red-600">{artistLoginForm.errors.email}</div>}
-                                </div>
-                                <div className="flex items-end">
-                                    <button type="submit" className="btn-secondary" disabled={artistLoginForm.processing}>
-                                        Email sign-in link
-                                    </button>
-                                </div>
-                            </form>
+                                {guestSidebarCollapsed ? '»' : '«'}
+                            </button>
                         </div>
 
-                        <div className="mt-6 border-t pt-4">
-                            <h3 className="text-sm font-medium">Already a vendor?</h3>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    vendorLoginForm.post('/vendors/login/token', {
-                                        onSuccess: () => vendorLoginForm.reset('email'),
-                                    });
-                                }}
-                                className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
-                            >
-                                <div>
-                                    <label htmlFor="vendor_login_email" className="block text-sm font-medium">Email</label>
-                                    <input
-                                        id="vendor_login_email"
-                                        name="email"
-                                        type="email"
-                                        required
-                                        value={vendorLoginForm.data.email}
-                                        onChange={e => vendorLoginForm.setData('email', e.target.value)}
-                                        className="input"
-                                    />
-                                    {vendorLoginForm.errors.email && <div className="mt-1 text-sm text-red-600">{vendorLoginForm.errors.email}</div>}
-                                </div>
-                                <div className="flex items-end">
-                                    <button type="submit" className="btn-secondary" disabled={vendorLoginForm.processing}>
-                                        Email sign-in link
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </section>
+                        <nav className="mt-3 flex flex-col gap-2">
+                            {guestMenuItems.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href + item.label}
+                                        href={item.href}
+                                        className="btn-secondary flex items-center gap-3 text-left justify-start"
+                                    >
+                                        <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                                        {!guestSidebarCollapsed && <span>{item.label}</span>}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </aside>
+
+                    <div className="min-w-0 flex-1">
+                        <section className="mt-6">
+                            <div className="box">
+                                <h3 className="text-sm font-medium">Already a vendor?</h3>
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        vendorLoginForm.post('/vendors/login/token', {
+                                            onSuccess: () => vendorLoginForm.reset('email'),
+                                        });
+                                    }}
+                                    className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                                >
+                                    <div>
+                                        <label htmlFor="vendor_login_email" className="block text-sm font-medium">Email</label>
+                                        <input
+                                            id="vendor_login_email"
+                                            name="email"
+                                            type="email"
+                                            required
+                                            value={vendorLoginForm.data.email}
+                                            onChange={e => vendorLoginForm.setData('email', e.target.value)}
+                                            className="input"
+                                        />
+                                        {vendorLoginForm.errors.email && <div className="mt-1 text-sm text-red-600">{vendorLoginForm.errors.email}</div>}
+                                    </div>
+                                    <div className="flex items-end">
+                                        <button type="submit" className="btn-secondary" disabled={vendorLoginForm.processing}>
+                                            Email sign-in link
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </section>
 
                 <section className="mt-6">
                     <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />

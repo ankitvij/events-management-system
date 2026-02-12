@@ -31,6 +31,8 @@ class UpdateArtistRequest extends FormRequest
             'city' => ['required', 'string', 'max:100'],
             'experience_years' => ['required', 'integer', 'min:0', 'max:80'],
             'skills' => ['required', 'string', 'max:2000'],
+            'artist_types' => ['nullable', 'array'],
+            'artist_types.*' => ['string', Rule::in(['dj', 'teacher', 'performer', 'public_speaker', 'other'])],
             'description' => ['nullable', 'string', 'max:5000'],
             'equipment' => ['nullable', 'string', 'max:5000'],
             'photo' => ['nullable', 'image', 'max:5120'],

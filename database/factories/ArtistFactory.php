@@ -22,6 +22,7 @@ class ArtistFactory extends Factory
             'city' => fake()->city(),
             'experience_years' => fake()->numberBetween(0, 40),
             'skills' => implode(', ', fake()->words(5)),
+            'artist_types' => ['performer'],
             'description' => fake()->paragraph(),
             'equipment' => implode(', ', fake()->words(6)),
             'photo' => 'artists/fake.jpg',

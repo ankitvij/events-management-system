@@ -6,6 +6,7 @@ use App\Mail\EventOrganiserCreated;
 use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
@@ -164,6 +165,63 @@ class EventCrudTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('organiser_id');
+    }
+
+    public function test_event_can_sync_multiple_promoters_and_vendors(): void
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $this->actingAs($owner);
+
+        $organiser = Organiser::create([
+            'name' => 'Main Org',
+            'email' => 'main-org@example.test',
+            'active' => true,
+        ]);
+
+        $promoterA = User::factory()->create(['name' => 'Promoter A', 'active' => true, 'is_super_admin' => false]);
+        $promoterB = User::factory()->create(['name' => 'Promoter B', 'active' => true, 'is_super_admin' => false]);
+        $vendorA = Vendor::factory()->create(['active' => true]);
+        $vendorB = Vendor::factory()->create(['active' => true]);
+
+        $create = $this->post(route('events.store'), [
+            'title' => 'Linked Event',
+            'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Prague',
+            'organiser_id' => $organiser->id,
+            'promoter_ids' => [$promoterA->id],
+            'vendor_ids' => [$vendorA->id],
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 25, 'quantity_total' => 50],
+            ],
+        ]);
+
+        $create->assertRedirect(route('events.index'));
+
+        $event = Event::query()->where('title', 'Linked Event')->firstOrFail();
+
+        $this->assertTrue($event->promoters()->whereKey($promoterA->id)->exists());
+        $this->assertTrue($event->vendors()->whereKey($vendorA->id)->exists());
+
+        $update = $this->put(route('events.update', $event), [
+            'title' => 'Linked Event Updated',
+            'start_at' => now()->addDays(2)->toDateString(),
+            'end_at' => now()->addDays(3)->toDateString(),
+            'city' => 'Prague',
+            'organiser_id' => $organiser->id,
+            'promoter_ids' => [$promoterB->id],
+            'vendor_ids' => [$vendorB->id],
+        ]);
+        $event->refresh();
+
+        $update->assertRedirect(route('events.show', $event));
+
+        $this->assertFalse($event->promoters()->whereKey($promoterA->id)->exists());
+        $this->assertTrue($event->promoters()->whereKey($promoterB->id)->exists());
+        $this->assertFalse($event->vendors()->whereKey($vendorA->id)->exists());
+        $this->assertTrue($event->vendors()->whereKey($vendorB->id)->exists());
     }
 
     public function test_guests_cannot_see_organisers_and_see_placeholder(): void

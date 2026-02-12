@@ -10,6 +10,7 @@ import type { Event, Organiser } from '@/types/entities';
 type ArtistShort = { id: number; name: string; city?: string | null };
 
 type VendorShort = { id: number; name: string; city?: string | null; type?: string | null };
+type PromoterShort = { id: number; name: string; email?: string | null };
 
 type BookingRequestRow = {
     id: number;
@@ -53,6 +54,8 @@ export default function Edit({ event }: Props) {
         image: null,
         organiser_id: event.organiser_id ?? event.organiser?.id ?? null,
         organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
+        promoter_ids: ((event as any).promoters ?? []).map((p: PromoterShort) => p.id),
+        vendor_ids: ((event as any).vendors ?? []).map((v: VendorShort) => v.id),
         edit_password: '',
     });
 
@@ -61,6 +64,7 @@ export default function Edit({ event }: Props) {
     const artists = (page.props?.artists ?? []) as ArtistShort[];
     const bookingRequests = (page.props?.bookingRequests ?? []) as BookingRequestRow[];
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
+    const promoters = (page.props?.promoters ?? []) as PromoterShort[];
     const vendorBookingRequests = (page.props?.vendorBookingRequests ?? []) as VendorBookingRequestRow[];
     const editUrl = (page.props as any)?.editUrl as string | undefined;
     const requiresPassword = Boolean((page.props as any)?.requiresPassword);
@@ -199,6 +203,44 @@ export default function Edit({ event }: Props) {
                         {form.errors.organiser_id && <p className="mt-1 text-sm text-red-600">{form.errors.organiser_id}</p>}
                     </div>
                     <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
+                </div>
+
+                <div>
+                    <label htmlFor="promoter_ids" className="block text-sm font-medium">Promoters</label>
+                    <select
+                        id="promoter_ids"
+                        className="input min-h-28"
+                        multiple
+                        value={form.data.promoter_ids.map(String)}
+                        onChange={(e) => {
+                            const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                            form.setData('promoter_ids', values);
+                        }}
+                    >
+                        {promoters.map((p) => (
+                            <option key={p.id} value={p.id}>{p.name}{p.email ? ` (${p.email})` : ''}</option>
+                        ))}
+                    </select>
+                    <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                </div>
+
+                <div>
+                    <label htmlFor="vendor_ids" className="block text-sm font-medium">Linked vendors</label>
+                    <select
+                        id="vendor_ids"
+                        className="input min-h-28"
+                        multiple
+                        value={form.data.vendor_ids.map(String)}
+                        onChange={(e) => {
+                            const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                            form.setData('vendor_ids', values);
+                        }}
+                    >
+                        {vendors.map((v) => (
+                            <option key={v.id} value={v.id}>{v.name}{v.type ? ` (${v.type})` : ''}{v.city ? ` · ${v.city}` : ''}</option>
+                        ))}
+                    </select>
+                    <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
                 </div>
 
                 <div>

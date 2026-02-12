@@ -242,11 +242,13 @@ use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NewsletterSignupController;
+use App\Http\Controllers\PromoterSignupController;
 use App\Http\Controllers\VendorAuthController;
 use App\Http\Controllers\VendorBookingRequestController;
 use App\Http\Controllers\VendorCalendarController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorPortalController;
+use App\Http\Controllers\VendorSignupController;
 
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
@@ -273,8 +275,17 @@ use App\Http\Controllers\CustomerController;
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
 
 // Public artist signup (from landing page)
+Route::get('artists/signup', [ArtistSignupController::class, 'create'])->middleware('guest')->name('artists.signup.form');
 Route::post('artists/signup', [ArtistSignupController::class, 'store'])->middleware('guest')->name('artists.signup');
 Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])->middleware('signed')->name('artists.verify');
+
+// Public promoter signup
+Route::get('promoters/signup', [PromoterSignupController::class, 'create'])->middleware('guest')->name('promoters.signup');
+Route::post('promoters/signup', [PromoterSignupController::class, 'store'])->middleware('guest')->name('promoters.signup.store');
+
+// Public vendor signup
+Route::get('vendors/signup', [VendorSignupController::class, 'create'])->middleware('guest')->name('vendors.signup');
+Route::post('vendors/signup', [VendorSignupController::class, 'store'])->middleware('guest')->name('vendors.signup.store');
 
 // Newsletter
 Route::post('newsletter/signup', [NewsletterSignupController::class, 'store'])->middleware('guest')->name('newsletter.signup');

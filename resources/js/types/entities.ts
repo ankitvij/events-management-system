@@ -24,6 +24,7 @@ export type Artist = {
     city: string;
     experience_years: number;
     skills: string;
+    artist_types?: string[] | null;
     description?: string | null;
     equipment?: string | null;
     photo?: string | null;
@@ -65,6 +66,8 @@ export type Event = {
     organiser_id?: number | null;
     organiser?: Organiser | null;
     organisers?: Organiser[];
+    vendors?: Vendor[];
+    promoters?: Promoter[];
     user?: UserShort | null;
     start_at?: string | null;
     end_at?: string | null;

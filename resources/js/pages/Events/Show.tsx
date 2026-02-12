@@ -14,6 +14,7 @@ type Organiser = { id: number; name: string };
 type ArtistShort = { id: number; name: string; city?: string | null; photo_url?: string | null };
 
 type VendorShort = { id: number; name: string; city?: string | null; type?: string | null };
+type PromoterShort = { id: number; name: string; email?: string | null };
 
 type Event = {
     id: number;
@@ -50,6 +51,7 @@ export default function Show({ event }: Props) {
     const organisers = page.props?.organisers ?? [] as Organiser[];
     const artists = (page.props?.artists ?? []) as ArtistShort[];
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
+    const promoters = (page.props?.promoters ?? []) as PromoterShort[];
 
     // debug logging removed
 
@@ -263,6 +265,20 @@ export default function Show({ event }: Props) {
                                     <span className="font-medium">{v.name}</span>
                                     {v.type ? <span className="text-muted">· {v.type}</span> : null}
                                     {v.city ? <span className="text-muted">· {v.city}</span> : null}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {promoters.length > 0 && (
+                    <div className="mt-2">
+                        <div className="text-sm text-muted">Promoters:</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {promoters.map((promoter) => (
+                                <div key={promoter.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
+                                    <span className="font-medium">{promoter.name}</span>
+                                    {promoter.email ? <span className="text-muted">· {promoter.email}</span> : null}
                                 </div>
                             ))}
                         </div>
