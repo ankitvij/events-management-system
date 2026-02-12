@@ -11,7 +11,7 @@ export default function PublicHeader() {
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-sidebar-border/80">
-                <div className="mx-auto flex w-full max-w-7xl flex-nowrap items-center justify-between gap-2 px-4 py-3 min-[800px]:h-16 min-[800px]:gap-0 min-[800px]:py-0 sm:px-6 lg:px-8">
+                <div className="mx-auto flex w-full max-w-7xl flex-nowrap items-center justify-between gap-2 px-2 py-3 min-[800px]:h-16 min-[800px]:gap-0 min-[800px]:py-0 sm:px-4 lg:px-6">
                     <div className="flex items-center bg-[#121c26] rounded">
                         <Link href="/" className="flex items-center">
                             <AppLogoIcon alt="ChancePass" className="h-15 w-auto" />

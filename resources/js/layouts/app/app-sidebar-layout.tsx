@@ -24,7 +24,7 @@ export default function AppSidebarLayout({
                 >
                     {showSidebar && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
                     {showSidebar ? children : (
-                        <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+                        <div className="mx-auto w-full max-w-screen-2xl px-2 sm:px-4 lg:px-6">
                             <div className="mt-6 flex items-start gap-4">
                                 <GuestSidebar />
                                 <div className="min-w-0 flex-1">{children}</div>
