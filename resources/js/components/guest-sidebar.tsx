@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Calendar, Megaphone, Mic2, PlusCircle, ShoppingCart, Store, Ticket, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type GuestMenuItem = {
     href: string;
@@ -20,37 +20,87 @@ const guestMenuItems: GuestMenuItem[] = [
 ];
 
 export default function GuestSidebar() {
+    const [isMobile, setIsMobile] = useState(() =>
+        typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
+    );
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
 
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 1000;
+            setIsMobile(mobile);
+
+            if (mobile) {
+                setIsMobileOpen(false);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
     return (
-        <aside className={`box sticky top-4 shrink-0 self-start transition-all duration-200 ${collapsed ? 'w-24' : 'w-64'}`}>
-            <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xl font-semibold">Menu</h2>
+        <>
+            <button
+                type="button"
+                className="btn-primary fixed left-2 top-20 z-40 min-[1000px]:hidden"
+                onClick={() => setIsMobileOpen((value) => !value)}
+                aria-expanded={isMobileOpen}
+                aria-label={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
+            >
+                {isMobileOpen ? 'Close menu' : 'Menu'}
+            </button>
+
+            {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="btn-secondary px-2 py-1"
-                    onClick={() => setCollapsed((value) => !value)}
-                    aria-label={collapsed ? 'Expand guest menu' : 'Collapse guest menu'}
-                >
-                    {collapsed ? '»' : '«'}
-                </button>
-            </div>
+                    className="fixed inset-0 z-30 bg-black/40 min-[1000px]:hidden"
+                    aria-label="Close guest menu overlay"
+                    onClick={() => setIsMobileOpen(false)}
+                />
+            )}
 
-            <nav className="mt-3 flex flex-col gap-2">
-                {guestMenuItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                        <Link
-                            key={`${item.href}:${item.label}`}
-                            href={item.href}
-                            className="btn-secondary flex items-center justify-start gap-3 text-left"
-                        >
-                            <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                            {!collapsed && <span>{item.label}</span>}
-                        </Link>
-                    );
-                })}
-            </nav>
-        </aside>
+            <aside
+                className={`box z-40 self-start transition-all duration-200 ${collapsed ? 'w-24' : 'w-64'} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+            >
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-xl font-semibold">Menu</h2>
+                    <button
+                        type="button"
+                        className="btn-secondary px-2 py-1"
+                        onClick={() => setCollapsed((value) => !value)}
+                        aria-label={collapsed ? 'Expand guest menu' : 'Collapse guest menu'}
+                    >
+                        {collapsed ? '»' : '«'}
+                    </button>
+                </div>
+
+                <nav className="mt-3 flex flex-col gap-2">
+                    {guestMenuItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={`${item.href}:${item.label}`}
+                                href={item.href}
+                                className="btn-secondary flex items-center justify-start gap-3 text-left"
+                                onClick={() => {
+                                    if (isMobile) {
+                                        setIsMobileOpen(false);
+                                    }
+                                }}
+                            >
+                                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                                {!collapsed && <span>{item.label}</span>}
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </aside>
+        </>
     );
 }
