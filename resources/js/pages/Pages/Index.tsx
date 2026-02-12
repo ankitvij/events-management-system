@@ -43,7 +43,6 @@ export default function Index({ pages }: Props) {
                     <button
                         onClick={() => applySort('title')}
                         className="md:col-span-8 text-left min-w-max whitespace-nowrap"
-                        aria-sort={params?.get('sort') === 'title_asc' ? 'ascending' : params?.get('sort') === 'title_desc' ? 'descending' : 'none'}
                     >
                         Title
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -74,7 +73,7 @@ export default function Index({ pages }: Props) {
                                     {!page.active && <div className="text-sm text-muted">Inactive</div>}
                                 </div>
                                 <div className="flex gap-2">
-                                    <Link href={`/pages/${page.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                    <Link href={`/pages/${page.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                     <form action={`/pages/${page.id}`} method="post" className="inline">
                                         <input type="hidden" name="_method" value="delete" />
                                         <button className="btn-danger" type="submit">Delete</button>

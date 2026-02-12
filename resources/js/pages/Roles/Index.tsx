@@ -67,6 +67,7 @@ export default function RolesIndex({ roles, users }: Props) {
                                     value={u.role}
                                     onChange={(e) => changeRole(u.id, e.target.value)}
                                     className="input"
+                                    aria-label={`Role for ${u.name}`}
                                     disabled={u.id === currentId}
                                 >
                                     {roles.map((r) => (

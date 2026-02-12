@@ -71,7 +71,7 @@ export default function ArtistsIndex({ artists }: Props) {
                                         </label>
 
                                         <div className="flex gap-2">
-                                            <Link href={`/artists/${a.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                            <Link href={`/artists/${a.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                             <form action={`/artists/${a.id}`} method="post" className="inline">
                                                 <input type="hidden" name="_method" value="delete" />
                                                 <button className="btn-danger" type="submit">Delete</button>

@@ -62,7 +62,7 @@ export default function VendorsIndex({ vendors }: Props) {
                                 {canManage ? (
                                     <div className="flex gap-2 items-center shrink-0">
                                         <div className="flex gap-2">
-                                            <Link href={`/vendors/${v.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                            <Link href={`/vendors/${v.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                             <form action={`/vendors/${v.id}`} method="post" className="inline">
                                                 <input type="hidden" name="_method" value="delete" />
                                                 <button className="btn-danger" type="submit">Delete</button>

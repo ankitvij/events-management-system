@@ -5,16 +5,26 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Pagination, UserShort, PaginationLink } from '@/types/entities';
 
-type Props = { users: Pagination<UserShort> };
+type UserRow = UserShort & {
+    active?: boolean;
+    role?: string;
+    is_super_admin?: boolean;
+};
+
+type Props = { users: Pagination<UserRow> };
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Users', href: '/users' },
 ];
 
 export default function UsersIndex({ users }: Props) {
-    const page = usePage();
+    const page = usePage<{ auth?: { user?: { id: number; role?: string; is_super_admin?: boolean } } }>();
     const current = page.props?.auth?.user;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const paginationLinks = (users.links ?? []).map((link) => ({
+        ...link,
+        label: link.label ?? undefined,
+    }));
 
     function toggleActive(userId: number, value: boolean) {
         router.put(`/users/${userId}`, { active: value });
@@ -43,7 +53,7 @@ export default function UsersIndex({ users }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <ListControls path="/users" links={users.links} showSearch showActive />
+                        <ListControls path="/users" links={paginationLinks} showSearch showActive />
                     </div>
                     <div className="flex gap-2">
                         <ActionButton href="/users/create">New User</ActionButton>
@@ -54,7 +64,6 @@ export default function UsersIndex({ users }: Props) {
                     <button
                         onClick={() => applySort('name')}
                         className="md:col-span-6 text-left min-w-max whitespace-nowrap"
-                        aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
                     >
                         Name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -84,7 +93,7 @@ export default function UsersIndex({ users }: Props) {
                     </div>
 
                     <div className="grid gap-3">
-                    {users.data?.map((user: UserShort) => (
+                    {users.data?.map((user: UserRow) => (
                         <div key={user.id} className="box">
                             <div className="flex justify-between">
                                 <div>
@@ -105,7 +114,7 @@ export default function UsersIndex({ users }: Props) {
                                     )}
 
                                     <div className="flex gap-2">
-                                    <Link href={`/users/${user.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                    <Link href={`/users/${user.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                     <form action={`/users/${user.id}`} method="post" className="inline">
                                         <input type="hidden" name="_method" value="delete" />
                                         <button className="btn-danger" type="submit">Delete</button>
@@ -118,19 +127,19 @@ export default function UsersIndex({ users }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {users.links?.map((link: PaginationLink) => (
+                    {users.links?.map((link: PaginationLink, idx: number) => (
                         link.url ? (
                             <Link
-                                key={link.label}
+                                key={String(link.label ?? link.url ?? idx)}
                                 href={link.url}
                                 className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
                                 as="a"
                                 preserveScroll
                             >
-                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                                <span dangerouslySetInnerHTML={{ __html: String(link.label ?? '') }} />
                             </Link>
                         ) : (
-                            <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
+                            <span key={String(link.label ?? idx)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label ?? '') }} />
                         )
                     ))}
                 </div>

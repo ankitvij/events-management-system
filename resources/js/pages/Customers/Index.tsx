@@ -52,7 +52,6 @@ export default function CustomersIndex({ customers }: Props) {
                     <button
                         onClick={() => applySort('name')}
                         className="md:col-span-6 text-left min-w-max whitespace-nowrap"
-                        aria-sort={params?.get('sort') === 'name_asc' ? 'ascending' : params?.get('sort') === 'name_desc' ? 'descending' : 'none'}
                     >
                         Name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -101,7 +100,7 @@ export default function CustomersIndex({ customers }: Props) {
                                     </label>
 
                                     <div className="flex gap-2">
-                                        <Link href={`/customers/${customer.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                        <Link href={`/customers/${customer.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                         <form action={`/customers/${customer.id}`} method="post" className="inline">
                                             <input type="hidden" name="_method" value="delete" />
                                             <button className="btn-danger" type="submit">Delete</button>
