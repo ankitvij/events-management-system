@@ -7,6 +7,7 @@ use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\BookingRequest>
@@ -25,7 +26,7 @@ class BookingRequestFactory extends Factory
             'artist_id' => Artist::factory(),
             'requested_by_user_id' => User::factory(),
             'status' => BookingRequest::STATUS_PENDING,
-            'message' => $this->faker->sentence(),
+            'message' => 'Artist booking request '.Str::lower(Str::random(8)),
             'responded_at' => null,
         ];
     }

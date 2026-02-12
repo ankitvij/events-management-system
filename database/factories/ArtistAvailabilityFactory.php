@@ -19,7 +19,7 @@ class ArtistAvailabilityFactory extends Factory
     {
         return [
             'artist_id' => Artist::factory(),
-            'date' => $this->faker->dateTimeBetween('now', '+30 days')->format('Y-m-d'),
+            'date' => now()->addDays(random_int(0, 30))->toDateString(),
             'is_available' => true,
         ];
     }

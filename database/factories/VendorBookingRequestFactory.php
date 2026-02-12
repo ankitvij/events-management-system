@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorBookingRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\VendorBookingRequest>
@@ -25,7 +26,7 @@ class VendorBookingRequestFactory extends Factory
             'vendor_id' => Vendor::factory(),
             'requested_by_user_id' => User::factory(),
             'status' => VendorBookingRequest::STATUS_PENDING,
-            'message' => $this->faker->sentence(),
+            'message' => 'Vendor booking request '.Str::lower(Str::random(8)),
             'responded_at' => null,
         ];
     }
