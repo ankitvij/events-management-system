@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 type Flash = { success?: string; error?: string };
 
 // Calling setState in this effect is intentional to sync flashes from Inertia props
-/* eslint-disable react-hooks/set-state-in-effect */
+ 
 export default function Toasts() {
     const page = usePage();
     const flash = ((page.props) as { flash?: Flash }).flash || {};

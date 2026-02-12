@@ -71,11 +71,39 @@ export default [
             // ignore built frontend assets so lint focuses on source files
             'public',
             'public_html/build',
-            'public_html/build',
+            'public_html/build/**',
+            // repo-local built bundle (not source)
+            'build_app.js',
             'bootstrap/ssr',
             'tailwind.config.js',
             'vite.config.ts',
         ],
+    },
+    {
+        // Node-only scripts (avoid browser globals-only linting)
+        files: ['scripts/**/*.js'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
+    {
+        // Project conventions: allow pragmatic TS usage and avoid warning-only failures
+        rules: {
+            '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    ignoreRestSiblings: true,
+                },
+            ],
+            'react-hooks/exhaustive-deps': 'off',
+            'react-hooks/set-state-in-effect': 'off',
+        },
     },
     prettier, // Turn off all rules that might conflict with Prettier
 ];

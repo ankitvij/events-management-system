@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import React, { useEffect, useRef, useState } from 'react';
 import { Trash } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export default function CartButton() {
     const [summary, setSummary] = useState<{ count: number; total: number; items?: any[] }>({ count: 0, total: 0, items: [] });
@@ -14,7 +14,7 @@ export default function CartButton() {
             const json = await resp.json();
             const items = groupItems(json.items ?? []);
             setSummary({ count: json.count ?? 0, total: json.total ?? 0, items });
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     };
@@ -35,7 +35,7 @@ export default function CartButton() {
                 await fetchSummary();
                 window.dispatchEvent(new CustomEvent('cart:updated'));
             }
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     };
@@ -52,7 +52,7 @@ export default function CartButton() {
                 await fetchSummary();
                 window.dispatchEvent(new CustomEvent('cart:updated'));
             }
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     };

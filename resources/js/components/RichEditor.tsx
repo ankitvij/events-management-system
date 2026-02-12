@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import Quill from 'quill';
+import { useEffect, useRef } from 'react';
 import 'quill/dist/quill.snow.css';
 
 type Props = {

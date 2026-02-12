@@ -1,46 +1,10 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import React from 'react';
 import { Trash } from 'lucide-react';
+import React from 'react';
+import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-}
-
-async function updateItem(itemId: number, quantity: number) {
-    try {
-        const token = getCsrf();
-        const resp = await fetch(`/cart/items/${itemId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
-            credentials: 'same-origin',
-            body: JSON.stringify({ quantity }),
-        });
-        if (resp.ok) {
-            window.dispatchEvent(new CustomEvent('cart:updated'));
-            // reload to reflect server-calculated totals
-            window.location.reload();
-        }
-    } catch (e) {
-        // ignore
-    }
-}
-
-async function removeItem(itemId: number) {
-    try {
-        const token = getCsrf();
-        const resp = await fetch(`/cart/items/${itemId}`, {
-            method: 'DELETE',
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
-            credentials: 'same-origin',
-        });
-        if (resp.ok) {
-            window.dispatchEvent(new CustomEvent('cart:updated'));
-            window.location.reload();
-        }
-    } catch (e) {
-        // ignore
-    }
 }
 
 export default function CartIndex() {
@@ -58,7 +22,7 @@ export default function CartIndex() {
             if (!resp.ok) return;
             const json = await resp.json();
             setSummary({ items: groupItems(json.items ?? []), total: json.total ?? 0, count: json.count ?? 0 });
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     }
@@ -76,7 +40,7 @@ export default function CartIndex() {
                 window.dispatchEvent(new CustomEvent('cart:updated'));
                 await refreshSummary();
             }
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     }
@@ -93,7 +57,7 @@ export default function CartIndex() {
                 window.dispatchEvent(new CustomEvent('cart:updated'));
                 await refreshSummary();
             }
-        } catch (e) {
+        } catch (_error) {
             // ignore
         }
     }

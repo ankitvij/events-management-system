@@ -107,7 +107,11 @@
     @endif
 
     <p>If you have any questions, reply to this email and include your booking code when contacting us.</p>
-    <p style="margin-top:12px">View your order online: <a href="{{ $view_url }}">{{ $view_url }}</a></p>
+    @if(!empty($show_view_button))
+        <div style="margin-top:16px">
+            <a href="{{ $view_url }}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">View your order</a>
+        </div>
+    @endif
     <div style="margin-top:24px;text-align:center">
         <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
     </div>

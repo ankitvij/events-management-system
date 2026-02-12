@@ -1,6 +1,6 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import ActionButton from '@/components/ActionButton';
 import { useEffect, useRef, useState } from 'react';
+import ActionButton from '@/components/ActionButton';
 import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';

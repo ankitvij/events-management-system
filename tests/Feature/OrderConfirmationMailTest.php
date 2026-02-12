@@ -18,7 +18,7 @@ class OrderConfirmationMailTest extends TestCase
             'contact_email' => 'buyer@example.com',
         ]);
 
-        $mailable = new OrderConfirmed($order);
+        $mailable = new OrderConfirmed(order: $order, recipientEmail: 'buyer@example.com');
         $html = $mailable->render();
 
         $signedUrl = URL::signedRoute('orders.display', [
@@ -28,6 +28,7 @@ class OrderConfirmationMailTest extends TestCase
 
         $this->assertStringContainsString('signature=', $signedUrl);
         $this->assertStringContainsString(htmlspecialchars($signedUrl, ENT_QUOTES, 'UTF-8', false), $html);
+        $this->assertStringContainsString('View your order', $html);
 
         $this->get($signedUrl)->assertStatus(200);
     }
@@ -38,7 +39,7 @@ class OrderConfirmationMailTest extends TestCase
             'contact_email' => 'guest@example.com',
         ]);
 
-        $mailable = new OrderConfirmed($order, null, 'Guest Name', 'guest@example.com');
+        $mailable = new OrderConfirmed(order: $order, item: null, ticketHolderName: 'Guest Name', ticketHolderEmail: 'guest@example.com', recipientEmail: 'guest@example.com', isTicketHolderMail: true);
         $html = $mailable->render();
 
         $signedUrl = URL::signedRoute('orders.display', [
@@ -47,7 +48,8 @@ class OrderConfirmationMailTest extends TestCase
         ]);
 
         $this->assertStringContainsString('signature=', $signedUrl);
-        $this->assertStringContainsString(htmlspecialchars($signedUrl, ENT_QUOTES, 'UTF-8', false), $html);
+        $this->assertStringNotContainsString(htmlspecialchars($signedUrl, ENT_QUOTES, 'UTF-8', false), $html);
+        $this->assertStringNotContainsString('View your order', $html);
 
         $response = $this->get($signedUrl);
         $response->assertStatus(200);

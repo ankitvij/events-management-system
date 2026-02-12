@@ -1,6 +1,6 @@
 import { Head, usePage, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
 import React from 'react';
+import AppLayout from '@/layouts/app-layout';
 
 export default function OrdersIndex() {
     const page = usePage();

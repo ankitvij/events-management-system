@@ -9,7 +9,6 @@ use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
@@ -25,6 +24,8 @@ class OrderConfirmed extends Mailable
         public ?OrderItem $item = null,
         public ?string $ticketHolderName = null,
         public ?string $ticketHolderEmail = null,
+        public ?string $recipientEmail = null,
+        public bool $isTicketHolderMail = false,
     ) {}
 
     /**
@@ -81,7 +82,10 @@ class OrderConfirmed extends Mailable
             }
         }
 
-        $recipientEmail = $this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null);
+        $recipientEmail = $this->recipientEmail
+            ?: ($this->isTicketHolderMail
+                ? ($this->ticketHolderEmail ?: ($this->order->contact_email ?? $this->order->user?->email ?? null))
+                : ($this->order->contact_email ?? $this->order->user?->email ?? null));
         $viewUrl = URL::signedRoute('orders.display', [
             'order' => $this->order->id,
             'email' => $recipientEmail,
@@ -109,6 +113,7 @@ class OrderConfirmed extends Mailable
                 'payment_method' => $paymentMethod,
                 'payment_status' => $paymentStatus,
                 'bank' => $bank,
+                'show_view_button' => ! $this->isTicketHolderMail,
             ]);
 
         $pdfBuilder = app(OrderTicketPdfBuilder::class);

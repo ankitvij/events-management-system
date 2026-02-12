@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import React, { useMemo, useState } from 'react';
 import { Trash } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
@@ -56,7 +56,7 @@ export default function CartCheckout() {
             setItems((prev) => prev.filter((item) => item.id !== itemId));
             setTicketGuests((prev) => prev.filter((entry) => entry.cart_item_id !== itemId));
             window.dispatchEvent(new CustomEvent('cart:updated'));
-        } catch (e) {
+        } catch (_error) {
             window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: 'Could not remove item.' } }));
         }
     }
@@ -125,7 +125,7 @@ export default function CartCheckout() {
             } else {
                 window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: j.message || 'Checkout failed' } }));
             }
-        } catch (e) {
+        } catch (_error) {
             window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'error', message: 'Checkout error' } }));
         } finally {
             setLoading(false);

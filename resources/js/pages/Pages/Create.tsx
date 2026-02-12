@@ -1,8 +1,8 @@
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import ActionButton from '@/components/ActionButton';
 import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
-import ActionButton from '@/components/ActionButton';
 import type { BreadcrumbItem } from '@/types';
 
 export default function Create() {

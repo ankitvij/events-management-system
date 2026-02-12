@@ -2,11 +2,73 @@ import { Head, usePage } from '@inertiajs/react';
 import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 
+type GuestDetail = {
+    name: string | null;
+    email: string | null;
+};
+
+type Ticket = {
+    name?: string | null;
+};
+
+type EventInfo = {
+    title?: string | null;
+    start_at?: string | null;
+    image_thumbnail_url?: string | null;
+    image_url?: string | null;
+};
+
+type OrderItem = {
+    id: number;
+    quantity: number;
+    price: number;
+    ticket?: Ticket | null;
+    event?: EventInfo | null;
+    guest_details?: GuestDetail[] | null;
+};
+
+type PaymentDetails = {
+    display_name?: string;
+    account_name?: string;
+    iban?: string;
+    bic?: string;
+    account_id?: string;
+    instructions?: string;
+    reference_hint?: string;
+};
+
+type OrderUser = {
+    name?: string | null;
+    email?: string | null;
+};
+
+type Order = {
+    id: number;
+    booking_code: string;
+    contact_email?: string | null;
+    contact_name?: string | null;
+    user?: OrderUser | null;
+    items: OrderItem[];
+    payment_method?: string | null;
+    payment_status?: string | null;
+    paid?: boolean | null;
+    total?: number | null;
+    created_at?: string | null;
+};
+
+type PageProps = {
+    order?: Order | null;
+    payment_details?: PaymentDetails | null;
+    flash?: {
+        success?: string;
+    };
+};
+
 export default function OrdersShow() {
-    const page = usePage();
-    const order = (page.props as any)?.order ?? null;
-    const paymentDetails = (page.props as any)?.payment_details;
-    const items = Array.isArray(order?.items) ? order.items : [];
+    const page = usePage<PageProps>();
+    const order = page.props.order ?? null;
+    const paymentDetails = page.props.payment_details;
+    const items: OrderItem[] = Array.isArray(order?.items) ? order.items : [];
 
     const downloadParams = (() => {
         if (!order?.booking_code) return '';
@@ -21,24 +83,11 @@ export default function OrdersShow() {
     })();
 
     const downloadAllUrl = order?.id ? `/orders/${order.id}/tickets/download-all${downloadParams}` : '#';
-    const totalTickets = items.reduce((sum: number, it: any) => sum + (Number(it?.quantity) || 1), 0);
+    const totalTickets = items.reduce((sum: number, it: OrderItem) => sum + (Number(it?.quantity) || 1), 0);
     const orderEmail = order?.contact_email ?? order?.user?.email ?? null;
 
-    if (!order) {
-        return (
-            <AppLayout>
-                <Head title="Order" />
-                <div className="p-4 text-sm">
-                    <div className="rounded-md bg-red-600 p-3 text-sm text-white">
-                        Unable to load order details. Please check your booking code.
-                    </div>
-                </div>
-            </AppLayout>
-        );
-    }
-
-    const [guestDetails, setGuestDetails] = useState(() => {
-        return items.map((it: any) => (Array.isArray(it.guest_details) ? [...it.guest_details] : []));
+    const [guestDetails, setGuestDetails] = useState<GuestDetail[][]>(() => {
+        return items.map(it => (Array.isArray(it.guest_details) ? [...it.guest_details] : []));
     });
     const [saving, setSaving] = useState<number | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -67,8 +116,9 @@ export default function OrdersShow() {
                 body: JSON.stringify({ guest_details: guestDetails[itemIdx] }),
             });
             if (!res.ok) throw new Error(await res.text());
-        } catch (e: any) {
-            setSaveError(e.message || 'Failed to save');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to save';
+            setSaveError(message);
         } finally {
             setSaving(null);
         }
@@ -93,10 +143,24 @@ export default function OrdersShow() {
             });
             if (!res.ok) throw new Error(await res.text());
             alert('Tickets emailed successfully');
-        } catch (e) {
-            alert('Failed to send ticket to email');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to send ticket to email';
+            alert(message);
         }
     };
+
+    if (!order) {
+        return (
+            <AppLayout>
+                <Head title="Order" />
+                <div className="p-4 text-sm">
+                    <div className="rounded-md bg-red-600 p-3 text-sm text-white">
+                        Unable to load order details. Please check your booking code.
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
 
     return (
         <AppLayout>
@@ -171,17 +235,8 @@ export default function OrdersShow() {
                 </div>
 
                 <div className="space-y-2">
-                    {items.map((it: any, itemIdx: number) => {
-                        const payload = JSON.stringify({
-                            booking_code: order.booking_code,
-                            customer_name: order.contact_name ?? order.user?.name ?? null,
-                            customer_email: order.contact_email ?? order.user?.email ?? null,
-                            event: it.event?.title ?? null,
-                            start_at: it.event?.start_at ? new Date(it.event.start_at).toLocaleDateString() : null,
-                            ticket_type: it.ticket?.name ?? null,
-                        });
-                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(payload)}`;
-                        const guests = Array.isArray(guestDetails[itemIdx]) ? guestDetails[itemIdx] : [];
+                    {items.map((it: OrderItem, itemIdx: number) => {
+                        const guests: GuestDetail[] = Array.isArray(guestDetails[itemIdx]) ? guestDetails[itemIdx] : [];
                         const defaultEmail = guests.length > 0 ? guests[0]?.email ?? null : null;
 
                         return (
@@ -202,7 +257,7 @@ export default function OrdersShow() {
                                             </div>
                                             {guests.length > 0 && (
                                                 <div className="space-y-2 mt-2">
-                                                    {guests.map((g: any, guestIdx: number) => (
+                                                    {guests.map((g: GuestDetail, guestIdx: number) => (
                                                         <div key={guestIdx} className="flex flex-col gap-2">
                                                             <input
                                                                 type="text"
@@ -253,10 +308,7 @@ export default function OrdersShow() {
                                         >
                                             {it.quantity && it.quantity > 1 ? 'Download tickets' : 'Download ticket'}
                                         </a>
-                                        <div className="flex flex-col items-center min-[700px]:items-end gap-2">
-                                            <img src={qrUrl} alt="QR" className="w-28 h-28 min-[700px]:w-32 min-[700px]:h-32" />
-                                            <div className="text-lg font-semibold">€{Number(it.price).toFixed(2)}</div>
-                                        </div>
+                                        <div className="text-lg font-semibold">€{Number(it.price).toFixed(2)}</div>
                                     </div>
                                 </div>
                             </div>

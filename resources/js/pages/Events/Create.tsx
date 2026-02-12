@@ -1,7 +1,7 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import ActionButton from '@/components/ActionButton';
+import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import RichEditor from '@/components/RichEditor';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';

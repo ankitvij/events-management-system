@@ -318,7 +318,14 @@ class CartController extends Controller
                                 $guest = $guestEntries->get($i);
                                 $guestName = is_array($guest) ? ($guest['name'] ?? null) : null;
                                 $guestEmail = is_array($guest) ? ($guest['email'] ?? null) : null;
-                                Mail::to($recipient)->send(new OrderConfirmed($order, $item, $guestName, $guestEmail));
+                                Mail::to($recipient)->send(new OrderConfirmed(
+                                    order: $order,
+                                    item: $item,
+                                    ticketHolderName: $guestName,
+                                    ticketHolderEmail: $guestEmail,
+                                    recipientEmail: $recipient,
+                                    isTicketHolderMail: false,
+                                ));
                             }
                         }
 
@@ -333,7 +340,14 @@ class CartController extends Controller
                             }
 
                             $guestName = $guest['name'] ?? null;
-                            Mail::to($guestEmail)->send(new OrderConfirmed($order, $item, $guestName, $guestEmail));
+                            Mail::to($guestEmail)->send(new OrderConfirmed(
+                                order: $order,
+                                item: $item,
+                                ticketHolderName: $guestName,
+                                ticketHolderEmail: $guestEmail,
+                                recipientEmail: $guestEmail,
+                                isTicketHolderMail: true,
+                            ));
                         }
                     }
                 } catch (\Throwable $e) {

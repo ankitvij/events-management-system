@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 
 export default function MailFailuresWidget() {
     const page = usePage();
@@ -17,7 +17,7 @@ export default function MailFailuresWidget() {
                 if (! res.ok) throw new Error('failed');
                 const json = await res.json();
                 if (mounted) setLines(json.lines || []);
-            } catch (e) {
+            } catch (_error) {
                 // ignore
             } finally {
                 if (mounted) setLoading(false);

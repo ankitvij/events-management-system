@@ -71,10 +71,15 @@ class OrderController extends Controller
         $current = auth()->user();
         $customerId = session('customer_id');
         $bookingOrderId = session('customer_booking_order_id');
+        $providedBookingCode = request('booking_code');
 
         if ($current) {
-            // For authenticated admin-style users, allow only owners and super admins to view
-            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+            $isSuper = (bool) ($current->is_super_admin ?? false);
+            $isOwner = $order->user_id && $current->id === $order->user_id;
+            $hasValidBookingCode = $providedBookingCode && $providedBookingCode === $order->booking_code;
+
+            // Authenticated users can view if they are super admin, owners, or provide the matching booking code
+            if (! ($isSuper || $isOwner || $hasValidBookingCode)) {
                 abort(404);
             }
         } elseif ($bookingOrderId) {
@@ -88,8 +93,7 @@ class OrderController extends Controller
             }
         } else {
             // Guests can view the order only if they provide the correct booking_code
-            $provided = request('booking_code');
-            if (! $provided || $provided !== $order->booking_code) {
+            if (! $providedBookingCode || $providedBookingCode !== $order->booking_code) {
                 abort(404);
             }
         }
@@ -170,15 +174,6 @@ class OrderController extends Controller
         $customerId = session('customer_id');
 
         if (request()->hasValidSignature()) {
-            if ($email) {
-                if ($order->contact_email && $email !== $order->contact_email) {
-                    abort(404);
-                }
-                if ($order->user && $email !== $order->user->email) {
-                    abort(404);
-                }
-            }
-
             return inertia('Orders/Show', ['order' => $order]);
         }
 

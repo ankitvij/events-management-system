@@ -1,11 +1,11 @@
-import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
 import type { FormEvent } from 'react';
+import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import TicketCreateForm from '@/components/TicketCreateForm';
 import TicketItem from '@/components/TicketItem';
-import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -62,7 +62,7 @@ export default function Show({ event }: Props) {
         return '';
     }
 
-    async function addToCart(ticket: any): Promise<boolean> {
+    async function addToCart(ticket: { id: number; price: number }): Promise<boolean> {
         try {
             const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const xsrf = decodeURIComponent(getCookie('XSRF-TOKEN') || '');
