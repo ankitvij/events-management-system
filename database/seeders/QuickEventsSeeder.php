@@ -21,7 +21,7 @@ class QuickEventsSeeder extends Seeder
             return;
         }
 
-        $faker = fake();
+        $faker = class_exists('Faker\\Factory') ? \Faker\Factory::create() : null;
 
         $user = User::query()->first();
         if (! $user) {
@@ -69,14 +69,14 @@ class QuickEventsSeeder extends Seeder
         for ($i = 1; $i <= 20; $i++) {
             $location = $locations[array_rand($locations)];
             $type = $types[array_rand($types)];
-            $start = now()->addDays($faker->numberBetween(3, 90))->setTime(18, 0);
-            $end = $start->copy()->addDays($faker->numberBetween(1, 4))->setTime(22, 0);
-            $title = $type.' '.$location['city'].' Edition '.$faker->numberBetween(1, 99);
+            $start = now()->addDays($faker ? $faker->numberBetween(3, 90) : random_int(3, 90))->setTime(18, 0);
+            $end = $start->copy()->addDays($faker ? $faker->numberBetween(1, 4) : random_int(1, 4))->setTime(22, 0);
+            $title = $type.' '.$location['city'].' Edition '.($faker ? $faker->numberBetween(1, 99) : random_int(1, 99));
             $organiser = $organisers->random();
 
             $event = Event::create([
                 'title' => $title,
-                'description' => $faker->paragraphs(2, true),
+                'description' => $faker ? $faker->paragraphs(2, true) : 'Sample quick event description.',
                 'start_at' => $start,
                 'end_at' => $end,
                 'city' => $location['city'],
