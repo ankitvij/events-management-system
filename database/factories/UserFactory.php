@@ -5,6 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -24,8 +25,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'name' => $this->generateName(),
+            'email' => $this->generateEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -33,6 +34,30 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
         ];
+    }
+
+    private function generateName(): string
+    {
+        try {
+            if ($this->faker !== null) {
+                return $this->faker->name();
+            }
+        } catch (Throwable) {
+        }
+
+        return 'User '.Str::upper(Str::random(6));
+    }
+
+    private function generateEmail(): string
+    {
+        try {
+            if ($this->faker !== null) {
+                return $this->faker->unique()->safeEmail();
+            }
+        } catch (Throwable) {
+        }
+
+        return 'user_'.Str::lower(Str::random(12)).'@example.test';
     }
 
     /**
