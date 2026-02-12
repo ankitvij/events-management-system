@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
+import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
@@ -268,24 +269,7 @@ export default function EventsIndex({ events }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {events.links?.map((link: PaginationLink) => {
-                        let label = link.label ?? '';
-                        label = label.replace(/Previous/gi, '«').replace(/Next/gi, '»');
-                        label = label.replace(/&laquo;|«/g, '«').replace(/&raquo;|»/g, '»').replace(/&lsaquo;|‹/g, '«').replace(/&rsaquo;|›/g, '»');
-                        return link.url ? (
-                            <Link
-                                key={label + String(link.url)}
-                                href={link.url}
-                                className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                as="a"
-                                preserveScroll
-                            >
-                                <span dangerouslySetInnerHTML={{ __html: label }} />
-                            </Link>
-                        ) : (
-                            <span key={label} className="px-2" dangerouslySetInnerHTML={{ __html: label }} />
-                        );
-                    })}
+                    <CompactPagination links={events.links} />
                 </div>
                 </div>
             </div>

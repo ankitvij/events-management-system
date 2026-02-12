@@ -1,5 +1,6 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import CompactPagination from '@/components/compact-pagination';
 
 type LinkItem = {
     url?: string | null;
@@ -67,30 +68,7 @@ export default function ListControls({
     return (
         <div className="mb-4 flex items-center justify-between">
             <div className="pagination">
-                {links?.map((l: LinkItem, idx: number) => {
-                    // Normalize to single arrows for prev/next
-                    let label = l.label || '';
-                    label = label.replace(/Previous/gi, '‹').replace(/Next/gi, '›');
-                    label = label.replace(/&laquo;|«|&lsaquo;|‹/g, '‹').replace(/&raquo;|»|&rsaquo;|›/g, '›');
-                    // collapse any repeated arrows or arrows separated by whitespace
-                    label = label.replace(/\s*‹\s*‹\s*/g, '‹').replace(/\s*›\s*›\s*/g, '›');
-                    label = label.replace(/‹+/g, '‹').replace(/›+/g, '›');
-                    return l.url ? (
-                        <Link
-                            key={idx}
-                            href={l.url}
-                            className={l.active ? 'btn-primary' : 'btn-ghost'}
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: label }} />
-                        </Link>
-                    ) : (
-                        <span
-                            key={idx}
-                            className="btn-ghost opacity-60 cursor-not-allowed"
-                            dangerouslySetInnerHTML={{ __html: label }}
-                        />
-                    );
-                })}
+                <CompactPagination links={links} />
             </div>
 
             <div className="flex items-center gap-3">

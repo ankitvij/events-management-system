@@ -1,9 +1,10 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
+import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import type { Pagination, PaginationLink, Promoter } from '@/types/entities';
+import type { Pagination, Promoter } from '@/types/entities';
 
 type Props = {
     promoters: Pagination<Promoter>;
@@ -46,21 +47,7 @@ export default function PromotersIndex({ promoters }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {promoters.links?.map((link: PaginationLink) => (
-                        link.url ? (
-                            <Link
-                                key={String(link.label)}
-                                href={link.url}
-                                className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                as="a"
-                                preserveScroll
-                            >
-                                <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                            </Link>
-                        ) : (
-                            <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                        )
-                    ))}
+                    <CompactPagination links={promoters.links} />
                 </div>
             </div>
         </AppLayout>

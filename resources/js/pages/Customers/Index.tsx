@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
+import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import type { Pagination, Customer, PaginationLink } from '@/types/entities';
+import type { Pagination, Customer } from '@/types/entities';
 
 type Props = {
     customers: Pagination<Customer>;
@@ -63,21 +64,7 @@ export default function CustomersIndex({ customers }: Props) {
 
                 <div>
                     <div className="mb-4">
-                        {customers.links?.map((link) => (
-                            link.url ? (
-                                <Link
-                                    key={String(link.label)}
-                                    href={link.url}
-                                    className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                    as="a"
-                                    preserveScroll
-                                >
-                                    <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                                </Link>
-                            ) : (
-                                <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                            )
-                        ))}
+                        <CompactPagination links={customers.links} />
                     </div>
 
                     <div className="grid gap-3">
@@ -113,21 +100,7 @@ export default function CustomersIndex({ customers }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {customers.links?.map((link: PaginationLink) => (
-                        link.url ? (
-                            <Link
-                                key={link.label}
-                                href={link.url}
-                                className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                as="a"
-                                preserveScroll
-                            >
-                                <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                            </Link>
-                        ) : (
-                            <span key={link.label} className="px-2" dangerouslySetInnerHTML={{ __html: link.label }} />
-                        )
-                    ))}
+                    <CompactPagination links={customers.links} />
                 </div>
                 </div>
             </div>

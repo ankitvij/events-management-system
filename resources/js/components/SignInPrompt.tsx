@@ -1,11 +1,18 @@
+import type { ReactNode } from 'react';
+
 type Props = {
     buttonClassName?: string;
-    buttonLabel?: string;
+    buttonLabel?: ReactNode;
+    ariaLabel?: string;
 };
 
-export default function SignInPrompt({ buttonClassName = 'btn-primary', buttonLabel = 'Sign in' }: Props) {
+export default function SignInPrompt({
+    buttonClassName = 'btn-primary',
+    buttonLabel = 'Sign in',
+    ariaLabel = 'Sign in',
+}: Props) {
     return (
-        <a href="/customer/login" className={buttonClassName}>
+        <a href="/customer/login" className={buttonClassName} aria-label={ariaLabel} title={ariaLabel}>
             {buttonLabel}
         </a>
     );

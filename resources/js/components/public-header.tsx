@@ -1,13 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
+import { Calendar, User } from 'lucide-react';
 import * as React from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import CartButton from '@/components/CartButton';
 import SignInPrompt from '@/components/SignInPrompt';
-import { useAppearance } from '@/hooks/use-appearance';
 
 export default function PublicHeader() {
     const page = usePage();
-    const { resolvedAppearance, updateAppearance } = useAppearance();
     return (
         <>
             <header className="sticky top-0 z-50 border-b border-sidebar-border/80">
@@ -37,21 +36,20 @@ export default function PublicHeader() {
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/events/create" className="btn-primary">Create event</Link>
-                                    <SignInPrompt />
+                                    <Link href="/events/create" className="btn-primary" aria-label="Create event" title="Create event">
+                                        <Calendar className="h-4 w-4" aria-hidden="true" />
+                                    </Link>
+                                    <SignInPrompt
+                                        buttonClassName="btn-primary"
+                                        buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
+                                        ariaLabel="Sign in"
+                                    />
                                 </>
                             )}
                         </div>
 
                         <div className="flex items-center gap-3 min-[800px]:ml-4">
                             <CartButton />
-                            <button
-                                type="button"
-                                className="btn-ghost"
-                                onClick={() => updateAppearance(resolvedAppearance === 'light' ? 'dark' : 'light')}
-                            >
-                                {resolvedAppearance === 'light' ? '🌙' : '☀️'}
-                            </button>
                         </div>
                     </div>
                 </div>

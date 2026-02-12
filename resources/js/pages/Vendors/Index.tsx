@@ -1,9 +1,10 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
+import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import type { Pagination, PaginationLink, Vendor } from '@/types/entities';
+import type { Pagination, Vendor } from '@/types/entities';
 
 type Props = {
     vendors: Pagination<Vendor>;
@@ -83,21 +84,7 @@ export default function VendorsIndex({ vendors }: Props) {
                 </div>
 
                 <div className="mt-4">
-                    {vendors.links?.map((link: PaginationLink) => (
-                        link.url ? (
-                            <Link
-                                key={String(link.label)}
-                                href={link.url}
-                                className={link.active ? 'font-medium px-2' : 'text-muted px-2'}
-                                as="a"
-                                preserveScroll
-                            >
-                                <span dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                            </Link>
-                        ) : (
-                            <span key={String(link.label)} className="px-2" dangerouslySetInnerHTML={{ __html: String(link.label) }} />
-                        )
-                    ))}
+                    <CompactPagination links={vendors.links} />
                 </div>
             </div>
         </AppLayout>

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { Calendar, Megaphone, Mic2, PlusCircle, ShoppingCart, Store, Ticket, Users } from 'lucide-react';
+import { Calendar, Megaphone, Menu, Mic2, Moon, PlusCircle, ShoppingCart, Store, Sun, Ticket, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAppearance } from '@/hooks/use-appearance';
 
 type GuestMenuItem = {
     href: string;
@@ -20,6 +21,7 @@ const guestMenuItems: GuestMenuItem[] = [
 ];
 
 export default function GuestSidebar() {
+    const { resolvedAppearance, updateAppearance } = useAppearance();
     const [isMobile, setIsMobile] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
@@ -48,28 +50,32 @@ export default function GuestSidebar() {
         <>
             <button
                 type="button"
-                className="btn-primary fixed left-2 top-20 z-40 min-[1000px]:hidden"
+                className="btn-primary fixed left-2 top-20 z-[70] min-[1000px]:hidden"
                 onClick={() => setIsMobileOpen((value) => !value)}
                 aria-expanded={isMobileOpen}
                 aria-label={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
+                title={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
             >
-                {isMobileOpen ? 'Close menu' : 'Menu'}
+                {isMobileOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
             </button>
 
             {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="fixed inset-0 z-30 bg-black/40 min-[1000px]:hidden"
+                    className="fixed inset-0 z-[65] bg-black/40 min-[1000px]:hidden"
                     aria-label="Close guest menu overlay"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             <aside
-                className={`box z-40 self-start transition-all duration-200 ${collapsed ? 'w-24' : 'w-64'} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`box z-[70] self-start transition-all duration-200 ${collapsed ? 'w-24' : 'w-64'} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
                 <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-xl font-semibold">Menu</h2>
+                    <h2 className="flex items-center">
+                        <Menu className="h-5 w-5" aria-hidden="true" />
+                        <span className="sr-only">Menu</span>
+                    </h2>
                     <button
                         type="button"
                         className="btn-secondary px-2 py-1"
@@ -99,6 +105,21 @@ export default function GuestSidebar() {
                             </Link>
                         );
                     })}
+
+                    <button
+                        type="button"
+                        className="btn-secondary flex items-center justify-start gap-3 text-left"
+                        onClick={() => updateAppearance(resolvedAppearance === 'light' ? 'dark' : 'light')}
+                        aria-label="Toggle theme"
+                        title="Toggle theme"
+                    >
+                        {resolvedAppearance === 'light' ? (
+                            <Moon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                        ) : (
+                            <Sun className="h-5 w-5 shrink-0" aria-hidden="true" />
+                        )}
+                        {!collapsed && <span>Theme</span>}
+                    </button>
                 </nav>
             </aside>
         </>

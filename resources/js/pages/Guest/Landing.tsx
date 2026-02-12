@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { Pagination, Event, PaginationLink } from '@/types/entities';
@@ -323,30 +324,7 @@ export default function GuestLanding({ events }: Props) {
                         )}
                     </div>
                     {events?.links && (
-                        <nav className="mt-6 flex items-center justify-start gap-2 pagination">
-                            {events.links.map((l: PaginationLink, idx: number) => {
-                                let label = l.label || '';
-                                label = label.replace(/Previous/gi, '‹').replace(/Next/gi, '›');
-                                label = label.replace(/&laquo;|«|&lsaquo;|‹/g, '‹').replace(/&raquo;|»|&rsaquo;|›/g, '›');
-                                label = label.replace(/\s*‹\s*‹\s*/g, '‹').replace(/\s*›\s*›\s*/g, '›');
-                                label = label.replace(/‹+/g, '‹').replace(/›+/g, '›');
-                                return l.url ? (
-                                    <Link
-                                        key={idx}
-                                        href={l.url}
-                                        className={l.active ? 'btn-primary' : 'btn-ghost'}
-                                    >
-                                        <span dangerouslySetInnerHTML={{ __html: label }} />
-                                    </Link>
-                                ) : (
-                                    <span
-                                        key={idx}
-                                        className="btn-ghost opacity-60 cursor-not-allowed"
-                                        dangerouslySetInnerHTML={{ __html: label }}
-                                    />
-                                );
-                            })}
-                        </nav>
+                        <CompactPagination links={events.links} className="mt-6 justify-start" />
                     )}
                 </section>
 

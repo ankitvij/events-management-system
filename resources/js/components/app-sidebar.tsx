@@ -89,8 +89,8 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                        <SidebarMenuButton size="lg" asChild className="w-auto px-1">
+                            <Link href={dashboard()} prefetch className="inline-flex items-center">
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
