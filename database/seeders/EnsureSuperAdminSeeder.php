@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 
 class EnsureSuperAdminSeeder extends Seeder
 {
@@ -13,6 +13,12 @@ class EnsureSuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping EnsureSuperAdminSeeder in production environment.');
+
+            return;
+        }
+
         User::updateOrCreate(
             ['email' => 'super@example.test'],
             [

@@ -12,6 +12,12 @@ class SampleEventsSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping SampleEventsSeeder in production environment.');
+
+            return;
+        }
+
         $types = ['Party', 'Festival', 'Concert', 'Rave', 'Carnival', 'Gala', 'Meetup', 'Expo'];
         $cities = ['London', 'Paris', 'Berlin', 'Madrid', 'New York', 'Los Angeles', 'Sydney', 'Toronto'];
         $countries = ['United Kingdom', 'France', 'Germany', 'Spain', 'USA', 'Australia', 'Canada'];

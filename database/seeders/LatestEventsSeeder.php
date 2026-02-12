@@ -13,6 +13,12 @@ class LatestEventsSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping LatestEventsSeeder in production environment.');
+
+            return;
+        }
+
         $events = [
             ['title' => 'ChancePass Launch Party', 'city' => 'Berlin', 'country' => 'Germany', 'start_at' => '2026-02-15 18:00:00'],
             ['title' => 'Spring Coding Retreat', 'city' => 'Lisbon', 'country' => 'Portugal', 'start_at' => '2026-03-10 09:00:00'],

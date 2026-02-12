@@ -9,6 +9,12 @@ class AdminUsersSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping AdminUsersSeeder in production environment.');
+
+            return;
+        }
+
         // Create three admin users if they don't exist
         $admins = [
             ['name' => 'Admin One', 'email' => 'admin1@example.com'],

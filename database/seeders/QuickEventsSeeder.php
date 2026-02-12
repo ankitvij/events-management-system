@@ -15,6 +15,12 @@ class QuickEventsSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping QuickEventsSeeder in production environment.');
+
+            return;
+        }
+
         $faker = fake();
 
         $user = User::query()->first();

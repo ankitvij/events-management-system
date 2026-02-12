@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Event;
+use App\Models\Organiser;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Event;
-use App\Models\User;
-use App\Models\Organiser;
 
 class EventsSeeder extends Seeder
 {
@@ -15,6 +15,12 @@ class EventsSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping EventsSeeder in production environment.');
+
+            return;
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('event_organiser')->truncate();
         Event::truncate();
@@ -82,7 +88,7 @@ class EventsSeeder extends Seeder
 
             $event = Event::create([
                 'title' => $s['title'],
-                'description' => $s['title'] . ' — A multi-day event featuring local and international artists, food and community programming.',
+                'description' => $s['title'].' — A multi-day event featuring local and international artists, food and community programming.',
                 'start_at' => $start,
                 'end_at' => $end,
                 'location' => $s['location'],

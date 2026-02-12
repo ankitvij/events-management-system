@@ -14,6 +14,12 @@ class EventsTableSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping EventsTableSeeder in production environment.');
+
+            return;
+        }
+
         $user = User::where('email', 'test@example.com')->first();
 
         if (! $user) {

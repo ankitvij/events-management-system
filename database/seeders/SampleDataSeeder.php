@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Customer;
+use App\Models\Organiser;
+use App\Models\Page;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
-use App\Models\Organiser;
-use App\Models\Customer;
-use App\Models\Page;
 
 class SampleDataSeeder extends Seeder
 {
@@ -16,6 +16,12 @@ class SampleDataSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping SampleDataSeeder in production environment.');
+
+            return;
+        }
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         User::truncate();
         Organiser::truncate();
