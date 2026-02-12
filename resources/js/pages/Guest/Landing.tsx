@@ -12,6 +12,7 @@ export default function GuestLanding({ events }: Props) {
     const [search, setSearch] = useState(initial);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
+    const [guestSidebarCollapsed, setGuestSidebarCollapsed] = useState(false);
     const ticketButtonClass = 'btn-primary';
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
 
@@ -94,6 +95,17 @@ export default function GuestLanding({ events }: Props) {
         }
     }
 
+    const guestMenuItems = [
+        { href: '/customer/orders', label: 'My orders', shortLabel: 'Orders' },
+        { href: '/customer/orders', label: 'My tickets', shortLabel: 'Tickets' },
+        { href: '/events/create', label: 'Create event', shortLabel: 'Create' },
+        { href: '/events', label: 'My events', shortLabel: 'Events' },
+        { href: '/organisers', label: 'Organisers', shortLabel: 'Orgs' },
+        { href: '/artists', label: 'Artists', shortLabel: 'Artists' },
+        { href: '/promoters', label: 'Promoters', shortLabel: 'Promoters' },
+        { href: '/vendors', label: 'Vendors', shortLabel: 'Vendors' },
+    ];
+
     return (
         <AppLayout>
             <Head title="Welcome to Events">
@@ -104,22 +116,31 @@ export default function GuestLanding({ events }: Props) {
 
 
 
-            <main className="w-full">
-                <section className="mt-6">
-                    <div className="box">
-                        <h2 className="text-xl font-semibold">Menu</h2>
-                        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">
-                            <Link href="/customer/orders" className="btn-secondary">My orders</Link>
-                            <Link href="/customer/orders" className="btn-secondary">My tickets</Link>
-                            <Link href="/events/create" className="btn-secondary">Create event</Link>
-                            <Link href="/events" className="btn-secondary">My events</Link>
-                            <Link href="/organisers" className="btn-secondary">Organisers</Link>
-                            <Link href="/artists" className="btn-secondary">Artists</Link>
-                            <Link href="/promoters" className="btn-secondary">Promoters</Link>
-                            <Link href="/vendors" className="btn-secondary">Vendors</Link>
+            <main className="w-full mt-6">
+                <div className="flex items-start gap-4">
+                    <aside className={`box sticky top-4 shrink-0 transition-all duration-200 ${guestSidebarCollapsed ? 'w-24' : 'w-64'}`}>
+                        <div className="flex items-center justify-between gap-2">
+                            <h2 className="text-xl font-semibold">Menu</h2>
+                            <button
+                                type="button"
+                                className="btn-secondary px-2 py-1"
+                                onClick={() => setGuestSidebarCollapsed((value) => !value)}
+                                aria-label={guestSidebarCollapsed ? 'Expand guest menu' : 'Collapse guest menu'}
+                            >
+                                {guestSidebarCollapsed ? '»' : '«'}
+                            </button>
                         </div>
-                    </div>
-                </section>
+
+                        <nav className="mt-3 flex flex-col gap-2">
+                            {guestMenuItems.map((item) => (
+                                <Link key={item.href + item.label} href={item.href} className="btn-secondary text-left">
+                                    {guestSidebarCollapsed ? item.shortLabel : item.label}
+                                </Link>
+                            ))}
+                        </nav>
+                    </aside>
+
+                    <div className="min-w-0 flex-1">
 
                 <section className="mt-6">
                     <div className="box">
@@ -431,6 +452,8 @@ export default function GuestLanding({ events }: Props) {
                         </form>
                     </div>
                 </section>
+                    </div>
+                </div>
             </main>
         </AppLayout>
     );
