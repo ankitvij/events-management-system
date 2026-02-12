@@ -1,4 +1,14 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    ShoppingCart,
+    Ticket,
+    PlusCircle,
+    Calendar,
+    Users,
+    Mic2,
+    Megaphone,
+    Store,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -96,14 +106,14 @@ export default function GuestLanding({ events }: Props) {
     }
 
     const guestMenuItems = [
-        { href: '/customer/orders', label: 'My orders', shortLabel: 'Orders' },
-        { href: '/customer/orders', label: 'My tickets', shortLabel: 'Tickets' },
-        { href: '/events/create', label: 'Create event', shortLabel: 'Create' },
-        { href: '/events', label: 'My events', shortLabel: 'Events' },
-        { href: '/organisers', label: 'Organisers', shortLabel: 'Orgs' },
-        { href: '/artists', label: 'Artists', shortLabel: 'Artists' },
-        { href: '/promoters', label: 'Promoters', shortLabel: 'Promoters' },
-        { href: '/vendors', label: 'Vendors', shortLabel: 'Vendors' },
+        { href: '/customer/orders', label: 'My orders', shortLabel: 'Orders', icon: ShoppingCart },
+        { href: '/customer/orders', label: 'My tickets', shortLabel: 'Tickets', icon: Ticket },
+        { href: '/events/create', label: 'Create event', shortLabel: 'Create', icon: PlusCircle },
+        { href: '/events', label: 'My events', shortLabel: 'Events', icon: Calendar },
+        { href: '/organisers', label: 'Organisers', shortLabel: 'Orgs', icon: Users },
+        { href: '/artists', label: 'Artists', shortLabel: 'Artists', icon: Mic2 },
+        { href: '/promoters', label: 'Promoters', shortLabel: 'Promoters', icon: Megaphone },
+        { href: '/vendors', label: 'Vendors', shortLabel: 'Vendors', icon: Store },
     ];
 
     return (
@@ -132,11 +142,20 @@ export default function GuestLanding({ events }: Props) {
                         </div>
 
                         <nav className="mt-3 flex flex-col gap-2">
-                            {guestMenuItems.map((item) => (
-                                <Link key={item.href + item.label} href={item.href} className="btn-secondary text-left">
-                                    {guestSidebarCollapsed ? item.shortLabel : item.label}
-                                </Link>
-                            ))}
+                            {guestMenuItems.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <Link
+                                        key={item.href + item.label}
+                                        href={item.href}
+                                        className="btn-secondary flex items-center gap-3 text-left justify-start"
+                                    >
+                                        <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                                        <span className={guestSidebarCollapsed ? 'sr-only' : ''}>{item.label}</span>
+                                        {guestSidebarCollapsed && <span>{item.shortLabel}</span>}
+                                    </Link>
+                                );
+                            })}
                         </nav>
                     </aside>
 
