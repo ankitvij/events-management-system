@@ -50,7 +50,14 @@ export default function OrganisersIndex({ organisers }: Props) {
                         <ListControls path="/organisers" links={organisers.links} showSearch searchPlaceholder="Search organisers..." />
                     </div>
                     <div className="flex gap-2">
-                        {canManage ? <ActionButton href="/organisers/create">New Organiser</ActionButton> : null}
+                        {canManage ? (
+                            <ActionButton href="/organisers/create">New Organiser</ActionButton>
+                        ) : (
+                            <>
+                                <ActionButton href="/register">Signup as Organiser</ActionButton>
+                                <Link href="/login" className="btn-secondary">Sign in as Organiser</Link>
+                            </>
+                        )}
                     </div>
                 </div>
 

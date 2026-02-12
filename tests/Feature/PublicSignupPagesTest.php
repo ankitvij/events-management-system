@@ -11,6 +11,25 @@ class PublicSignupPagesTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_guest_can_open_public_listing_pages_with_signup_and_signin_actions(): void
+    {
+        $artistResponse = $this->get('/artists');
+        $artistResponse->assertStatus(200);
+        $artistResponse->assertJsonStructure(['artists']);
+
+        $vendorResponse = $this->get('/vendors');
+        $vendorResponse->assertStatus(200);
+        $vendorResponse->assertJsonStructure(['vendors']);
+
+        $promoterResponse = $this->get('/promoters');
+        $promoterResponse->assertStatus(200);
+        $promoterResponse->assertJsonStructure(['promoters']);
+
+        $organiserResponse = $this->get('/organisers');
+        $organiserResponse->assertStatus(200);
+        $organiserResponse->assertJsonStructure(['organisers']);
+    }
+
     public function test_guest_can_open_signup_pages(): void
     {
         $this->get('/artists/signup')->assertStatus(200);

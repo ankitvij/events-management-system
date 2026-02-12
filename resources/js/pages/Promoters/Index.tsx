@@ -24,7 +24,16 @@ export default function PromotersIndex({ promoters }: Props) {
             <div className="p-4">
                 <div className="mb-4 flex items-center justify-between gap-2">
                     <ListControls path="/promoters" links={promoters.links} showSearch searchPlaceholder="Search promoters..." />
-                    <ActionButton href={canManage ? '/users/create' : '/promoters/signup'}>New Promoter</ActionButton>
+                    <div className="flex gap-2">
+                        {canManage ? (
+                            <ActionButton href="/users/create">New Promoter</ActionButton>
+                        ) : (
+                            <>
+                                <ActionButton href="/promoters/signup">Signup as Promoter</ActionButton>
+                                <Link href="/login" className="btn-secondary">Sign in as Promoter</Link>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-3">
