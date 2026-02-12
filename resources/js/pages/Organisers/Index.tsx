@@ -88,7 +88,7 @@ export default function OrganisersIndex({ organisers }: Props) {
 
                     <div className="grid gap-3">
                     {organisers.data?.map((org: Organiser) => (
-                        <div key={org.id} className="border rounded p-3">
+                        <div key={org.id} className="box">
                             <div className="flex justify-between">
                                 <div>
                                     <div className="flex items-center gap-2">

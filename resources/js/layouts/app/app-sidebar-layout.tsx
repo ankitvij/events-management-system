@@ -3,6 +3,7 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import GuestSidebar from '@/components/guest-sidebar';
 import PublicHeader from '@/components/public-header';
 import type { AppLayoutProps, SharedData } from '@/types';
 
@@ -24,7 +25,10 @@ export default function AppSidebarLayout({
                     {showSidebar && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
                     {showSidebar ? children : (
                         <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-                            {children}
+                            <div className="mt-6 flex items-start gap-4">
+                                <GuestSidebar />
+                                <div className="min-w-0 flex-1">{children}</div>
+                            </div>
                         </div>
                     )}
                 </AppContent>

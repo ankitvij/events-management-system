@@ -48,7 +48,7 @@ export default function ArtistsIndex({ artists }: Props) {
 
                 <div className="grid gap-3">
                     {artists.data?.map((a: Artist) => (
-                        <div key={a.id} className="border rounded p-3">
+                        <div key={a.id} className="box">
                             <div className="flex justify-between gap-4">
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2">

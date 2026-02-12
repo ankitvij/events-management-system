@@ -83,7 +83,7 @@ export default function CustomersIndex({ customers }: Props) {
 
                     <div className="grid gap-3">
                     {customers.data?.map((customer: Customer) => (
-                        <div key={customer.id} className="border rounded p-3">
+                        <div key={customer.id} className="box">
                             <div className="flex justify-between">
                                 <div>
                                     <div className="flex items-center gap-2">

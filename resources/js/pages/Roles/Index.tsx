@@ -57,7 +57,7 @@ export default function RolesIndex({ roles, users }: Props) {
 
                 <div className="grid gap-2">
                     {users.map((u) => (
-                        <div key={u.id} className="border rounded p-3 flex items-center justify-between">
+                        <div key={u.id} className="box flex items-center justify-between">
                             <div>
                                 <div className="text-lg font-medium">{u.name}</div>
                                 <div className="text-sm text-muted">{u.email}</div>

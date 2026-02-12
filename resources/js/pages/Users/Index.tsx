@@ -85,7 +85,7 @@ export default function UsersIndex({ users }: Props) {
 
                     <div className="grid gap-3">
                     {users.data?.map((user: UserShort) => (
-                        <div key={user.id} className="border rounded p-3">
+                        <div key={user.id} className="box">
                             <div className="flex justify-between">
                                 <div>
                                     <div className="flex items-center gap-2">

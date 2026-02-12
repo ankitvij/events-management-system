@@ -67,7 +67,7 @@ export default function Index({ pages }: Props) {
 
                     <div className="grid gap-3">
                     {pages.data?.map((page: LooseObject) => (
-                        <div key={page.id} className="border rounded p-3">
+                        <div key={page.id} className="box">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <Link href={`/pages/${page.id}`} className="text-lg font-medium">{page.title}</Link>

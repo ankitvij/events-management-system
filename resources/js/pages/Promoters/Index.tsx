@@ -29,7 +29,7 @@ export default function PromotersIndex({ promoters }: Props) {
 
                 <div className="grid gap-3">
                     {promoters.data?.map((p: Promoter) => (
-                        <div key={p.id} className="border rounded p-3">
+                        <div key={p.id} className="box">
                             <div className="font-medium break-words">{p.name ?? 'Promoter'}</div>
                             {p.email ? <div className="text-sm text-muted break-words">{p.email}</div> : null}
                         </div>

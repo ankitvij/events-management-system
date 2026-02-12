@@ -1,14 +1,4 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import {
-    ShoppingCart,
-    Ticket,
-    PlusCircle,
-    Calendar,
-    Users,
-    Mic2,
-    Megaphone,
-    Store,
-} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -26,11 +16,14 @@ export default function GuestLanding({ events }: Props) {
     const [selectedCountry, setSelectedCountry] = useState(initialCountry);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
-    const [guestSidebarCollapsed, setGuestSidebarCollapsed] = useState(false);
     const ticketButtonClass = 'btn-primary';
     const page = usePage<{ flash?: { success?: string; error?: string; newsletter_success?: string }; cities?: string[]; countries?: string[] }>();
     const cityOptions = page.props?.cities ?? [];
     const countryOptions = page.props?.countries ?? [];
+    const paginationLinks = (events?.links ?? []).map((link) => ({
+        ...link,
+        label: link.label ?? undefined,
+    }));
 
     // Removed artist signup and login forms
 
@@ -162,17 +155,6 @@ export default function GuestLanding({ events }: Props) {
         }
     }
 
-    const guestMenuItems = [
-        { href: '/customer/orders', label: 'My orders', shortLabel: 'Orders', icon: ShoppingCart },
-        { href: '/customer/orders', label: 'My tickets', shortLabel: 'Tickets', icon: Ticket },
-        { href: '/events/create', label: 'Create event', shortLabel: 'Create', icon: PlusCircle },
-        { href: '/events', label: 'My events', shortLabel: 'Events', icon: Calendar },
-        { href: '/organisers', label: 'Organisers', shortLabel: 'Orgs', icon: Users },
-        { href: '/artists', label: 'Artists', shortLabel: 'Artists', icon: Mic2 },
-        { href: '/promoters', label: 'Promoters', shortLabel: 'Promoters', icon: Megaphone },
-        { href: '/vendors', label: 'Vendors', shortLabel: 'Vendors', icon: Store },
-    ];
-
     return (
         <AppLayout>
             <Head title="Welcome to Events">
@@ -181,39 +163,8 @@ export default function GuestLanding({ events }: Props) {
                 ]}
             </Head>
 
-            <main className="w-full mt-6">
-                <div className="flex items-start gap-4">
-                    <aside className={`box sticky top-4 shrink-0 transition-all duration-200 ${guestSidebarCollapsed ? 'w-24' : 'w-64'}`}>
-                        <div className="flex items-center justify-between gap-2">
-                            <h2 className="text-xl font-semibold">Menu</h2>
-                            <button
-                                type="button"
-                                className="btn-secondary px-2 py-1"
-                                onClick={() => setGuestSidebarCollapsed((value) => !value)}
-                                aria-label={guestSidebarCollapsed ? 'Expand guest menu' : 'Collapse guest menu'}
-                            >
-                                {guestSidebarCollapsed ? '»' : '«'}
-                            </button>
-                        </div>
-
-                        <nav className="mt-3 flex flex-col gap-2">
-                            {guestMenuItems.map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <Link
-                                        key={item.href + item.label}
-                                        href={item.href}
-                                        className="btn-secondary flex items-center gap-3 text-left justify-start"
-                                    >
-                                        <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-                                        {!guestSidebarCollapsed && <span>{item.label}</span>}
-                                    </Link>
-                                );
-                            })}
-                        </nav>
-                    </aside>
-
-                    <div className="min-w-0 flex-1">
+            <main className="w-full">
+                <div className="min-w-0 flex-1">
                         <section className="mt-6">
                             <div className="box">
                                 <h3 className="text-sm font-medium">Already a vendor?</h3>
@@ -249,7 +200,7 @@ export default function GuestLanding({ events }: Props) {
                         </section>
 
                 <section className="mt-6">
-                    <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />
+                    <ListControls path="/" links={paginationLinks} showSearch={false} showSort={false} />
 
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                         <select
@@ -298,7 +249,6 @@ export default function GuestLanding({ events }: Props) {
                             <button
                                 onClick={() => applySort('title')}
                                 className="btn-primary text-left shrink-0"
-                                aria-sort={params?.get('sort') === 'title_asc' ? 'ascending' : params?.get('sort') === 'title_desc' ? 'descending' : 'none'}
                             >
                                 Event
                                 <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -316,7 +266,6 @@ export default function GuestLanding({ events }: Props) {
                         <button
                             onClick={() => applySort('country')}
                             className="text-center cursor-pointer btn-primary px-2 py-1 whitespace-normal break-words"
-                            aria-sort={params?.get('sort') === 'country_asc' ? 'ascending' : params?.get('sort') === 'country_desc' ? 'descending' : 'none'}
                         >
                             Country
                             <span className="ml-1">{params?.get('sort')?.startsWith('country_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -324,7 +273,6 @@ export default function GuestLanding({ events }: Props) {
                         <button
                             onClick={() => applySort('city')}
                             className="text-center cursor-pointer btn-primary px-2 py-1 whitespace-normal break-words"
-                            aria-sort={params?.get('sort') === 'city_asc' ? 'ascending' : params?.get('sort') === 'city_desc' ? 'descending' : 'none'}
                         >
                             City
                             <span className="ml-1">{params?.get('sort')?.startsWith('city_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -332,7 +280,6 @@ export default function GuestLanding({ events }: Props) {
                         <button
                             onClick={() => applySort('start')}
                             className="text-center cursor-pointer btn-primary whitespace-nowrap"
-                            aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
                             Date
                             <span className="ml-1">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -483,7 +430,6 @@ export default function GuestLanding({ events }: Props) {
                         </form>
                     </div>
                 </section>
-                    </div>
                 </div>
             </main>
         </AppLayout>
