@@ -19,7 +19,6 @@ use App\Models\VendorAvailability;
 use App\Models\VendorBookingRequest;
 use App\Models\VendorEquipment;
 use App\Models\VendorService;
-use Faker\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +43,7 @@ class EverythingSampleSeeder extends Seeder
             return;
         }
 
-        $faker = Factory::create();
+        $faker = class_exists('Faker\\Factory') ? \Faker\Factory::create() : null;
 
         [$eventImagePath, $artistPhotoPath] = $this->ensureSeedImages();
 
@@ -87,8 +86,8 @@ class EverythingSampleSeeder extends Seeder
         $organisers = collect();
         for ($index = 1; $index <= 10; $index++) {
             $organisers->push(Organiser::query()->create([
-                'name' => $faker->company().' Organiser '.$index,
-                'email' => $faker->unique()->companyEmail(),
+                'name' => $this->randomCompany($faker).' Organiser '.$index,
+                'email' => $this->randomCompanyEmail($faker, $index),
                 'active' => true,
             ]));
         }
@@ -134,14 +133,14 @@ class EverythingSampleSeeder extends Seeder
         for ($index = 1; $index <= 18; $index++) {
             $owner = $users->random();
             $mainOrganiser = $organisers->random();
-            $title = $faker->unique()->sentence(3).' #'.$index;
+            $title = $this->randomSentence($faker, 3).' #'.$index;
 
             $event = Event::factory()->create([
                 'title' => $title,
                 'slug' => Str::slug($title).'-'.Str::lower(Str::random(6)),
-                'city' => $faker->city(),
-                'country' => $faker->country(),
-                'address' => $faker->streetAddress(),
+                'city' => $this->randomCity($faker),
+                'country' => $this->randomCountry($faker),
+                'address' => $this->randomAddress($faker),
                 'user_id' => $owner->id,
                 'active' => true,
                 'organiser_id' => $mainOrganiser->id,
@@ -150,27 +149,27 @@ class EverythingSampleSeeder extends Seeder
             ]);
 
             $event->organisers()->sync(
-                $organisers->random($faker->numberBetween(1, 3))->pluck('id')->all()
+                $organisers->random($this->randomBetween($faker, 1, 3))->pluck('id')->all()
             );
 
             $event->promoters()->sync(
-                $promoters->random($faker->numberBetween(1, 3))->pluck('id')->all()
+                $promoters->random($this->randomBetween($faker, 1, 3))->pluck('id')->all()
             );
 
-            $linkedArtists = $artists->random($faker->numberBetween(2, 4));
+            $linkedArtists = $artists->random($this->randomBetween($faker, 2, 4));
             $event->artists()->sync($linkedArtists->pluck('id')->all());
 
-            $linkedVendors = $vendors->random($faker->numberBetween(2, 4));
+            $linkedVendors = $vendors->random($this->randomBetween($faker, 2, 4));
             $event->vendors()->sync($linkedVendors->pluck('id')->all());
 
-            for ($ticketIndex = 1; $ticketIndex <= $faker->numberBetween(2, 4); $ticketIndex++) {
-                $quantityTotal = $faker->numberBetween(50, 350);
-                $quantityAvailable = $faker->numberBetween(0, $quantityTotal);
+            for ($ticketIndex = 1; $ticketIndex <= $this->randomBetween($faker, 2, 4); $ticketIndex++) {
+                $quantityTotal = $this->randomBetween($faker, 50, 350);
+                $quantityAvailable = $this->randomBetween($faker, 0, $quantityTotal);
 
                 Ticket::query()->create([
                     'event_id' => $event->id,
                     'name' => 'Ticket '.$ticketIndex,
-                    'price' => $faker->randomFloat(2, 15, 180),
+                    'price' => $this->randomFloat($faker, 15, 180),
                     'quantity_total' => $quantityTotal,
                     'quantity_available' => $quantityAvailable,
                     'active' => true,
@@ -178,7 +177,7 @@ class EverythingSampleSeeder extends Seeder
             }
 
             foreach ($linkedArtists->take(2) as $artist) {
-                $status = $faker->randomElement([
+                $status = $this->randomElement($faker, [
                     BookingRequest::STATUS_PENDING,
                     BookingRequest::STATUS_ACCEPTED,
                     BookingRequest::STATUS_DECLINED,
@@ -189,7 +188,7 @@ class EverythingSampleSeeder extends Seeder
                     'artist_id' => $artist->id,
                     'requested_by_user_id' => $owner->id,
                     'status' => $status,
-                    'responded_at' => $status === BookingRequest::STATUS_PENDING ? null : now()->subDays($faker->numberBetween(1, 10)),
+                    'responded_at' => $status === BookingRequest::STATUS_PENDING ? null : now()->subDays($this->randomBetween($faker, 1, 10)),
                 ]);
 
                 if ($bookingRequest->status === BookingRequest::STATUS_ACCEPTED) {
@@ -198,7 +197,7 @@ class EverythingSampleSeeder extends Seeder
             }
 
             foreach ($linkedVendors->take(2) as $vendor) {
-                $status = $faker->randomElement([
+                $status = $this->randomElement($faker, [
                     VendorBookingRequest::STATUS_PENDING,
                     VendorBookingRequest::STATUS_ACCEPTED,
                     VendorBookingRequest::STATUS_DECLINED,
@@ -209,7 +208,7 @@ class EverythingSampleSeeder extends Seeder
                     'vendor_id' => $vendor->id,
                     'requested_by_user_id' => $owner->id,
                     'status' => $status,
-                    'responded_at' => $status === VendorBookingRequest::STATUS_PENDING ? null : now()->subDays($faker->numberBetween(1, 10)),
+                    'responded_at' => $status === VendorBookingRequest::STATUS_PENDING ? null : now()->subDays($this->randomBetween($faker, 1, 10)),
                 ]);
 
                 if ($vendorBookingRequest->status === VendorBookingRequest::STATUS_ACCEPTED) {
@@ -226,7 +225,7 @@ class EverythingSampleSeeder extends Seeder
             $event = $events->random();
             $ticket = Ticket::query()->where('event_id', $event->id)->inRandomOrder()->first();
             $customer = $customers->random();
-            $quantity = $faker->numberBetween(1, 3);
+            $quantity = $this->randomBetween($faker, 1, 3);
 
             if (! $ticket) {
                 continue;
@@ -235,11 +234,11 @@ class EverythingSampleSeeder extends Seeder
             $order = Order::factory()->create([
                 'customer_id' => $customer->id,
                 'user_id' => $event->user_id,
-                'payment_method' => $faker->randomElement(['bank_transfer', 'paypal', 'cash']),
-                'payment_status' => $faker->randomElement(['pending', 'paid']),
-                'paid' => $faker->boolean(70),
-                'checked_in' => $faker->boolean(25),
-                'status' => $faker->randomElement(['confirmed', 'pending']),
+                'payment_method' => $this->randomElement($faker, ['bank_transfer', 'paypal', 'cash']),
+                'payment_status' => $this->randomElement($faker, ['pending', 'paid']),
+                'paid' => $this->randomBoolean($faker, 70),
+                'checked_in' => $this->randomBoolean($faker, 25),
+                'status' => $this->randomElement($faker, ['confirmed', 'pending']),
                 'total' => (float) $ticket->price * $quantity,
                 'contact_name' => $customer->name,
                 'contact_email' => $customer->email,
@@ -252,8 +251,8 @@ class EverythingSampleSeeder extends Seeder
                 'quantity' => $quantity,
                 'price' => $ticket->price,
                 'guest_details' => collect(range(1, $quantity))->map(fn () => [
-                    'name' => $faker->name(),
-                    'email' => $faker->safeEmail(),
+                    'name' => $this->randomName($faker),
+                    'email' => $this->randomSafeEmail($faker),
                 ])->all(),
             ]);
         }
@@ -295,5 +294,113 @@ class EverythingSampleSeeder extends Seeder
         }
 
         return [$eventImagePath, $artistPhotoPath];
+    }
+
+    private function randomCompany($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->company();
+        }
+
+        return 'Company '.Str::upper(Str::random(5));
+    }
+
+    private function randomCompanyEmail($faker, int $index): string
+    {
+        if ($faker !== null) {
+            return $faker->unique()->companyEmail();
+        }
+
+        return 'company'.$index.'.'.Str::lower(Str::random(6)).'@example.test';
+    }
+
+    private function randomSentence($faker, int $words): string
+    {
+        if ($faker !== null) {
+            return $faker->sentence($words);
+        }
+
+        return 'Sample event '.Str::lower(Str::random(8));
+    }
+
+    private function randomCity($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->city();
+        }
+
+        return $this->randomElement(null, ['Berlin', 'Lisbon', 'Paris', 'Amsterdam', 'London']);
+    }
+
+    private function randomCountry($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->country();
+        }
+
+        return $this->randomElement(null, ['Germany', 'Portugal', 'France', 'Netherlands', 'United Kingdom']);
+    }
+
+    private function randomAddress($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->streetAddress();
+        }
+
+        return $this->randomBetween(null, 10, 999).' Main Street';
+    }
+
+    private function randomBetween($faker, int $min, int $max): int
+    {
+        if ($faker !== null) {
+            return $faker->numberBetween($min, $max);
+        }
+
+        return random_int($min, $max);
+    }
+
+    private function randomFloat($faker, float $min, float $max): float
+    {
+        if ($faker !== null) {
+            return (float) $faker->randomFloat(2, $min, $max);
+        }
+
+        return round($min + (mt_rand() / mt_getrandmax()) * ($max - $min), 2);
+    }
+
+    private function randomElement($faker, array $values)
+    {
+        if ($faker !== null) {
+            return $faker->randomElement($values);
+        }
+
+        return $values[array_rand($values)];
+    }
+
+    private function randomBoolean($faker, int $chance): bool
+    {
+        if ($faker !== null) {
+            return $faker->boolean($chance);
+        }
+
+        return random_int(1, 100) <= $chance;
+    }
+
+    private function randomName($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->name();
+        }
+
+        return 'Guest '.Str::upper(Str::random(5));
+    }
+
+    private function randomSafeEmail($faker): string
+    {
+        if ($faker !== null) {
+            return $faker->safeEmail();
+        }
+
+        return 'guest_'.Str::lower(Str::random(10)).'@example.test';
     }
 }
