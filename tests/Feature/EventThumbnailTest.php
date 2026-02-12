@@ -33,8 +33,12 @@ class EventThumbnailTest extends TestCase
             'description' => 'With image',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Zurich',
             'organiser_id' => $organiserId,
             'image' => $file,
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -74,8 +78,12 @@ class EventThumbnailTest extends TestCase
             'description' => 'Small image should remain',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Zurich',
             'organiser_id' => $organiserId,
             'image' => $file,
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -89,8 +97,10 @@ class EventThumbnailTest extends TestCase
         $this->assertSame(300, $size[1]);
     }
 
-    public function test_event_without_image_returns_null_image_fields_and_frontend_should_use_default(): void
+    public function test_event_requires_an_image_on_create(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -102,22 +112,15 @@ class EventThumbnailTest extends TestCase
 
         $response = $this->post(route('events.store'), [
             'title' => 'No Image Event',
-            'description' => 'No image here',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Oslo',
             'organiser_id' => $organiserId,
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
-        $response->assertRedirect(route('events.index'));
-
-        $event = Event::where('title', 'No Image Event')->firstOrFail();
-
-        $this->assertNull($event->image);
-        $this->assertNull($event->image_thumbnail);
-
-        // In test environment the controller returns JSON for the event; frontend uses these nulls
-        // to display the default image (`/images/default-event.svg`). Assert the API shape.
-        $show = $this->get(route('events.show', $event));
-        $show->assertJson(['event' => ['id' => $event->id, 'image' => null, 'image_thumbnail' => null]]);
+        $response->assertSessionHasErrors('image');
     }
 }

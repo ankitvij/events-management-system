@@ -34,7 +34,7 @@ class UpdateEventRequest extends FormRequest
             'image' => ['nullable', 'image', 'max:5120'],
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
-            'city' => ['nullable', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:255'],

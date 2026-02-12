@@ -63,7 +63,7 @@ export default function Edit({ event }: Props) {
 
                 {requiresPassword && (
                     <div>
-                        <label className="block text-sm font-medium">Password to edit</label>
+                        <label className="block text-sm font-medium">Password</label>
                         <input
                             name="edit_password"
                             type="password"
@@ -83,8 +83,8 @@ export default function Edit({ event }: Props) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium">City</label>
-                    <input name="city" value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                    <label className="block text-sm font-medium">City <span className="text-red-600">*</span></label>
+                    <input name="city" required value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
                     {form.errors.city && <p className="mt-1 text-sm text-red-600">{form.errors.city}</p>}
                 </div>
 

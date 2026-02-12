@@ -17,7 +17,9 @@ class EventOrganiserCreated extends Mailable implements ShouldQueue
         public Event $event,
         public Organiser $organiser,
         public string $editUrl,
-        public ?string $editPassword
+        public ?string $editPassword,
+        public ?string $verifyUrl = null,
+        public bool $requiresVerification = false,
     ) {}
 
     public function build(): self
@@ -28,6 +30,8 @@ class EventOrganiserCreated extends Mailable implements ShouldQueue
                 'organiser' => $this->organiser,
                 'editUrl' => $this->editUrl,
                 'editPassword' => $this->editPassword,
+                'verifyUrl' => $this->verifyUrl,
+                'requiresVerification' => $this->requiresVerification,
             ]);
     }
 }

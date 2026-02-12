@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Mail\EventOrganiserCreated;
 use App\Models\Event;
 use App\Models\Organiser;
+use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -180,13 +181,20 @@ class EventController extends Controller
         $data = $request->validated();
         // Allow guest-created events: user_id may be null for guests
         $data['user_id'] = $request->user()?->id;
+
+        $isGuest = ! $request->user();
+        $data['active'] = $isGuest ? false : (bool) ($data['active'] ?? true);
+
         $rawEditToken = Str::random(64);
         $data['edit_token'] = $rawEditToken;
         $data['edit_token_expires_at'] = null;
         $data['edit_password'] = $request->filled('edit_password') ? Hash::make($request->string('edit_password')) : null;
 
-        DB::transaction(function () use ($request, $data, $rawEditToken) {
+        DB::transaction(function () use ($request, $data, $rawEditToken, $isGuest) {
             $local = $data;
+
+            $tickets = $local['tickets'] ?? [];
+            unset($local['tickets']);
 
             if ($request->hasFile('image')) {
                 $local['image'] = $request->file('image')->store('events', 'public');
@@ -208,6 +216,24 @@ class EventController extends Controller
             }
             $event->slug = $slug;
             $event->save();
+
+            foreach ($tickets as $ticket) {
+                $name = is_array($ticket) ? ($ticket['name'] ?? null) : null;
+                if (! is_string($name) || trim($name) === '') {
+                    continue;
+                }
+
+                $quantityTotal = (int) (is_array($ticket) ? ($ticket['quantity_total'] ?? 0) : 0);
+
+                Ticket::query()->create([
+                    'event_id' => $event->id,
+                    'name' => $name,
+                    'price' => is_array($ticket) ? ($ticket['price'] ?? 0) : 0,
+                    'quantity_total' => $quantityTotal,
+                    'quantity_available' => $quantityTotal,
+                    'active' => (bool) (is_array($ticket) ? ($ticket['active'] ?? true) : true),
+                ]);
+            }
 
             $organiserIds = [];
             if (! empty($local['organiser_ids'])) {
@@ -277,11 +303,18 @@ class EventController extends Controller
                     'token' => $rawEditToken,
                 ]);
 
+                $signedVerifyUrl = URL::signedRoute('events.verify-link', [
+                    'event' => $event->slug,
+                    'token' => $rawEditToken,
+                ]);
+
                 Mail::to($primaryOrganiser->email)->queue(new EventOrganiserCreated(
                     $event,
                     $primaryOrganiser,
                     $signedEditUrl,
-                    $request->input('edit_password')
+                    $request->input('edit_password'),
+                    $signedVerifyUrl,
+                    $isGuest
                 ));
             }
         });
@@ -289,6 +322,25 @@ class EventController extends Controller
         $this->clearPublicEventsCache();
 
         return redirect()->route('events.index');
+    }
+
+    public function verifyViaToken(Request $request, Event $event, string $token): RedirectResponse
+    {
+        $this->assertValidEditToken($event, $token);
+
+        if (! $event->active) {
+            $event->active = true;
+            $event->save();
+        }
+
+        $this->clearPublicEventsCache();
+
+        $signedEditUrl = URL::signedRoute('events.edit-link', [
+            'event' => $event->slug,
+            'token' => $token,
+        ]);
+
+        return redirect()->to($signedEditUrl);
     }
 
     public function show(Event $event, Request $request)
@@ -494,6 +546,15 @@ class EventController extends Controller
         }
 
         $this->clearPublicEventsCache();
+
+        if (! $event->active) {
+            $signedEditUrl = URL::signedRoute('events.edit-link', [
+                'event' => $event->slug,
+                'token' => $token,
+            ]);
+
+            return redirect()->to($signedEditUrl);
+        }
 
         return redirect()->route('events.show', $event);
     }

@@ -13,13 +13,15 @@ class StoreEventRequest extends FormRequest
 
     public function rules(): array
     {
+        $isGuest = ! $this->user();
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'image' => ['required', 'image', 'max:5120'],
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
-            'city' => ['nullable', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
@@ -35,9 +37,15 @@ class StoreEventRequest extends FormRequest
             'organiser_ids.*' => ['integer', 'exists:organisers,id'],
             'organiser_emails' => ['nullable', 'string'],
             // Allow guests to supply a single organiser name/email when creating an event
-            'organiser_name' => ['nullable', 'string', 'max:255'],
-            'organiser_email' => ['nullable', 'email', 'max:255'],
+            'organiser_name' => [$isGuest ? 'required' : 'nullable', 'string', 'max:255'],
+            'organiser_email' => [$isGuest ? 'required' : 'nullable', 'email', 'max:255'],
             'edit_password' => ['nullable', 'string', 'min:6', 'max:64'],
+
+            'tickets' => ['required', 'array', 'min:1'],
+            'tickets.*.name' => ['required', 'string', 'max:255'],
+            'tickets.*.price' => ['nullable', 'numeric', 'min:0'],
+            'tickets.*.quantity_total' => ['required', 'integer', 'min:1'],
+            'tickets.*.active' => ['nullable', 'boolean'],
         ];
     }
 
@@ -55,6 +63,8 @@ class StoreEventRequest extends FormRequest
             'image.max' => 'Image must be 5MB or smaller.',
             'image.uploaded' => 'The image failed to upload. Try a smaller file (max 5MB).',
             'edit_password.min' => 'Password must be at least 6 characters.',
+            'tickets.required' => 'Please add at least one ticket type.',
+            'tickets.min' => 'Please add at least one ticket type.',
         ];
     }
 }

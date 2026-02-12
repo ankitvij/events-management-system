@@ -7,7 +7,9 @@ use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -17,6 +19,8 @@ class EventCrudTest extends TestCase
 
     public function test_authenticated_user_can_create_read_update_delete_event(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
 
         $this->actingAs($user);
@@ -30,11 +34,15 @@ class EventCrudTest extends TestCase
         // Create
         $response = $this->post(route('events.store'), [
             'title' => 'My Test Event',
-            'description' => 'Event description',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Berlin',
             'organiser_id' => $primaryOrganiser->id,
             'organiser_emails' => 'alice@example.test,bob@example.test',
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'General Admission', 'price' => 10, 'quantity_total' => 100],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -63,6 +71,7 @@ class EventCrudTest extends TestCase
             'description' => 'Updated',
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(3)->toDateString(),
+            'city' => 'Berlin',
             'organiser_id' => $primaryOrganiser->id,
         ]);
 
@@ -83,6 +92,8 @@ class EventCrudTest extends TestCase
 
     public function test_store_and_update_syncs_organiser_links(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -101,8 +112,13 @@ class EventCrudTest extends TestCase
         $create = $this->post(route('events.store'), [
             'title' => 'Organiser Link Event',
             'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Paris',
             'organiser_id' => $primaryOrganiser->id,
             'organiser_ids' => [$primaryOrganiser->id],
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $create->assertRedirect(route('events.index'));
@@ -116,6 +132,7 @@ class EventCrudTest extends TestCase
             'title' => 'Organiser Link Event Updated',
             'start_at' => now()->addDays(2)->toDateString(),
             'end_at' => now()->addDays(3)->toDateString(),
+            'city' => 'Paris',
             'organiser_id' => $secondaryOrganiser->id,
             'organiser_ids' => [$secondaryOrganiser->id],
         ]);
@@ -131,12 +148,19 @@ class EventCrudTest extends TestCase
 
     public function test_store_requires_main_organiser_for_authenticated_user(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $response = $this->post(route('events.store'), [
             'title' => 'Missing Main',
             'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Rome',
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertSessionHasErrors('organiser_id');
@@ -144,6 +168,8 @@ class EventCrudTest extends TestCase
 
     public function test_guests_cannot_see_organisers_and_see_placeholder(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -151,8 +177,13 @@ class EventCrudTest extends TestCase
         $response = $this->post(route('events.store'), [
             'title' => 'Public Visibility Event',
             'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Lisbon',
             'organiser_id' => Organiser::create(['name' => 'Org Public', 'email' => 'public@example.test', 'active' => true])->id,
             'organiser_emails' => 'alice@example.test,bob@example.test',
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -173,14 +204,21 @@ class EventCrudTest extends TestCase
 
     public function test_authenticated_users_see_organisers(): void
     {
+        Storage::fake('public');
+
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $response = $this->post(route('events.store'), [
             'title' => 'Auth Visibility Event',
             'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Vienna',
             'organiser_id' => Organiser::create(['name' => 'Org Auth', 'email' => 'auth@example.test', 'active' => true])->id,
             'organiser_emails' => 'alice2@example.test,bob2@example.test',
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -202,12 +240,19 @@ class EventCrudTest extends TestCase
     {
         Mail::fake();
 
+        Storage::fake('public');
+
         $response = $this->post(route('events.store'), [
             'title' => 'Guest Event',
             'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Madrid',
+            'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
             'organiser_name' => 'Guest Org',
             'organiser_email' => 'guest@org.test',
             'edit_password' => 'secret123',
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
         ]);
 
         $response->assertRedirect(route('events.index'));
@@ -223,12 +268,18 @@ class EventCrudTest extends TestCase
         $update = $this->put($signedUpdateUrl, [
             'title' => 'Updated via link',
             'start_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Madrid',
             'edit_password' => 'secret123',
         ]);
 
         $event->refresh();
 
-        $update->assertRedirect(route('events.show', $event));
+        $signedEditUrl = URL::signedRoute('events.edit-link', [
+            'event' => $event->slug,
+            'token' => $event->edit_token,
+        ]);
+
+        $update->assertRedirect($signedEditUrl);
         $this->assertSame('Updated via link', $event->title);
 
         Mail::assertQueued(EventOrganiserCreated::class);
