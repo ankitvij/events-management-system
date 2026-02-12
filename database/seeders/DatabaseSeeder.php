@@ -29,5 +29,10 @@ class DatabaseSeeder extends Seeder
         $this->call(CustomersOrganisersSeeder::class);
         // Add latest curated events
         $this->call(LatestEventsSeeder::class);
+
+        // Add comprehensive linked sample data only when explicitly enabled and outside production.
+        if (config('seeding.allow_sample_data') && ! app()->environment('production')) {
+            $this->call(EverythingSampleSeeder::class);
+        }
     }
 }
