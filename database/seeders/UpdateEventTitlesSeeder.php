@@ -12,6 +12,12 @@ class UpdateEventTitlesSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping UpdateEventTitlesSeeder in production environment.');
+
+            return;
+        }
+
         $samples = [
             'Hamburg Salsa Gala',
             'Amsterdam Techno Rave',

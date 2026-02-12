@@ -9,6 +9,12 @@ class TicketsSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping TicketsSeeder in production environment.');
+
+            return;
+        }
+
         $events = Event::query()->limit(30)->get();
 
         foreach ($events as $event) {

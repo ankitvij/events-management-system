@@ -10,6 +10,12 @@ class CustomersOrganisersSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping CustomersOrganisersSeeder in production environment.');
+
+            return;
+        }
+
         // Create 5 organisers
         for ($i = 1; $i <= 5; $i++) {
             $name = 'Organiser '.$i;

@@ -9,6 +9,12 @@ class EventsCityCountrySeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $this->command?->warn('Skipping EventsCityCountrySeeder in production environment.');
+
+            return;
+        }
+
         $choices = [
             ['city' => 'New York', 'country' => 'USA'],
             ['city' => 'London', 'country' => 'UK'],
