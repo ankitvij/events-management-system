@@ -151,8 +151,7 @@ export default function GuestLanding({ events }: Props) {
                                         className="btn-secondary flex items-center gap-3 text-left justify-start"
                                     >
                                         <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
-                                        <span className={guestSidebarCollapsed ? 'sr-only' : ''}>{item.label}</span>
-                                        {guestSidebarCollapsed && <span>{item.shortLabel}</span>}
+                                        {!guestSidebarCollapsed && <span>{item.label}</span>}
                                     </Link>
                                 );
                             })}
