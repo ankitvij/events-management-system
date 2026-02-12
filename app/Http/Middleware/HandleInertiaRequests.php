@@ -38,6 +38,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'brand' => [
+                'logo_url' => config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')),
+                'logo_alt' => config('app.brand.logo_alt'),
+            ],
             'auth' => [
                 'user' => $request->user(),
             ],

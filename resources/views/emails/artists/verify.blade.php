@@ -1,5 +1,5 @@
 <div style="margin-bottom:12px;text-align:left;">
-    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto;" />
+    <img src="{{ config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')) }}" alt="{{ config('app.brand.logo_alt') }}" style="height:42px;width:auto;" />
 </div>
 
 <h1 style="margin:0 0 12px; font-size:20px;">Verify your artist account</h1>

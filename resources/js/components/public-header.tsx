@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import * as React from 'react';
+import AppLogoIcon from '@/components/app-logo-icon';
 import CartButton from '@/components/CartButton';
 import SignInPrompt from '@/components/SignInPrompt';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -13,7 +14,7 @@ export default function PublicHeader() {
                 <div className="mx-auto flex w-full max-w-7xl flex-nowrap items-center justify-between gap-2 px-4 py-3 min-[800px]:h-16 min-[800px]:gap-0 min-[800px]:py-0 sm:px-6 lg:px-8">
                     <div className="flex items-center bg-[#121c26] rounded">
                         <Link href="/" className="flex items-center p-[10px]">
-                            <img src="/images/logo.png" alt="ChancePass" className="h-8 w-auto" />
+                            <AppLogoIcon alt="ChancePass" className="h-8 w-auto" />
                         </Link>
                     </div>
                     <div className="flex flex-col items-end gap-2 min-[800px]:flex-row min-[800px]:items-center min-[800px]:gap-3">

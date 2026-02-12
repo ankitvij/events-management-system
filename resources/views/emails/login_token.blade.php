@@ -1,6 +1,6 @@
 <div style="font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; line-height:1.5;">
     <div style="margin-bottom:12px;text-align:left">
-        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+        <img src="{{ config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')) }}" alt="{{ config('app.brand.logo_alt') }}" style="height:42px;width:auto" />
     </div>
     @if($intro)
         <p>{{ $intro }}</p>

@@ -4,7 +4,7 @@
         $firstItem = $items->first();
         $topEmbed = $firstItem ? ($event_embeds[$firstItem->id] ?? null) : null;
         $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
-        $logoUrl = $logo_url ?? asset('images/logo.png');
+        $logoUrl = $logo_url ?? (config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')));
     @endphp
     <div style="margin-bottom:12px;text-align:left">
         <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />

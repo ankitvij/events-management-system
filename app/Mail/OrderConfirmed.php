@@ -95,7 +95,7 @@ class OrderConfirmed extends Mailable
         $bank = $this->resolvePaymentDetailsFromOrder($items, $paymentMethod)
             ?? config('payments.'.$paymentMethod)
             ?? config('payments.bank_transfer');
-        $logoUrl = asset('images/logo.png');
+        $logoUrl = config('app.brand.logo_url') ?: asset(config('app.brand.logo_path'));
         // Ensure the From/Reply-To use the configured sending domain/address to reduce provider rejections
         $mail = $this->from(config('mail.from.address'), config('mail.from.name'))
             ->replyTo(config('mail.from.address'), config('mail.from.name'))

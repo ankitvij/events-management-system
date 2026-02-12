@@ -11,7 +11,7 @@
 			$items = $items ?? $order->items;
 			$firstItem = $items->first();
 			$topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
-			$logoPath = public_path('images/logo.png');
+			$logoPath = public_path(ltrim(config('app.brand.logo_path'), '/'));
 		@endphp
 		<div style="margin-bottom:12px;text-align:left">
 			@if(file_exists($logoPath))
