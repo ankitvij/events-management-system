@@ -15,6 +15,23 @@ export type UserShort = { id: number; name?: string | null; email?: string | nul
 
 export type Customer = { id: number; name?: string | null; email?: string | null; phone?: string | null; active?: boolean };
 
+export type Artist = {
+    id: number;
+    name: string;
+    email: string;
+    city: string;
+    experience_years: number;
+    skills: string;
+    description?: string | null;
+    equipment?: string | null;
+    photo?: string | null;
+    photo_url?: string | null;
+    active?: boolean;
+    email_verified_at?: string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
+};
+
 export type Event = {
     id: number;
     slug?: string | null;

@@ -13,6 +13,7 @@ import {
     UserSquare2,
     ClipboardList,
     Folder,
+    Mic2,
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -68,6 +69,9 @@ export function AppSidebar() {
     if (page.props?.auth?.user) {
         items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
         items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
+    }
+    if (isAdmin) {
+        items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });

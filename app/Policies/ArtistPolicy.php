@@ -2,19 +2,19 @@
 
 namespace App\Policies;
 
-use App\Models\Customer;
+use App\Models\Artist;
 use App\Models\User;
 
-class CustomerPolicy
+class ArtistPolicy
 {
     public function viewAny(?User $user): bool
     {
-        return $user !== null;
+        return $user !== null && $user->hasRole('admin');
     }
 
-    public function view(?User $user, Customer $customer): bool
+    public function view(User $user, Artist $artist): bool
     {
-        return $user !== null;
+        return $user->hasRole('admin');
     }
 
     public function create(User $user): bool
@@ -22,12 +22,12 @@ class CustomerPolicy
         return $user->hasRole('admin');
     }
 
-    public function update(User $user, Customer $customer): bool
+    public function update(User $user, Artist $artist): bool
     {
         return $user->hasRole('admin');
     }
 
-    public function delete(User $user, Customer $customer): bool
+    public function delete(User $user, Artist $artist): bool
     {
         return $user->hasRole('admin');
     }

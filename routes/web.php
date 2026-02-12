@@ -232,6 +232,8 @@ Route::post('events/{event}/tickets', [TicketController::class, 'store'])->middl
 Route::put('events/{event}/tickets/{ticket}', [TicketController::class, 'update'])->middleware(['auth'])->name('events.tickets.update');
 Route::delete('events/{event}/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware(['auth'])->name('events.tickets.destroy');
 
+use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\CartController;
 
 // Shopping cart
@@ -257,6 +259,13 @@ Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name(
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
+
+// Public artist signup (from landing page)
+Route::post('artists/signup', [ArtistSignupController::class, 'store'])->middleware('guest')->name('artists.signup');
+Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])->middleware('signed')->name('artists.verify');
+
+// Admin artists management
+Route::resource('artists', ArtistController::class)->middleware(['auth']);
 
 use App\Http\Controllers\Admin\LogController;
 

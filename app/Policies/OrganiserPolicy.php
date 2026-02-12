@@ -19,16 +19,16 @@ class OrganiserPolicy
 
     public function create(User $user): bool
     {
-        return $user->is_super_admin || $user->role === 'admin';
+        return $user->hasRole('admin');
     }
 
     public function update(User $user, Organiser $organiser): bool
     {
-        return $user->is_super_admin || $user->role === 'admin';
+        return $user->hasRole('admin');
     }
 
     public function delete(User $user, Organiser $organiser): bool
     {
-        return $user->is_super_admin || $user->role === 'admin';
+        return $user->hasRole('admin');
     }
 }

@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -13,6 +13,18 @@ export default function GuestLanding({ events }: Props) {
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
     const ticketButtonClass = 'btn-primary';
+    const page = usePage<{ flash?: { success?: string; error?: string } }>();
+
+    const artistForm = useForm({
+        name: '',
+        email: '',
+        city: '',
+        experience_years: 0,
+        skills: '',
+        description: '',
+        equipment: '',
+        photo: null as File | null,
+    });
 
     const formatTicketRange = (event: Event): string | null => {
         const minValue = event.min_ticket_price;
@@ -85,6 +97,90 @@ export default function GuestLanding({ events }: Props) {
 
 
             <main className="w-full">
+                <section className="mt-6">
+                    <div className="box">
+                        <h2 className="text-xl font-semibold">Artist signup</h2>
+
+                        {page.props?.flash?.success && (
+                            <div className="mt-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                                {page.props.flash.success}
+                            </div>
+                        )}
+
+                        {Object.keys(artistForm.errors).length > 0 && (
+                            <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
+                                <p className="font-semibold">Please fix the following:</p>
+                                <ul className="list-disc pl-5">
+                                    {Object.values(artistForm.errors).map((err, idx) => (
+                                        <li key={idx}>{err}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                artistForm.post('/artists/signup', {
+                                    forceFormData: true,
+                                    onSuccess: () => artistForm.reset('name', 'email', 'city', 'experience_years', 'skills', 'description', 'equipment', 'photo'),
+                                });
+                            }}
+                            className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+                        >
+                            <div>
+                                <label htmlFor="artist_name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
+                                <input id="artist_name" name="name" required value={artistForm.data.name} onChange={e => artistForm.setData('name', e.target.value)} className="input" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="artist_email" className="block text-sm font-medium">Email <span className="text-red-600">*</span></label>
+                                <input id="artist_email" name="email" type="email" required value={artistForm.data.email} onChange={e => artistForm.setData('email', e.target.value)} className="input" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="artist_city" className="block text-sm font-medium">City <span className="text-red-600">*</span></label>
+                                <input id="artist_city" name="city" required value={artistForm.data.city} onChange={e => artistForm.setData('city', e.target.value)} className="input" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="artist_experience" className="block text-sm font-medium">Experience (years) <span className="text-red-600">*</span></label>
+                                <input id="artist_experience" name="experience_years" type="number" min={0} max={80} required value={artistForm.data.experience_years} onChange={e => artistForm.setData('experience_years', Number(e.target.value))} className="input" />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label htmlFor="artist_skills" className="block text-sm font-medium">Skills <span className="text-red-600">*</span></label>
+                                <textarea id="artist_skills" name="skills" required value={artistForm.data.skills} onChange={e => artistForm.setData('skills', e.target.value)} className="input" rows={3} />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label htmlFor="artist_equipment" className="block text-sm font-medium">Equipment</label>
+                                <textarea id="artist_equipment" name="equipment" value={artistForm.data.equipment} onChange={e => artistForm.setData('equipment', e.target.value)} className="input" rows={3} />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label htmlFor="artist_description" className="block text-sm font-medium">Description</label>
+                                <textarea id="artist_description" name="description" value={artistForm.data.description} onChange={e => artistForm.setData('description', e.target.value)} className="input" rows={4} />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label htmlFor="artist_photo" className="block text-sm font-medium">Photo <span className="text-red-600">*</span></label>
+                                <input id="artist_photo" name="photo" type="file" required onChange={e => artistForm.setData('photo', e.target.files?.[0] ?? null)} accept="image/*" />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <button type="submit" className="btn-primary" disabled={artistForm.processing}>
+                                    Sign up as an artist
+                                </button>
+                            </div>
+                        </form>
+
+                        <p className="mt-3 text-sm text-muted">
+                            After signing up, we’ll email you a verification link to activate your account.
+                        </p>
+                    </div>
+                </section>
+
                 <section className="mt-6">
                     <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />
 
