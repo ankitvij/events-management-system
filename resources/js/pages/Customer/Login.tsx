@@ -1,5 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,19 +7,17 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function CustomerLogin() {
-    const page = usePage();
-    const status = (page.props as any)?.status as string | undefined;
+    const page = usePage<{ status?: string }>();
+    const status = page.props.status;
     const initialEmail = typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('email') ?? ''
         : '';
     const form = useForm({ email: initialEmail, password: '' });
-    const [processing, setProcessing] = useState(false);
 
-    function submit(e: any) {
+    function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setProcessing(true);
         form.post('/customer/login', {
-            onFinish: () => setProcessing(false),
+            preserveScroll: true,
         });
     }
 
@@ -46,7 +44,7 @@ export default function CustomerLogin() {
                     <InputError message={form.errors.password} />
                 </div>
 
-                <Button type="submit" disabled={processing}>{processing ? 'Signing in...' : 'Sign in or email me a link'}</Button>
+                <Button type="submit" disabled={form.processing}>{form.processing ? 'Signing in...' : 'Sign in'}</Button>
             </form>
 
             {status && (

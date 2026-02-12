@@ -1,4 +1,7 @@
 <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
+    <div style="margin-bottom:12px;text-align:left">
+        <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+    </div>
     <h2>Welcome, {{ $name ?: 'there' }}</h2>
     <p>We created your account while completing your recent order.</p>
     <p style="margin-top:12px">Sign in here: <a href="{{ $login_url }}">{{ $login_url }}</a></p>

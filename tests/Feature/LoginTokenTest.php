@@ -59,13 +59,18 @@ class LoginTokenTest extends TestCase
         $response->assertSessionHas('status', 'We emailed you a sign-in link.');
 
         $loginUrl = null;
-        Mail::assertSent(LoginTokenMail::class, function (LoginTokenMail $mail) use (&$loginUrl, $customer) {
+        $renderedHtml = null;
+        Mail::assertSent(LoginTokenMail::class, function (LoginTokenMail $mail) use (&$loginUrl, &$renderedHtml, $customer) {
             $loginUrl = $mail->loginUrl;
+            $renderedHtml = $mail->render();
 
             return $mail->hasTo($customer->email);
         });
 
         $this->assertNotNull($loginUrl);
+        $this->assertNotNull($renderedHtml);
+        $this->assertStringContainsString('>Login<', $renderedHtml);
+        $this->assertStringContainsString(htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8', false), $renderedHtml);
 
         $consume = $this->get($loginUrl);
         $consume->assertRedirect(route('customer.orders'));

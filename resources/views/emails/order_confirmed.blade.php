@@ -6,6 +6,9 @@
         $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
         $logoUrl = $logo_url ?? asset('images/logo.png');
     @endphp
+    <div style="margin-bottom:12px;text-align:left">
+        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+    </div>
     @if($topEmbed)
         <img src="{{ $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime']) }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
     @elseif($topImg)
@@ -112,7 +115,4 @@
             <a href="{{ $view_url }}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">View your order</a>
         </div>
     @endif
-    <div style="margin-top:24px;text-align:center">
-        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
-    </div>
 </div>

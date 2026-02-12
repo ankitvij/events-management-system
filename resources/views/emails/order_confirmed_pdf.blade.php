@@ -11,8 +11,13 @@
 			$items = $items ?? $order->items;
 			$firstItem = $items->first();
 			$topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
-			$logoUrl = $logo_url ?? asset('images/logo.png');
+			$logoPath = public_path('images/logo.png');
 		@endphp
+		<div style="margin-bottom:12px;text-align:left">
+			@if(file_exists($logoPath))
+				<img src="{{ $logoPath }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
+			@endif
+		</div>
 		@if($topImg)
 			<img src="{{ $topImg }}" alt="Event image" style="max-width:100%;height:auto;border-radius:8px;display:block;margin-bottom:12px" />
 		@endif
@@ -59,10 +64,6 @@
 					<div style="margin-top:8px"><img src="{{ $qr_codes[$item->id] }}" alt="QR code" style="width:180px;height:180px" /></div>
 				@endif
 			@endforeach
-		</div>
-
-		<div style="margin-top:24px;text-align:center">
-			<img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
 		</div>
 
 	</body>

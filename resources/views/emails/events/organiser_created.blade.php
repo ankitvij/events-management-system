@@ -1,4 +1,8 @@
 @component('mail::message')
+<div style="margin-bottom:12px;text-align:left;">
+<img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto;" />
+</div>
+
 # Congratulations, your event is live!
 
 Hi {{ $organiser->name ?? 'there' }},
