@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\VendorType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -18,6 +19,8 @@ class Vendor extends Model
         'email',
         'type',
         'city',
+        'city_id',
+        'country_id',
         'description',
         'active',
     ];
@@ -27,7 +30,19 @@ class Vendor extends Model
         return [
             'type' => VendorType::class,
             'active' => 'boolean',
+            'city_id' => 'integer',
+            'country_id' => 'integer',
         ];
+    }
+
+    public function countryRef(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function cityRef(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 
     public function availabilities(): HasMany

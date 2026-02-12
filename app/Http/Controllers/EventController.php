@@ -14,6 +14,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorBookingRequest;
+use App\Services\LocationResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -184,6 +185,9 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, $data['country'] ?? null);
+        $data = array_merge($data, $locationIds);
+
         // Allow guest-created events: user_id may be null for guests
         $data['user_id'] = $request->user()?->id;
 
@@ -528,6 +532,9 @@ class EventController extends Controller
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, $data['country'] ?? null);
+        $data = array_merge($data, $locationIds);
+
         if ($request->hasFile('image')) {
             // delete old image if exists
             if ($event->image) {
@@ -597,6 +604,8 @@ class EventController extends Controller
         }
 
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, $data['country'] ?? null);
+        $data = array_merge($data, $locationIds);
 
         if ($request->hasFile('image')) {
             if ($event->image) {

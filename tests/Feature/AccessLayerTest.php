@@ -33,8 +33,8 @@ class AccessLayerTest extends TestCase
         $matrix = [
             ['method' => 'get', 'route' => route('events.index'), 'guest' => 200, 'user' => 200, 'admin' => 200, 'super' => 200],
             ['method' => 'get', 'route' => route('events.show', $event), 'guest' => 200, 'user' => 200, 'admin' => 200, 'super' => 200],
-            ['method' => 'get', 'route' => route('organisers.index'), 'guest' => 302, 'user' => 200, 'admin' => 200, 'super' => 200],
-            ['method' => 'get', 'route' => route('organisers.show', $organiser), 'guest' => 302, 'user' => 200, 'admin' => 200, 'super' => 200],
+            ['method' => 'get', 'route' => route('organisers.index'), 'guest' => 200, 'user' => 200, 'admin' => 200, 'super' => 200],
+            ['method' => 'get', 'route' => route('organisers.show', $organiser), 'guest' => 200, 'user' => 200, 'admin' => 200, 'super' => 200],
             ['method' => 'get', 'route' => route('pages.index'), 'guest' => 302, 'user' => 200, 'admin' => 200, 'super' => 200],
             ['method' => 'get', 'route' => route('users.index'), 'guest' => 302, 'user' => 200, 'admin' => 200, 'super' => 200],
             ['method' => 'get', 'route' => route('roles.index'), 'guest' => 302, 'user' => 403, 'admin' => 403, 'super' => 200],

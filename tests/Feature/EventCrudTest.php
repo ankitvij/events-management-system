@@ -38,6 +38,7 @@ class EventCrudTest extends TestCase
             'start_at' => now()->addDay()->toDateString(),
             'end_at' => now()->addDays(2)->toDateString(),
             'city' => 'Berlin',
+            'country' => 'Germany',
             'organiser_id' => $primaryOrganiser->id,
             'organiser_emails' => 'alice@example.test,bob@example.test',
             'image' => UploadedFile::fake()->image('event.jpg', 1200, 800),
@@ -55,6 +56,8 @@ class EventCrudTest extends TestCase
         ]);
 
         $event = Event::where('title', 'My Test Event')->firstOrFail();
+        $this->assertNotNull($event->country_id);
+        $this->assertNotNull($event->city_id);
 
         // organisers created from emails should exist and be attached
         $this->assertDatabaseHas('organisers', ['email' => 'alice@example.test']);

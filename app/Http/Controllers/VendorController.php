@@ -6,6 +6,7 @@ use App\Enums\VendorType;
 use App\Http\Requests\StoreVendorRequest;
 use App\Http\Requests\UpdateVendorRequest;
 use App\Models\Vendor;
+use App\Services\LocationResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -70,6 +71,8 @@ class VendorController extends Controller
         $this->authorize('create', Vendor::class);
 
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
+        $data = array_merge($data, $locationIds);
         $data['active'] = (bool) ($data['active'] ?? false);
 
         $vendor = Vendor::query()->create($data);
@@ -114,6 +117,8 @@ class VendorController extends Controller
         $this->authorize('update', $vendor);
 
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
+        $data = array_merge($data, $locationIds);
         $data['active'] = (bool) ($data['active'] ?? false);
 
         $vendor->update($data);

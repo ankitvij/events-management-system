@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreArtistSignupRequest;
 use App\Mail\ArtistVerifyEmail;
 use App\Models\Artist;
+use App\Services\LocationResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -23,17 +24,20 @@ class ArtistSignupController extends Controller
     public function store(StoreArtistSignupRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
 
         $verifyToken = Str::random(64);
 
         /** @var Artist $artist */
-        $artist = DB::transaction(function () use ($request, $data, $verifyToken) {
+        $artist = DB::transaction(function () use ($request, $data, $verifyToken, $locationIds) {
             $photoPath = $request->file('photo')->store('artists', 'public');
 
             return Artist::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'city' => $data['city'],
+                'city_id' => $locationIds['city_id'],
+                'country_id' => $locationIds['country_id'],
                 'experience_years' => $data['experience_years'],
                 'skills' => $data['skills'],
                 'artist_types' => $data['artist_types'],

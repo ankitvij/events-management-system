@@ -54,5 +54,9 @@ class PublicSignupPagesTest extends TestCase
             'type' => 'other',
             'active' => false,
         ]);
+
+        $vendor = Vendor::query()->where('email', 'vendor@example.test')->first();
+        $this->assertNotNull($vendor);
+        $this->assertNotNull($vendor->city_id);
     }
 }

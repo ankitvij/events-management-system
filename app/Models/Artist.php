@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +22,8 @@ class Artist extends Model
         'name',
         'email',
         'city',
+        'city_id',
+        'country_id',
         'experience_years',
         'skills',
         'artist_types',
@@ -34,10 +37,22 @@ class Artist extends Model
 
     protected $casts = [
         'active' => 'boolean',
+        'city_id' => 'integer',
+        'country_id' => 'integer',
         'experience_years' => 'integer',
         'artist_types' => 'array',
         'email_verified_at' => 'datetime',
     ];
+
+    public function countryRef(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function cityRef(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
+    }
 
     public function getPhotoUrlAttribute(): ?string
     {

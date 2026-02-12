@@ -11,13 +11,17 @@ class ArtistAdminTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_non_admin_cannot_manage_artists(): void
+    public function test_non_admin_can_view_but_cannot_manage_artists(): void
     {
         $user = User::factory()->create(['role' => 'user', 'is_super_admin' => false]);
         $this->actingAs($user);
 
-        $response = $this->get('/artists');
-        $response->assertStatus(403);
+        $indexResponse = $this->get('/artists');
+        $indexResponse->assertStatus(200);
+
+        $artist = Artist::factory()->create();
+        $editResponse = $this->get("/artists/{$artist->id}/edit");
+        $editResponse->assertStatus(403);
     }
 
     public function test_admin_can_view_artists_index(): void

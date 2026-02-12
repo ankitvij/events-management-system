@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreArtistRequest;
 use App\Http\Requests\UpdateArtistRequest;
 use App\Models\Artist;
+use App\Services\LocationResolver;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -67,6 +68,8 @@ class ArtistController extends Controller
         $this->authorize('create', Artist::class);
 
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
+        $data = array_merge($data, $locationIds);
 
         $data['photo'] = $request->file('photo')->store('artists', 'public');
 
@@ -113,6 +116,8 @@ class ArtistController extends Controller
         $this->authorize('update', $artist);
 
         $data = $request->validated();
+        $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
+        $data = array_merge($data, $locationIds);
 
         if ($request->hasFile('photo')) {
             if ($artist->photo) {

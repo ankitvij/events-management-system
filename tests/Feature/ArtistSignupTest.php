@@ -40,6 +40,7 @@ class ArtistSignupTest extends TestCase
         $this->assertNull($artist->email_verified_at);
         $this->assertNotNull($artist->verify_token);
         $this->assertSame(['dj', 'performer'], $artist->artist_types);
+        $this->assertNotNull($artist->city_id);
 
         Storage::disk('public')->assertExists($artist->photo);
 

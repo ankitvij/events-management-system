@@ -24,11 +24,13 @@ class Event extends Model
         'start_at',
         'end_at',
         'city',
+        'city_id',
         'address',
         'facebook_url',
         'instagram_url',
         'whatsapp_url',
         'country',
+        'country_id',
         'image',
         'image_thumbnail',
         'user_id',
@@ -51,6 +53,8 @@ class Event extends Model
         'start_at' => 'date',
         'end_at' => 'date',
         'active' => 'boolean',
+        'city_id' => 'integer',
+        'country_id' => 'integer',
         'edit_token_expires_at' => 'datetime',
     ];
 
@@ -62,6 +66,16 @@ class Event extends Model
     public function organiser(): BelongsTo
     {
         return $this->belongsTo(Organiser::class);
+    }
+
+    public function countryRef(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id');
+    }
+
+    public function cityRef(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 
     public function organisers(): BelongsToMany
