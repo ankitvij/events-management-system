@@ -34,11 +34,11 @@ export default function VendorsIndex({ vendors }: Props) {
                     </div>
                 )}
 
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
+                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
+                    <div className="w-full min-[900px]:w-auto">
                         <ListControls path="/vendors" links={vendors.links} showSearch searchPlaceholder="Search vendors..." />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/vendors/create">New Vendor</ActionButton>
                         ) : (
@@ -49,6 +49,8 @@ export default function VendorsIndex({ vendors }: Props) {
                         )}
                     </div>
                 </div>
+
+                <CompactPagination links={vendors.links} />
 
                 <div className="grid gap-3">
                     {vendors.data?.map((v: Vendor) => (

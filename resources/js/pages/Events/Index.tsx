@@ -165,6 +165,8 @@ export default function EventsIndex({ events }: Props) {
                         <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">Actions</div>
                     </div>
 
+                    <CompactPagination links={events.links} />
+
                     <div className="space-y-3">
                     {events.data?.map((event: Event) => (
                         <div

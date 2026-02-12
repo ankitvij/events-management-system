@@ -24,10 +24,10 @@ export default function AppSidebarLayout({
                 >
                     {showSidebar && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
                     {showSidebar ? children : (
-                        <div className="mx-auto w-full max-w-screen-2xl px-0 sm:px-4 lg:px-6">
+                        <div className="mx-auto w-full max-w-screen-2xl px-[5px] sm:px-4 lg:px-6">
                             <div className="mt-6 flex items-start gap-4">
                                 <GuestSidebar />
-                                <div className="min-w-0 flex-1">{children}</div>
+                                <div className="min-w-0 flex-1 max-[999px]:[&_.pagination]:ml-14">{children}</div>
                             </div>
                         </div>
                     )}

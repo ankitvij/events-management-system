@@ -46,11 +46,11 @@ export default function OrganisersIndex({ organisers }: Props) {
             <Head title="Organisers" />
 
             <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
+                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
+                    <div className="w-full min-[900px]:w-auto">
                         <ListControls path="/organisers" links={organisers.links} showSearch searchPlaceholder="Search organisers..." />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/organisers/create">New Organiser</ActionButton>
                         ) : (
@@ -75,9 +75,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                 </div>
 
                 <div>
-                    <div className="mb-4">
-                        <CompactPagination links={organisers.links} />
-                    </div>
+                    <CompactPagination links={organisers.links} />
 
                     <div className="grid gap-3">
                     {organisers.data?.map((org: Organiser) => (

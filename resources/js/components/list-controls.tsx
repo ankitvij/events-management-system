@@ -1,6 +1,5 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import CompactPagination from '@/components/compact-pagination';
 
 type LinkItem = {
     url?: string | null;
@@ -19,7 +18,7 @@ type Props = {
 
 export default function ListControls({
     path,
-    links = [],
+    links: _links = [],
     showSearch = true,
     searchPlaceholder = 'Search...',
     showSort = false,
@@ -66,12 +65,7 @@ export default function ListControls({
     }
 
     return (
-        <div className="mb-4 flex items-center justify-between">
-            <div className="pagination">
-                <CompactPagination links={links} />
-            </div>
-
-            <div className="flex items-center gap-3">
+        <div className="mb-4 flex w-full flex-wrap items-center gap-3">
                 {showSearch && (
                     <input name="q" value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
                 )}
@@ -95,7 +89,6 @@ export default function ListControls({
                         <option value="inactive">Inactive</option>
                     </select>
                 )}
-            </div>
         </div>
     );
 }

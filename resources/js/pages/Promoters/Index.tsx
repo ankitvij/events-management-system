@@ -23,9 +23,11 @@ export default function PromotersIndex({ promoters }: Props) {
             <Head title="Promoters" />
 
             <div className="p-4">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                    <ListControls path="/promoters" links={promoters.links} showSearch searchPlaceholder="Search promoters..." />
-                    <div className="flex gap-2">
+                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
+                    <div className="w-full min-[900px]:w-auto">
+                        <ListControls path="/promoters" links={promoters.links} showSearch searchPlaceholder="Search promoters..." />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/users/create">New Promoter</ActionButton>
                         ) : (
@@ -36,6 +38,8 @@ export default function PromotersIndex({ promoters }: Props) {
                         )}
                     </div>
                 </div>
+
+                <CompactPagination links={promoters.links} />
 
                 <div className="grid gap-3">
                     {promoters.data?.map((p: Promoter) => (

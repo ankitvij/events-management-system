@@ -38,11 +38,11 @@ export default function ArtistsIndex({ artists }: Props) {
                     </div>
                 )}
 
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
+                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
+                    <div className="w-full min-[900px]:w-auto">
                         <ListControls path="/artists" links={artists.links} showSearch searchPlaceholder="Search artists..." />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/artists/create">New Artist</ActionButton>
                         ) : (
@@ -53,6 +53,8 @@ export default function ArtistsIndex({ artists }: Props) {
                         )}
                     </div>
                 </div>
+
+                <CompactPagination links={artists.links} />
 
                 <div className="grid gap-3">
                     {artists.data?.map((a: Artist) => (

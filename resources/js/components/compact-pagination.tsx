@@ -113,31 +113,34 @@ export default function CompactPagination({ links = [], className }: Props) {
     const middleItems = compactMiddleLinks(middle);
 
     return (
-        <nav className={cn('flex flex-wrap items-center gap-2 pagination', className)}>
+        <nav className={cn('my-[2px] flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto pagination sm:flex-wrap sm:overflow-visible', className)}>
             {[prev ? { type: 'link', link: prev } as RenderItem : null, ...middleItems, next ? { type: 'link', link: next } as RenderItem : null]
                 .filter((item): item is RenderItem => item !== null)
                 .map((item, index) => {
                     if (item.type === 'ellipsis') {
                         return (
-                            <span key={item.key} className="btn-ghost opacity-60 cursor-default" aria-hidden="true">
+                            <span key={item.key} className="btn-ghost opacity-60 cursor-default max-[768px]:hidden" aria-hidden="true">
                                 …
                             </span>
                         );
                     }
 
                     const normalizedLabel = normalizeLabel(item.link.label ?? '');
+                    const isArrow = normalizedLabel === '‹' || normalizedLabel === '›';
+                    const isNumeric = parsePage(item.link.label) !== null;
+                    const shouldHideOnVerySmall = isNumeric && !item.link.active && !isArrow;
                     const key = `${toPlainText(item.link.label)}-${item.link.url ?? index}`;
 
                     if (item.link.url) {
                         return (
-                            <Link key={key} href={item.link.url} className={item.link.active ? 'btn-primary' : 'btn-ghost'}>
+                            <Link key={key} href={item.link.url} className={cn(item.link.active ? 'btn-primary' : 'btn-ghost', shouldHideOnVerySmall && 'max-[768px]:hidden')}>
                                 <span dangerouslySetInnerHTML={{ __html: normalizedLabel }} />
                             </Link>
                         );
                     }
 
                     return (
-                        <span key={key} className="btn-ghost opacity-60 cursor-not-allowed" dangerouslySetInnerHTML={{ __html: normalizedLabel }} />
+                        <span key={key} className={cn('btn-ghost opacity-60 cursor-not-allowed', shouldHideOnVerySmall && 'max-[768px]:hidden')} dangerouslySetInnerHTML={{ __html: normalizedLabel }} />
                     );
                 })}
         </nav>

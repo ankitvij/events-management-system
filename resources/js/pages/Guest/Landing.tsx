@@ -1,9 +1,8 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
-import type { Pagination, Event, PaginationLink } from '@/types/entities';
+import type { Pagination, Event } from '@/types/entities';
 
 type Props = { events?: Pagination<Event> };
 
@@ -21,10 +20,6 @@ export default function GuestLanding({ events }: Props) {
     const page = usePage<{ flash?: { success?: string; error?: string; newsletter_success?: string }; cities?: string[]; countries?: string[] }>();
     const cityOptions = page.props?.cities ?? [];
     const countryOptions = page.props?.countries ?? [];
-    const paginationLinks = (events?.links ?? []).map((link) => ({
-        ...link,
-        label: link.label ?? undefined,
-    }));
 
     // Removed artist signup and login forms
 
@@ -163,8 +158,6 @@ export default function GuestLanding({ events }: Props) {
             <main className="w-full">
                 <div className="min-w-0 flex-1">
                 <section className="mt-6">
-                    <ListControls path="/" links={paginationLinks} showSearch={false} showSort={false} />
-
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                         <select
                             value={selectedCountry}
@@ -250,6 +243,10 @@ export default function GuestLanding({ events }: Props) {
 
                     </div>
 
+                    {events?.links && (
+                        <CompactPagination links={events.links} className="justify-start" />
+                    )}
+
                     <div className="space-y-3">
                         {events?.data?.length ? (
                             events.data.map((event: Event) => {
@@ -324,7 +321,7 @@ export default function GuestLanding({ events }: Props) {
                         )}
                     </div>
                     {events?.links && (
-                        <CompactPagination links={events.links} className="mt-6 justify-start" />
+                        <CompactPagination links={events.links} className="justify-start" />
                     )}
                 </section>
 
