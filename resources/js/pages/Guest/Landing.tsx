@@ -1,4 +1,14 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import {
+    ShoppingCart,
+    Ticket,
+    PlusCircle,
+    Calendar,
+    Users,
+    Mic2,
+    Megaphone,
+    Store,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -12,23 +22,11 @@ export default function GuestLanding({ events }: Props) {
     const [search, setSearch] = useState(initial);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
+    const [guestSidebarCollapsed, setGuestSidebarCollapsed] = useState(false);
     const ticketButtonClass = 'btn-primary';
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
 
-    const artistForm = useForm({
-        name: '',
-        email: '',
-        city: '',
-        experience_years: 0,
-        skills: '',
-        description: '',
-        equipment: '',
-        photo: null as File | null,
-    });
-
-    const artistLoginForm = useForm({
-        email: '',
-    });
+    // Removed artist signup and login forms
 
     const vendorLoginForm = useForm({
         email: '',
@@ -67,90 +65,7 @@ export default function GuestLanding({ events }: Props) {
             clearTimeout(timeoutRef.current);
         }
 
-        timeoutRef.current = window.setTimeout(() => {
-            const qs = new URLSearchParams(window.location.search);
-            if (search) qs.set('q', search); else qs.delete('q');
-            router.get(`${window.location.pathname}${qs.toString() ? `?${qs.toString()}` : ''}`);
-        }, delay);
-
-        return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
-    }, [search]);
-
-
-    function applySort(key: string) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        const cur = sp.get('sort') ?? '';
-        let next = '';
-        if (cur === `${key}_asc`) next = `${key}_desc`;
-        else if (cur === `${key}_desc`) next = '';
-        else next = `${key}_asc`;
-        if (next === '') sp.delete('sort'); else sp.set('sort', next);
-        sp.delete('page');
-        router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
-    }
-
-    function visitEvent(slug?: string | null) {
-        if (slug) {
-            router.visit(`/${slug}`);
-        }
-    }
-
-    return (
-        <AppLayout>
-            <Head title="Welcome to Events">
-                {[
-                    <meta key="description" name="description" content="Public landing page for guests" />,
-                ]}
-            </Head>
-
-
-
-            <main className="w-full">
-                <section className="mt-6">
-                    <div className="box">
-                        <h2 className="text-xl font-semibold">Menu</h2>
-                        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">
-                            <Link href="/customer/orders" className="btn-secondary">My orders</Link>
-                            <Link href="/customer/orders" className="btn-secondary">My tickets</Link>
-                            <Link href="/events/create" className="btn-secondary">Create event</Link>
-                            <Link href="/events" className="btn-secondary">My events</Link>
-                            <Link href="/organisers" className="btn-secondary">Organisers</Link>
-                            <Link href="/artists" className="btn-secondary">Artists</Link>
-                            <Link href="/promoters" className="btn-secondary">Promoters</Link>
-                            <Link href="/vendors" className="btn-secondary">Vendors</Link>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="mt-6">
-                    <div className="box">
-                        <h2 className="text-xl font-semibold">Artist signup</h2>
-
-                        {page.props?.flash?.success && (
-                            <div className="mt-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                                {page.props.flash.success}
-                            </div>
-                        )}
-
-                        {Object.keys(artistForm.errors).length > 0 && (
-                            <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
-                                <p className="font-semibold">Please fix the following:</p>
-                                <ul className="list-disc pl-5">
-                                    {Object.values(artistForm.errors).map((err, idx) => (
-                                        <li key={idx}>{err}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                artistForm.post('/artists/signup', {
-                                    forceFormData: true,
+                {/* Artist signup and login form removed from guest landing */}
                                     onSuccess: () => artistForm.reset('name', 'email', 'city', 'experience_years', 'skills', 'description', 'equipment', 'photo'),
                                 });
                             }}
@@ -467,6 +382,8 @@ export default function GuestLanding({ events }: Props) {
                         </form>
                     </div>
                 </section>
+                    </div>
+                </div>
             </main>
         </AppLayout>
     );
