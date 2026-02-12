@@ -66,6 +66,19 @@ class HandleInertiaRequests extends Middleware
 
                 return ['id' => $artist->id, 'name' => $artist->name, 'email' => $artist->email];
             })(),
+            'vendor' => (function () use ($request) {
+                $id = $request->session()->get('vendor_id');
+                if (! $id) {
+                    return null;
+                }
+
+                $vendor = \App\Models\Vendor::query()->find($id);
+                if (! $vendor) {
+                    return null;
+                }
+
+                return ['id' => $vendor->id, 'name' => $vendor->name, 'email' => $vendor->email];
+            })(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),

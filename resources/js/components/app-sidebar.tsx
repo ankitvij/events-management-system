@@ -72,6 +72,7 @@ export function AppSidebar() {
     }
     if (isAdmin) {
         items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
+        items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });

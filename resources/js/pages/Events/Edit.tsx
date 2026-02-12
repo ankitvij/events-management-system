@@ -9,6 +9,8 @@ import type { Event, Organiser } from '@/types/entities';
 
 type ArtistShort = { id: number; name: string; city?: string | null };
 
+type VendorShort = { id: number; name: string; city?: string | null; type?: string | null };
+
 type BookingRequestRow = {
     id: number;
     status: string;
@@ -16,6 +18,15 @@ type BookingRequestRow = {
     created_at?: string | null;
     responded_at?: string | null;
     artist?: { id: number; name: string; email?: string | null };
+};
+
+type VendorBookingRequestRow = {
+    id: number;
+    status: string;
+    message?: string | null;
+    created_at?: string | null;
+    responded_at?: string | null;
+    vendor?: { id: number; name: string; email?: string | null };
 };
 
 type Props = { event: Event };
@@ -49,12 +60,19 @@ export default function Edit({ event }: Props) {
     const organisers = page.props?.organisers ?? [];
     const artists = (page.props?.artists ?? []) as ArtistShort[];
     const bookingRequests = (page.props?.bookingRequests ?? []) as BookingRequestRow[];
+    const vendors = (page.props?.vendors ?? []) as VendorShort[];
+    const vendorBookingRequests = (page.props?.vendorBookingRequests ?? []) as VendorBookingRequestRow[];
     const editUrl = (page.props as any)?.editUrl as string | undefined;
     const requiresPassword = Boolean((page.props as any)?.requiresPassword);
     const allowOrganiserChange = (page.props as any)?.allowOrganiserChange ?? true;
 
     const bookingForm = useForm({
         artist_id: '',
+        message: '',
+    });
+
+    const vendorBookingForm = useForm({
+        vendor_id: '',
         message: '',
     });
 
@@ -250,6 +268,74 @@ export default function Edit({ event }: Props) {
                                 </div>
                             )) : (
                                 <div className="text-sm text-muted">No booking requests yet.</div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {vendors.length > 0 && (
+                    <div className="border-t pt-4">
+                        <h3 className="text-sm font-medium">Vendor booking requests</h3>
+
+                        <div className="mt-3 rounded border border-border bg-muted/20 p-3">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    vendorBookingForm.post(`/events/${event.slug}/vendor-booking-requests`, {
+                                        preserveScroll: true,
+                                        onSuccess: () => vendorBookingForm.reset('vendor_id', 'message'),
+                                    });
+                                }}
+                                className="grid grid-cols-1 gap-3 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label htmlFor="vendor_id" className="block text-sm font-medium">Vendor <span className="text-red-600">*</span></label>
+                                    <select
+                                        id="vendor_id"
+                                        className="input"
+                                        required
+                                        value={vendorBookingForm.data.vendor_id}
+                                        onChange={e => vendorBookingForm.setData('vendor_id', e.target.value)}
+                                    >
+                                        <option value="">Select vendor</option>
+                                        {vendors.map((v) => (
+                                            <option key={v.id} value={String(v.id)}>{v.name}{v.type ? ` (${v.type})` : ''}{v.city ? ` · ${v.city}` : ''}</option>
+                                        ))}
+                                    </select>
+                                    {vendorBookingForm.errors.vendor_id && <p className="mt-1 text-sm text-red-600">{vendorBookingForm.errors.vendor_id}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="vendor_booking_message" className="block text-sm font-medium">Message</label>
+                                    <textarea
+                                        id="vendor_booking_message"
+                                        className="input"
+                                        rows={3}
+                                        value={vendorBookingForm.data.message}
+                                        onChange={e => vendorBookingForm.setData('message', e.target.value)}
+                                    />
+                                    {vendorBookingForm.errors.message && <p className="mt-1 text-sm text-red-600">{vendorBookingForm.errors.message}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <button type="submit" className="btn-secondary" disabled={vendorBookingForm.processing}>
+                                        Send vendor booking request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="mt-3 grid gap-2">
+                            {vendorBookingRequests.length ? vendorBookingRequests.map((br) => (
+                                <div key={br.id} className="rounded border p-3">
+                                    <div className="text-sm">
+                                        <span className="font-medium">{br.vendor?.name ?? 'Vendor'}</span>
+                                        <span className="text-muted"> · {br.status}</span>
+                                    </div>
+                                    {br.message ? <div className="mt-2 text-sm text-muted whitespace-pre-wrap">{br.message}</div> : null}
+                                </div>
+                            )) : (
+                                <div className="text-sm text-muted">No vendor booking requests yet.</div>
                             )}
                         </div>
                     </div>

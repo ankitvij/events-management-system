@@ -240,6 +240,11 @@ use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\NewsletterSignupController;
+use App\Http\Controllers\VendorAuthController;
+use App\Http\Controllers\VendorBookingRequestController;
+use App\Http\Controllers\VendorCalendarController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorPortalController;
 
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
@@ -285,11 +290,34 @@ Route::get('artist/bookings', [ArtistBookingRequestController::class, 'index'])-
 Route::post('artist/bookings/{bookingRequest}/accept', [ArtistBookingRequestController::class, 'accept'])->name('artist.bookings.accept');
 Route::post('artist/bookings/{bookingRequest}/decline', [ArtistBookingRequestController::class, 'decline'])->name('artist.bookings.decline');
 
+// Vendor magic-link login (from landing page)
+Route::post('vendors/login/token', [VendorAuthController::class, 'sendToken'])->middleware('guest')->name('vendors.login.token.send');
+Route::get('vendors/login/token/{token}', [VendorAuthController::class, 'consumeToken'])->middleware('guest')->name('vendors.login.token.consume');
+Route::post('vendors/logout', [VendorAuthController::class, 'logout'])->name('vendors.logout');
+
+// Vendor portal
+Route::get('vendor/calendar', [VendorCalendarController::class, 'index'])->name('vendor.calendar');
+Route::post('vendor/calendar', [VendorCalendarController::class, 'store'])->name('vendor.calendar.store');
+Route::delete('vendor/calendar/{availability}', [VendorCalendarController::class, 'destroy'])->name('vendor.calendar.destroy');
+Route::post('vendor/equipment', [VendorPortalController::class, 'storeEquipment'])->name('vendor.equipment.store');
+Route::delete('vendor/equipment/{equipment}', [VendorPortalController::class, 'destroyEquipment'])->name('vendor.equipment.destroy');
+Route::post('vendor/services', [VendorPortalController::class, 'storeService'])->name('vendor.services.store');
+Route::delete('vendor/services/{service}', [VendorPortalController::class, 'destroyService'])->name('vendor.services.destroy');
+Route::get('vendor/bookings', [VendorBookingRequestController::class, 'index'])->name('vendor.bookings');
+Route::post('vendor/bookings/{vendorBookingRequest}/accept', [VendorBookingRequestController::class, 'accept'])->name('vendor.bookings.accept');
+Route::post('vendor/bookings/{vendorBookingRequest}/decline', [VendorBookingRequestController::class, 'decline'])->name('vendor.bookings.decline');
+
 // Organiser: send booking request to artist for an event
 Route::post('events/{event}/booking-requests', [BookingRequestController::class, 'store'])->middleware(['auth'])->name('events.booking-requests.store');
 
+// Organiser: send booking request to vendor for an event
+Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestController::class, 'store'])->middleware(['auth'])->name('events.vendor-booking-requests.store');
+
 // Admin artists management
 Route::resource('artists', ArtistController::class)->middleware(['auth']);
+
+// Admin vendors management
+Route::resource('vendors', VendorController::class)->middleware(['auth']);
 
 use App\Http\Controllers\Admin\LogController;
 

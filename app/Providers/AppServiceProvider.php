@@ -7,9 +7,11 @@ use App\Models\Artist;
 use App\Models\Customer;
 use App\Models\Organiser;
 use App\Models\User;
+use App\Models\Vendor;
 use App\Policies\ArtistPolicy;
 use App\Policies\CustomerPolicy;
 use App\Policies\OrganiserPolicy;
+use App\Policies\VendorPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Mail\Events\MessageFailed;
@@ -46,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Organiser::class, OrganiserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(Artist::class, ArtistPolicy::class);
+        Gate::policy(Vendor::class, VendorPolicy::class);
 
         Gate::define('access-pages', function (User $user) {
             return $user->hasRole(['user', 'admin']);

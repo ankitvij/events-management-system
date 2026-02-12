@@ -79,6 +79,11 @@ class Event extends Model
         return $this->belongsToMany(Artist::class, 'artist_event')->withTimestamps();
     }
 
+    public function vendors(): BelongsToMany
+    {
+        return $this->belongsToMany(Vendor::class, 'vendor_event')->withTimestamps();
+    }
+
     /**
      * Return a full URL for the image with cache-busting based on file mtime when available.
      */

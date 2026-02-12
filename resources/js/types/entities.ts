@@ -32,6 +32,18 @@ export type Artist = {
     updated_at?: string | null;
 };
 
+export type Vendor = {
+    id: number;
+    name: string;
+    email: string;
+    type: string;
+    city?: string | null;
+    description?: string | null;
+    active?: boolean;
+    created_at?: string | null;
+    updated_at?: string | null;
+};
+
 export type Event = {
     id: number;
     slug?: string | null;

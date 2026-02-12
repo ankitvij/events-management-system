@@ -11,6 +11,8 @@ use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\Ticket;
+use App\Models\Vendor;
+use App\Models\VendorBookingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -352,6 +354,7 @@ class EventController extends Controller
             $event->load('organisers');
         }
         $event->load('artists');
+        $event->load('vendors');
 
         $current = auth()->user();
 
@@ -404,6 +407,15 @@ class EventController extends Controller
             ];
         })->values();
 
+        $vendors = $event->vendors->map(function (Vendor $v) {
+            return [
+                'id' => $v->id,
+                'name' => $v->name,
+                'city' => $v->city,
+                'type' => $v->type?->value,
+            ];
+        })->values();
+
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
@@ -412,6 +424,7 @@ class EventController extends Controller
                 'canEdit' => $canEdit,
                 'tickets' => $tickets,
                 'artists' => $artists,
+                'vendors' => $vendors,
             ]);
         }
 
@@ -422,6 +435,7 @@ class EventController extends Controller
             'canEdit' => $canEdit,
             'tickets' => $tickets,
             'artists' => $artists,
+            'vendors' => $vendors,
         ]);
     }
 
@@ -459,8 +473,16 @@ class EventController extends Controller
 
         $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
 
+        $vendors = Vendor::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city', 'type']);
+
         $bookingRequests = BookingRequest::query()
             ->with('artist')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $vendorBookingRequests = VendorBookingRequest::query()
+            ->with('vendor')
             ->where('event_id', $event->id)
             ->orderByDesc('created_at')
             ->get();
@@ -470,6 +492,8 @@ class EventController extends Controller
             'organisers' => $organisers,
             'artists' => $artists,
             'bookingRequests' => $bookingRequests,
+            'vendors' => $vendors,
+            'vendorBookingRequests' => $vendorBookingRequests,
         ]);
     }
 
