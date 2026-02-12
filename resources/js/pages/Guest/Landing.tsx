@@ -30,6 +30,10 @@ export default function GuestLanding({ events }: Props) {
         email: '',
     });
 
+    const newsletterForm = useForm({
+        email: '',
+    });
+
     const formatTicketRange = (event: Event): string | null => {
         const minValue = event.min_ticket_price;
         const maxValue = event.max_ticket_price;
@@ -101,6 +105,22 @@ export default function GuestLanding({ events }: Props) {
 
 
             <main className="w-full">
+                <section className="mt-6">
+                    <div className="box">
+                        <h2 className="text-xl font-semibold">Menu</h2>
+                        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">
+                            <Link href="/customer/orders" className="btn-secondary">My orders</Link>
+                            <Link href="/customer/orders" className="btn-secondary">My tickets</Link>
+                            <Link href="/events/create" className="btn-secondary">Create event</Link>
+                            <Link href="/events" className="btn-secondary">My events</Link>
+                            <Link href="/organisers" className="btn-secondary">Organisers</Link>
+                            <Link href="/artists" className="btn-secondary">Artists</Link>
+                            <Link href="/promoters" className="btn-secondary">Promoters</Link>
+                            <Link href="/vendors" className="btn-secondary">Vendors</Link>
+                        </div>
+                    </div>
+                </section>
+
                 <section className="mt-6">
                     <div className="box">
                         <h2 className="text-xl font-semibold">Artist signup</h2>
@@ -367,6 +387,49 @@ export default function GuestLanding({ events }: Props) {
                             })}
                         </nav>
                     )}
+                </section>
+
+                <section className="mt-6 mb-10">
+                    <div className="box">
+                        <h2 className="text-xl font-semibold">Newsletter</h2>
+                        <p className="mt-2 text-sm text-muted">Get updates about new events.</p>
+
+                        {page.props?.flash?.newsletter_success && (
+                            <div className="mt-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                                {page.props.flash.newsletter_success}
+                            </div>
+                        )}
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                newsletterForm.post('/newsletter/signup', {
+                                    onSuccess: () => newsletterForm.reset('email'),
+                                });
+                            }}
+                            className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                        >
+                            <div>
+                                <label htmlFor="newsletter_email" className="block text-sm font-medium">Email</label>
+                                <input
+                                    id="newsletter_email"
+                                    name="email"
+                                    type="email"
+                                    required
+                                    value={newsletterForm.data.email}
+                                    onChange={e => newsletterForm.setData('email', e.target.value)}
+                                    className="input"
+                                    placeholder="you@example.com"
+                                />
+                                {newsletterForm.errors.email && <div className="mt-1 text-sm text-red-600">{newsletterForm.errors.email}</div>}
+                            </div>
+                            <div className="flex items-end">
+                                <button type="submit" className="btn-primary" disabled={newsletterForm.processing}>
+                                    Subscribe
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </section>
             </main>
         </AppLayout>

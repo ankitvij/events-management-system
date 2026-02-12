@@ -239,6 +239,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\NewsletterSignupController;
 
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
@@ -267,6 +268,9 @@ Route::resource('customers', CustomerController::class)->middleware(['auth']);
 // Public artist signup (from landing page)
 Route::post('artists/signup', [ArtistSignupController::class, 'store'])->middleware('guest')->name('artists.signup');
 Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])->middleware('signed')->name('artists.verify');
+
+// Newsletter
+Route::post('newsletter/signup', [NewsletterSignupController::class, 'store'])->middleware('guest')->name('newsletter.signup');
 
 // Artist magic-link login (from landing page)
 Route::post('artists/login/token', [ArtistAuthController::class, 'sendToken'])->middleware('guest')->name('artists.login.token.send');
