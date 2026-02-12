@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -14,7 +14,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function OrganisersIndex({ organisers }: Props) {
+    const page = usePage<{ auth?: { user?: { role?: string; is_super_admin?: boolean } } }>();
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
 
 
 
@@ -48,7 +50,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                         <ListControls path="/organisers" links={organisers.links} showSearch searchPlaceholder="Search organisers..." />
                     </div>
                     <div className="flex gap-2">
-                        <ActionButton href="/organisers/create">New Organiser</ActionButton>
+                        {canManage ? <ActionButton href="/organisers/create">New Organiser</ActionButton> : null}
                     </div>
                 </div>
 
@@ -97,20 +99,22 @@ export default function OrganisersIndex({ organisers }: Props) {
                                     </div>
                                     <div className="text-sm text-muted">{org.email}</div>
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <label className="flex items-center mr-3">
-                                        <input type="checkbox" checked={!!org.active} onChange={e => toggleActive(org.id, e.target.checked)} />
-                                        <span className="ml-2 text-sm text-muted">Active</span>
-                                    </label>
+                                {canManage ? (
+                                    <div className="flex gap-2 items-center">
+                                        <label className="flex items-center mr-3">
+                                            <input type="checkbox" checked={!!org.active} onChange={e => toggleActive(org.id, e.target.checked)} />
+                                            <span className="ml-2 text-sm text-muted">Active</span>
+                                        </label>
 
-                                    <div className="flex gap-2">
-                                        <Link href={`/organisers/${org.id}/edit`} className="text-sm text-blue-600">Edit</Link>
-                                        <form action={`/organisers/${org.id}`} method="post" className="inline">
-                                            <input type="hidden" name="_method" value="delete" />
-                                            <button className="btn-danger" type="submit">Delete</button>
-                                        </form>
+                                        <div className="flex gap-2">
+                                            <Link href={`/organisers/${org.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                            <form action={`/organisers/${org.id}`} method="post" className="inline">
+                                                <input type="hidden" name="_method" value="delete" />
+                                                <button className="btn-danger" type="submit">Delete</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : null}
                             </div>
                         </div>
                     ))}

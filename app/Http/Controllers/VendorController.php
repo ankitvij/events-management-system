@@ -14,7 +14,7 @@ class VendorController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['index', 'show']);
     }
 
     /**
@@ -25,6 +25,10 @@ class VendorController extends Controller
         $this->authorize('viewAny', Vendor::class);
 
         $query = Vendor::query()->orderBy('name');
+
+        if (! auth()->check()) {
+            $query->where('active', true);
+        }
 
         $search = $request->string('q')->toString();
         if ($search !== '') {
@@ -79,6 +83,10 @@ class VendorController extends Controller
     public function show(Vendor $vendor)
     {
         $this->authorize('view', $vendor);
+
+        if (! auth()->check() && ! $vendor->active) {
+            abort(404);
+        }
 
         $vendor->load(['equipment', 'services']);
 

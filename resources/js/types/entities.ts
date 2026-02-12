@@ -15,6 +15,8 @@ export type UserShort = { id: number; name?: string | null; email?: string | nul
 
 export type Customer = { id: number; name?: string | null; email?: string | null; phone?: string | null; active?: boolean };
 
+export type Promoter = { id: number; name?: string | null; email?: string | null; active?: boolean };
+
 export type Artist = {
     id: number;
     name: string;

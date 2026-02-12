@@ -15,6 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function VendorsIndex({ vendors }: Props) {
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
+    const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -37,7 +38,7 @@ export default function VendorsIndex({ vendors }: Props) {
                         <ListControls path="/vendors" links={vendors.links} showSearch searchPlaceholder="Search vendors..." />
                     </div>
                     <div className="flex gap-2">
-                        <ActionButton href="/vendors/create">New Vendor</ActionButton>
+                        {canManage ? <ActionButton href="/vendors/create">New Vendor</ActionButton> : null}
                     </div>
                 </div>
 
@@ -58,15 +59,17 @@ export default function VendorsIndex({ vendors }: Props) {
                                     <div className="text-sm text-muted">{v.type}{v.city ? ` · ${v.city}` : ''}</div>
                                 </div>
 
-                                <div className="flex gap-2 items-center shrink-0">
-                                    <div className="flex gap-2">
-                                        <Link href={`/vendors/${v.id}/edit`} className="text-sm text-blue-600">Edit</Link>
-                                        <form action={`/vendors/${v.id}`} method="post" className="inline">
-                                            <input type="hidden" name="_method" value="delete" />
-                                            <button className="btn-danger" type="submit">Delete</button>
-                                        </form>
+                                {canManage ? (
+                                    <div className="flex gap-2 items-center shrink-0">
+                                        <div className="flex gap-2">
+                                            <Link href={`/vendors/${v.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                            <form action={`/vendors/${v.id}`} method="post" className="inline">
+                                                <input type="hidden" name="_method" value="delete" />
+                                                <button className="btn-danger" type="submit">Delete</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : null}
                             </div>
                         </div>
                     ))}

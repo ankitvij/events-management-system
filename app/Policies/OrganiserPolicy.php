@@ -9,12 +9,12 @@ class OrganiserPolicy
 {
     public function viewAny(?User $user): bool
     {
-        return $user !== null;
+        return true;
     }
 
     public function view(?User $user, Organiser $organiser): bool
     {
-        return $user !== null;
+        return true;
     }
 
     public function create(User $user): bool

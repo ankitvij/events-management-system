@@ -15,6 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function ArtistsIndex({ artists }: Props) {
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
+    const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
 
     function toggleActive(id: number, value: boolean) {
         router.put(`/artists/${id}`, { active: value }, { preserveScroll: true });
@@ -41,7 +42,7 @@ export default function ArtistsIndex({ artists }: Props) {
                         <ListControls path="/artists" links={artists.links} showSearch searchPlaceholder="Search artists..." />
                     </div>
                     <div className="flex gap-2">
-                        <ActionButton href="/artists/create">New Artist</ActionButton>
+                        {canManage ? <ActionButton href="/artists/create">New Artist</ActionButton> : null}
                     </div>
                 </div>
 
@@ -62,20 +63,22 @@ export default function ArtistsIndex({ artists }: Props) {
                                     <div className="text-sm text-muted">{a.city}</div>
                                 </div>
 
-                                <div className="flex gap-2 items-center shrink-0">
-                                    <label className="flex items-center mr-3">
-                                        <input type="checkbox" checked={!!a.active} onChange={e => toggleActive(a.id, e.target.checked)} />
-                                        <span className="ml-2 text-sm text-muted">Active</span>
-                                    </label>
+                                {canManage ? (
+                                    <div className="flex gap-2 items-center shrink-0">
+                                        <label className="flex items-center mr-3">
+                                            <input type="checkbox" checked={!!a.active} onChange={e => toggleActive(a.id, e.target.checked)} />
+                                            <span className="ml-2 text-sm text-muted">Active</span>
+                                        </label>
 
-                                    <div className="flex gap-2">
-                                        <Link href={`/artists/${a.id}/edit`} className="text-sm text-blue-600">Edit</Link>
-                                        <form action={`/artists/${a.id}`} method="post" className="inline">
-                                            <input type="hidden" name="_method" value="delete" />
-                                            <button className="btn-danger" type="submit">Delete</button>
-                                        </form>
+                                        <div className="flex gap-2">
+                                            <Link href={`/artists/${a.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                                            <form action={`/artists/${a.id}`} method="post" className="inline">
+                                                <input type="hidden" name="_method" value="delete" />
+                                                <button className="btn-danger" type="submit">Delete</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : null}
                             </div>
                         </div>
                     ))}

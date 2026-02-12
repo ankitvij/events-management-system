@@ -9,12 +9,12 @@ class ArtistPolicy
 {
     public function viewAny(?User $user): bool
     {
-        return $user !== null && $user->hasRole('admin');
+        return true;
     }
 
-    public function view(User $user, Artist $artist): bool
+    public function view(?User $user, Artist $artist): bool
     {
-        return $user->hasRole('admin');
+        return true;
     }
 
     public function create(User $user): bool

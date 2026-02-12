@@ -195,6 +195,7 @@ Route::put('events/{event}/active', [EventController::class, 'toggleActive'])->m
 use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
+Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
 
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\RoleController;
@@ -223,7 +224,8 @@ Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
 
 use App\Http\Controllers\OrganiserController;
 
-Route::resource('organisers', OrganiserController::class)->middleware(['auth']);
+Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
+Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\TicketController;
 
@@ -314,10 +316,12 @@ Route::post('events/{event}/booking-requests', [BookingRequestController::class,
 Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestController::class, 'store'])->middleware(['auth'])->name('events.vendor-booking-requests.store');
 
 // Admin artists management
-Route::resource('artists', ArtistController::class)->middleware(['auth']);
+Route::resource('artists', ArtistController::class)->only(['index', 'show']);
+Route::resource('artists', ArtistController::class)->middleware(['auth'])->except(['index', 'show']);
 
 // Admin vendors management
-Route::resource('vendors', VendorController::class)->middleware(['auth']);
+Route::resource('vendors', VendorController::class)->only(['index', 'show']);
+Route::resource('vendors', VendorController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\Admin\LogController;
 

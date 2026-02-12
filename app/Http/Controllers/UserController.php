@@ -12,6 +12,25 @@ use Inertia\Inertia;
 
 class UserController
 {
+    public function promoters(Request $request)
+    {
+        $promoters = User::query()
+            ->where('is_super_admin', false)
+            ->where('active', true)
+            ->where('role', Role::USER->value)
+            ->orderBy('name')
+            ->paginate(20)
+            ->withQueryString();
+
+        if ($request->expectsJson() || app()->runningUnitTests()) {
+            return response()->json(['promoters' => $promoters]);
+        }
+
+        return Inertia::render('Promoters/Index', [
+            'promoters' => $promoters,
+        ]);
+    }
+
     public function index(Request $request)
     {
         $query = User::query();

@@ -14,7 +14,7 @@ class ArtistController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['index', 'show']);
     }
 
     /**
@@ -25,6 +25,10 @@ class ArtistController extends Controller
         $this->authorize('viewAny', Artist::class);
 
         $query = Artist::query()->orderBy('name');
+
+        if (! auth()->check()) {
+            $query->where('active', true);
+        }
 
         $search = $request->string('q')->toString();
         if ($search !== '') {
@@ -83,6 +87,10 @@ class ArtistController extends Controller
     public function show(Artist $artist)
     {
         $this->authorize('view', $artist);
+
+        if (! auth()->check() && ! $artist->active) {
+            abort(404);
+        }
 
         return Inertia::render('Artists/Show', ['artist' => $artist]);
     }

@@ -13,15 +13,18 @@ class OrganiserController extends Controller
 {
     public function __construct()
     {
-        // resource-style authorization
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['index', 'show']);
     }
 
     public function index(Request $request)
     {
         $this->authorize('viewAny', Organiser::class);
 
-        $query = Organiser::orderBy('name');
+        $query = Organiser::query()->orderBy('name');
+
+        if (! auth()->check()) {
+            $query->where('active', true);
+        }
 
         $search = request('q', '');
         if ($search) {
@@ -73,6 +76,10 @@ class OrganiserController extends Controller
     public function show(Organiser $organiser)
     {
         $this->authorize('view', $organiser);
+
+        if (! auth()->check() && ! $organiser->active) {
+            abort(404);
+        }
 
         $organiser->load('events');
 

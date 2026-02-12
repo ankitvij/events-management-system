@@ -9,12 +9,12 @@ class VendorPolicy
 {
     public function viewAny(?User $user): bool
     {
-        return $user !== null && $user->hasRole('admin');
+        return true;
     }
 
-    public function view(User $user, Vendor $vendor): bool
+    public function view(?User $user, Vendor $vendor): bool
     {
-        return $user->hasRole('admin');
+        return true;
     }
 
     public function create(User $user): bool
