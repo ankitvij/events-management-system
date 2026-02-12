@@ -7,6 +7,17 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Event, Organiser } from '@/types/entities';
 
+type ArtistShort = { id: number; name: string; city?: string | null };
+
+type BookingRequestRow = {
+    id: number;
+    status: string;
+    message?: string | null;
+    created_at?: string | null;
+    responded_at?: string | null;
+    artist?: { id: number; name: string; email?: string | null };
+};
+
 type Props = { event: Event };
 
 export default function Edit({ event }: Props) {
@@ -36,9 +47,16 @@ export default function Edit({ event }: Props) {
 
     const page = usePage();
     const organisers = page.props?.organisers ?? [];
+    const artists = (page.props?.artists ?? []) as ArtistShort[];
+    const bookingRequests = (page.props?.bookingRequests ?? []) as BookingRequestRow[];
     const editUrl = (page.props as any)?.editUrl as string | undefined;
     const requiresPassword = Boolean((page.props as any)?.requiresPassword);
     const allowOrganiserChange = (page.props as any)?.allowOrganiserChange ?? true;
+
+    const bookingForm = useForm({
+        artist_id: '',
+        message: '',
+    });
 
     function submit(e: FormEvent) {
         e.preventDefault();
@@ -168,6 +186,74 @@ export default function Edit({ event }: Props) {
                 <div>
                     <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Save</ActionButton>
                 </div>
+
+                {artists.length > 0 && (
+                    <div className="border-t pt-4">
+                        <h3 className="text-sm font-medium">Booking requests</h3>
+
+                        <div className="mt-3 rounded border border-border bg-muted/20 p-3">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    bookingForm.post(`/events/${event.slug}/booking-requests`, {
+                                        preserveScroll: true,
+                                        onSuccess: () => bookingForm.reset('artist_id', 'message'),
+                                    });
+                                }}
+                                className="grid grid-cols-1 gap-3 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label htmlFor="artist_id" className="block text-sm font-medium">Artist <span className="text-red-600">*</span></label>
+                                    <select
+                                        id="artist_id"
+                                        className="input"
+                                        required
+                                        value={bookingForm.data.artist_id}
+                                        onChange={e => bookingForm.setData('artist_id', e.target.value)}
+                                    >
+                                        <option value="">Select artist</option>
+                                        {artists.map((a) => (
+                                            <option key={a.id} value={String(a.id)}>{a.name}{a.city ? ` (${a.city})` : ''}</option>
+                                        ))}
+                                    </select>
+                                    {bookingForm.errors.artist_id && <p className="mt-1 text-sm text-red-600">{bookingForm.errors.artist_id}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="booking_message" className="block text-sm font-medium">Message</label>
+                                    <textarea
+                                        id="booking_message"
+                                        className="input"
+                                        rows={3}
+                                        value={bookingForm.data.message}
+                                        onChange={e => bookingForm.setData('message', e.target.value)}
+                                    />
+                                    {bookingForm.errors.message && <p className="mt-1 text-sm text-red-600">{bookingForm.errors.message}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <button type="submit" className="btn-secondary" disabled={bookingForm.processing}>
+                                        Send booking request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div className="mt-3 grid gap-2">
+                            {bookingRequests.length ? bookingRequests.map((br) => (
+                                <div key={br.id} className="rounded border p-3">
+                                    <div className="text-sm">
+                                        <span className="font-medium">{br.artist?.name ?? 'Artist'}</span>
+                                        <span className="text-muted"> · {br.status}</span>
+                                    </div>
+                                    {br.message ? <div className="mt-2 text-sm text-muted whitespace-pre-wrap">{br.message}</div> : null}
+                                </div>
+                            )) : (
+                                <div className="text-sm text-muted">No booking requests yet.</div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </form>
         </AppLayout>
     );

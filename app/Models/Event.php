@@ -74,6 +74,11 @@ class Event extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    public function artists(): BelongsToMany
+    {
+        return $this->belongsToMany(Artist::class, 'artist_event')->withTimestamps();
+    }
+
     /**
      * Return a full URL for the image with cache-busting based on file mtime when available.
      */

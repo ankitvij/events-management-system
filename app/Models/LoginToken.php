@@ -16,6 +16,7 @@ class LoginToken extends Model
         'type',
         'user_id',
         'customer_id',
+        'artist_id',
         'expires_at',
         'used_at',
     ];

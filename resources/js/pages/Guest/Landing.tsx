@@ -26,6 +26,10 @@ export default function GuestLanding({ events }: Props) {
         photo: null as File | null,
     });
 
+    const artistLoginForm = useForm({
+        email: '',
+    });
+
     const formatTicketRange = (event: Event): string | null => {
         const minValue = event.min_ticket_price;
         const maxValue = event.max_ticket_price;
@@ -178,6 +182,38 @@ export default function GuestLanding({ events }: Props) {
                         <p className="mt-3 text-sm text-muted">
                             After signing up, we’ll email you a verification link to activate your account.
                         </p>
+
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="text-sm font-medium">Already an artist?</h3>
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    artistLoginForm.post('/artists/login/token', {
+                                        onSuccess: () => artistLoginForm.reset('email'),
+                                    });
+                                }}
+                                className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
+                            >
+                                <div>
+                                    <label htmlFor="artist_login_email" className="block text-sm font-medium">Email</label>
+                                    <input
+                                        id="artist_login_email"
+                                        name="email"
+                                        type="email"
+                                        required
+                                        value={artistLoginForm.data.email}
+                                        onChange={e => artistLoginForm.setData('email', e.target.value)}
+                                        className="input"
+                                    />
+                                    {artistLoginForm.errors.email && <div className="mt-1 text-sm text-red-600">{artistLoginForm.errors.email}</div>}
+                                </div>
+                                <div className="flex items-end">
+                                    <button type="submit" className="btn-secondary" disabled={artistLoginForm.processing}>
+                                        Email sign-in link
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </section>
 

@@ -11,6 +11,8 @@ import type { BreadcrumbItem } from '@/types';
 
 type Organiser = { id: number; name: string };
 
+type ArtistShort = { id: number; name: string; city?: string | null; photo_url?: string | null };
+
 type Event = {
     id: number;
     slug: string;
@@ -44,6 +46,7 @@ export default function Show({ event }: Props) {
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const organisers = page.props?.organisers ?? [] as Organiser[];
+    const artists = (page.props?.artists ?? []) as ArtistShort[];
 
     // debug logging removed
 
@@ -229,6 +232,23 @@ export default function Show({ event }: Props) {
                     ) : (
                         <OrganiserPlaceholder />
                     )
+                )}
+
+                {artists.length > 0 && (
+                    <div className="mt-2">
+                        <div className="text-sm text-muted">Artists:</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {artists.map((a) => (
+                                <div key={a.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
+                                    {a.photo_url ? (
+                                        <img src={a.photo_url} alt={a.name} className="h-6 w-6 rounded-full object-cover" />
+                                    ) : null}
+                                    <span className="font-medium">{a.name}</span>
+                                    {a.city ? <span className="text-muted">· {a.city}</span> : null}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 )}
 
                 <div

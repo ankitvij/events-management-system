@@ -6,6 +6,8 @@ use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventFromLinkRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Mail\EventOrganiserCreated;
+use App\Models\Artist;
+use App\Models\BookingRequest;
 use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\Ticket;
@@ -349,6 +351,7 @@ class EventController extends Controller
         if (auth()->check()) {
             $event->load('organisers');
         }
+        $event->load('artists');
 
         $current = auth()->user();
 
@@ -392,6 +395,15 @@ class EventController extends Controller
             ];
         })->values();
 
+        $artists = $event->artists->map(function (Artist $a) {
+            return [
+                'id' => $a->id,
+                'name' => $a->name,
+                'city' => $a->city,
+                'photo_url' => $a->photo_url,
+            ];
+        })->values();
+
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
@@ -399,6 +411,7 @@ class EventController extends Controller
                 'showOrganisers' => auth()->check(),
                 'canEdit' => $canEdit,
                 'tickets' => $tickets,
+                'artists' => $artists,
             ]);
         }
 
@@ -408,6 +421,7 @@ class EventController extends Controller
             'showHomeHeader' => ! auth()->check(),
             'canEdit' => $canEdit,
             'tickets' => $tickets,
+            'artists' => $artists,
         ]);
     }
 
@@ -443,9 +457,19 @@ class EventController extends Controller
         $event->load('organisers', 'organiser', 'user');
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
 
+        $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
+
+        $bookingRequests = BookingRequest::query()
+            ->with('artist')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
         return Inertia::render('Events/Edit', [
             'event' => $event,
             'organisers' => $organisers,
+            'artists' => $artists,
+            'bookingRequests' => $bookingRequests,
         ]);
     }
 

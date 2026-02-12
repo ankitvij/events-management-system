@@ -232,8 +232,12 @@ Route::post('events/{event}/tickets', [TicketController::class, 'store'])->middl
 Route::put('events/{event}/tickets/{ticket}', [TicketController::class, 'update'])->middleware(['auth'])->name('events.tickets.update');
 Route::delete('events/{event}/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware(['auth'])->name('events.tickets.destroy');
 
+use App\Http\Controllers\ArtistAuthController;
+use App\Http\Controllers\ArtistBookingRequestController;
+use App\Http\Controllers\ArtistCalendarController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\ArtistSignupController;
+use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
 
 // Shopping cart
@@ -263,6 +267,22 @@ Route::resource('customers', CustomerController::class)->middleware(['auth']);
 // Public artist signup (from landing page)
 Route::post('artists/signup', [ArtistSignupController::class, 'store'])->middleware('guest')->name('artists.signup');
 Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])->middleware('signed')->name('artists.verify');
+
+// Artist magic-link login (from landing page)
+Route::post('artists/login/token', [ArtistAuthController::class, 'sendToken'])->middleware('guest')->name('artists.login.token.send');
+Route::get('artists/login/token/{token}', [ArtistAuthController::class, 'consumeToken'])->middleware('guest')->name('artists.login.token.consume');
+Route::post('artists/logout', [ArtistAuthController::class, 'logout'])->name('artists.logout');
+
+// Artist portal
+Route::get('artist/calendar', [ArtistCalendarController::class, 'index'])->name('artist.calendar');
+Route::post('artist/calendar', [ArtistCalendarController::class, 'store'])->name('artist.calendar.store');
+Route::delete('artist/calendar/{availability}', [ArtistCalendarController::class, 'destroy'])->name('artist.calendar.destroy');
+Route::get('artist/bookings', [ArtistBookingRequestController::class, 'index'])->name('artist.bookings');
+Route::post('artist/bookings/{bookingRequest}/accept', [ArtistBookingRequestController::class, 'accept'])->name('artist.bookings.accept');
+Route::post('artist/bookings/{bookingRequest}/decline', [ArtistBookingRequestController::class, 'decline'])->name('artist.bookings.decline');
+
+// Organiser: send booking request to artist for an event
+Route::post('events/{event}/booking-requests', [BookingRequestController::class, 'store'])->middleware(['auth'])->name('events.booking-requests.store');
 
 // Admin artists management
 Route::resource('artists', ArtistController::class)->middleware(['auth']);
