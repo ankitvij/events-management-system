@@ -19,7 +19,7 @@ class VendorAvailabilityFactory extends Factory
     {
         return [
             'vendor_id' => Vendor::factory(),
-            'date' => fake()->dateTimeBetween('now', '+30 days')->format('Y-m-d'),
+            'date' => $this->faker->dateTimeBetween('now', '+30 days')->format('Y-m-d'),
             'is_available' => true,
         ];
     }

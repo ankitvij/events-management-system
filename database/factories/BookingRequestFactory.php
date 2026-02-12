@@ -25,7 +25,7 @@ class BookingRequestFactory extends Factory
             'artist_id' => Artist::factory(),
             'requested_by_user_id' => User::factory(),
             'status' => BookingRequest::STATUS_PENDING,
-            'message' => fake()->sentence(),
+            'message' => $this->faker->sentence(),
             'responded_at' => null,
         ];
     }

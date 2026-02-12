@@ -25,7 +25,7 @@ class VendorBookingRequestFactory extends Factory
             'vendor_id' => Vendor::factory(),
             'requested_by_user_id' => User::factory(),
             'status' => VendorBookingRequest::STATUS_PENDING,
-            'message' => fake()->sentence(),
+            'message' => $this->faker->sentence(),
             'responded_at' => null,
         ];
     }

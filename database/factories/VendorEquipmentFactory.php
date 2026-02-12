@@ -19,8 +19,8 @@ class VendorEquipmentFactory extends Factory
     {
         return [
             'vendor_id' => Vendor::factory(),
-            'name' => fake()->words(3, true),
-            'price' => fake()->randomFloat(2, 0, 5000),
+            'name' => $this->faker->words(3, true),
+            'price' => $this->faker->randomFloat(2, 0, 5000),
         ];
     }
 }

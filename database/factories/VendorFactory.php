@@ -18,11 +18,11 @@ class VendorFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company(),
-            'email' => fake()->unique()->safeEmail(),
-            'type' => fake()->randomElement(VendorType::values()),
-            'city' => fake()->city(),
-            'description' => fake()->sentence(),
+            'name' => $this->faker->company(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'type' => $this->faker->randomElement(VendorType::values()),
+            'city' => $this->faker->city(),
+            'description' => $this->faker->sentence(),
             'active' => true,
         ];
     }

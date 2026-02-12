@@ -17,14 +17,14 @@ class ArtistFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'city' => fake()->city(),
-            'experience_years' => fake()->numberBetween(0, 40),
-            'skills' => implode(', ', fake()->words(5)),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'city' => $this->faker->city(),
+            'experience_years' => $this->faker->numberBetween(0, 40),
+            'skills' => implode(', ', $this->faker->words(5)),
             'artist_types' => ['performer'],
-            'description' => fake()->paragraph(),
-            'equipment' => implode(', ', fake()->words(6)),
+            'description' => $this->faker->paragraph(),
+            'equipment' => implode(', ', $this->faker->words(6)),
             'photo' => 'artists/fake.jpg',
             'active' => true,
             'email_verified_at' => now(),
