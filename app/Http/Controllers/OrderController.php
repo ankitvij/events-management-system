@@ -15,6 +15,27 @@ use ZipArchive;
 
 class OrderController extends Controller
 {
+    public function markPaymentReceived(Order $order)
+    {
+        $this->authorizeOrderAdminAction($order, request());
+
+        $order->payment_status = 'paid';
+        $order->paid = true;
+        $order->save();
+
+        return redirect()->back()->with('success', 'Payment marked as received.');
+    }
+
+    public function checkIn(Order $order)
+    {
+        $this->authorizeOrderAdminAction($order, request());
+
+        $order->checked_in = true;
+        $order->save();
+
+        return redirect()->back()->with('success', 'Order checked in. Tickets are no longer valid.');
+    }
+
     public function updateTicketHolder(Request $request, Order $order, OrderItem $item)
     {
         $current = auth()->user();
@@ -340,6 +361,10 @@ class OrderController extends Controller
 
         $order = Order::where('booking_code', $data['booking_code'])->firstOrFail();
 
+        if ($order->checked_in) {
+            return response()->json(['message' => 'Tickets for this order have already been checked in and are no longer valid.'], 410);
+        }
+
         $emailMatches = false;
         if ($order->contact_email && $order->contact_email === $data['email']) {
             $emailMatches = true;
@@ -372,6 +397,10 @@ class OrderController extends Controller
 
     protected function authorizeOrderDownload(Order $order, Request $request): void
     {
+        if ($order->checked_in) {
+            abort(410, 'Tickets for this order have already been checked in and are no longer valid.');
+        }
+
         $current = $request->user();
         $customerId = session('customer_id');
         $email = $request->query('email');
@@ -418,6 +447,18 @@ class OrderController extends Controller
             if ($order->user && $email !== $order->user->email) {
                 abort(404);
             }
+        }
+    }
+
+    protected function authorizeOrderAdminAction(Order $order, Request $request): void
+    {
+        $current = $request->user();
+        if (! $current) {
+            abort(403);
+        }
+
+        if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+            abort(403);
         }
     }
 

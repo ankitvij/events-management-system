@@ -284,6 +284,12 @@ Route::put('orders/payment-methods', [OrderPaymentMethodsController::class, 'upd
     ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':super_admin'])
     ->name('orders.payment-methods.update');
 Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+Route::put('orders/{order}/payment-received', [OrderController::class, 'markPaymentReceived'])
+    ->middleware(['auth'])
+    ->name('orders.payment-received');
+Route::put('orders/{order}/check-in', [OrderController::class, 'checkIn'])
+    ->middleware(['auth'])
+    ->name('orders.check-in');
 Route::get('orders/{order}/tickets/download-all', [OrderController::class, 'downloadAllTickets'])->name('orders.tickets.downloadAll');
 Route::get('orders/{order}/tickets/{item}/download', [OrderController::class, 'downloadTicket'])->name('orders.tickets.download');
 Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');

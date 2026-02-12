@@ -52,6 +52,7 @@ type Order = {
     payment_method?: string | null;
     payment_status?: string | null;
     paid?: boolean | null;
+    checked_in?: boolean | null;
     total?: number | null;
     created_at?: string | null;
 };
@@ -85,6 +86,10 @@ export default function OrdersShow() {
     const downloadAllUrl = order?.id ? `/orders/${order.id}/tickets/download-all${downloadParams}` : '#';
     const totalTickets = items.reduce((sum: number, it: OrderItem) => sum + (Number(it?.quantity) || 1), 0);
     const orderEmail = order?.contact_email ?? order?.user?.email ?? null;
+    const authUser = (page.props as { auth?: { user?: { id: number; is_super_admin?: boolean } } }).auth?.user;
+    const csrfToken = typeof document !== 'undefined'
+        ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        : '';
 
     const [guestDetails, setGuestDetails] = useState<GuestDetail[][]>(() => {
         return items.map(it => (Array.isArray(it.guest_details) ? [...it.guest_details] : []));
@@ -125,6 +130,11 @@ export default function OrdersShow() {
     };
 
     const sendTickets = async (initialEmail?: string | null): Promise<void> => {
+        if (order.checked_in) {
+            alert('Tickets for this order are already checked in and no longer valid.');
+            return;
+        }
+
         const email = initialEmail || window.prompt('Email to send tickets to');
         if (!email) {
             alert('Email is required');
@@ -213,6 +223,26 @@ export default function OrdersShow() {
                                     {paymentDetails.instructions && <div className="mt-2 text-sm">{paymentDetails.instructions}</div>}
                                     {paymentDetails.reference_hint && <div className="mt-1 text-xs text-muted">{paymentDetails.reference_hint}</div>}
                                 </div>
+                            )}
+                        </div>
+                    )}
+                    {authUser && (
+                        <div className="flex flex-wrap items-center gap-2 pt-2">
+                            {!(order.payment_status === 'paid' || order.paid) && (
+                                <form method="post" action={`/orders/${order.id}/payment-received`}>
+                                    <input type="hidden" name="_method" value="put" />
+                                    <input type="hidden" name="_token" value={csrfToken} />
+                                    <button type="submit" className="btn-primary">Mark payment received</button>
+                                </form>
+                            )}
+                            {!order.checked_in ? (
+                                <form method="post" action={`/orders/${order.id}/check-in`}>
+                                    <input type="hidden" name="_method" value="put" />
+                                    <input type="hidden" name="_token" value={csrfToken} />
+                                    <button type="submit" className="btn-confirm">Check in tickets</button>
+                                </form>
+                            ) : (
+                                <span className="text-xs rounded bg-yellow-100 text-yellow-800 px-2 py-1">Checked in — tickets invalid</span>
                             )}
                         </div>
                     )}
