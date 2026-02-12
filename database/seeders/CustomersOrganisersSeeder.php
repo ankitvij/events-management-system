@@ -10,27 +10,25 @@ class CustomersOrganisersSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = \Faker\Factory::create();
-
         // Create 5 organisers
         for ($i = 1; $i <= 5; $i++) {
-            $name = $faker->company.' '.$i;
+            $name = 'Organiser '.$i;
             Organiser::firstOrCreate([
-                'email' => $faker->unique()->companyEmail,
+                'email' => 'organiser'.$i.'@example.test',
             ], [
                 'name' => $name,
-                'active' => $faker->boolean(90),
+                'active' => true,
             ]);
         }
 
         // Create 10 customers
         for ($i = 1; $i <= 10; $i++) {
             Customer::firstOrCreate([
-                'email' => $faker->unique()->safeEmail,
+                'email' => 'customer'.$i.'@example.test',
             ], [
-                'name' => $faker->name,
-                'phone' => $faker->optional()->phoneNumber,
-                'active' => $faker->boolean(90),
+                'name' => 'Customer '.$i,
+                'phone' => null,
+                'active' => true,
             ]);
         }
     }
