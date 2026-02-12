@@ -41,7 +41,12 @@ export default function VendorsSignup({ types }: Props) {
                 )}
                 {page.props?.flash?.success && (
                     <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                        {page.props.flash.success}
+                        <p>{page.props.flash.success}</p>
+                        <ul className="mt-2 list-disc pl-5">
+                            <li>Your request is now in review.</li>
+                            <li>We will activate your profile after approval.</li>
+                            <li>You can sign in with your email once activation is complete.</li>
+                        </ul>
                     </div>
                 )}
 
@@ -60,11 +65,13 @@ export default function VendorsSignup({ types }: Props) {
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                         <input id="name" name="name" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
+                        {form.errors.name && <div className="mt-1 text-sm text-red-600">{form.errors.name}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium">Email <span className="text-red-600">*</span></label>
                         <input id="email" name="email" type="email" required value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
+                        {form.errors.email && <div className="mt-1 text-sm text-red-600">{form.errors.email}</div>}
                     </div>
 
                     <div>
@@ -74,16 +81,19 @@ export default function VendorsSignup({ types }: Props) {
                                 <option key={t} value={t}>{t}</option>
                             ))}
                         </select>
+                        {form.errors.type && <div className="mt-1 text-sm text-red-600">{form.errors.type}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="city" className="block text-sm font-medium">City</label>
                         <input id="city" name="city" value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                        {form.errors.city && <div className="mt-1 text-sm text-red-600">{form.errors.city}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium">Description</label>
                         <textarea id="description" name="description" value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" rows={4} />
+                        {form.errors.description && <div className="mt-1 text-sm text-red-600">{form.errors.description}</div>}
                     </div>
 
                     <div>

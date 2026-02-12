@@ -34,7 +34,12 @@ export default function PromotersSignup() {
                 )}
                 {page.props?.flash?.success && (
                     <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                        {page.props.flash.success}
+                        <p>{page.props.flash.success}</p>
+                        <ul className="mt-2 list-disc pl-5">
+                            <li>Your promoter profile is pending approval.</li>
+                            <li>You will receive confirmation once your account is activated.</li>
+                            <li>After activation, you can start linking events to your promoter profile.</li>
+                        </ul>
                     </div>
                 )}
 
@@ -53,11 +58,13 @@ export default function PromotersSignup() {
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                         <input id="name" name="name" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
+                        {form.errors.name && <div className="mt-1 text-sm text-red-600">{form.errors.name}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium">Email <span className="text-red-600">*</span></label>
                         <input id="email" name="email" type="email" required value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
+                        {form.errors.email && <div className="mt-1 text-sm text-red-600">{form.errors.email}</div>}
                     </div>
 
                     <div>

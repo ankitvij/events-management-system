@@ -19,12 +19,18 @@ type Props = { events?: Pagination<Event> };
 export default function GuestLanding({ events }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const initial = params?.get('q') ?? '';
+    const initialCity = params?.get('city') ?? '';
+    const initialCountry = params?.get('country') ?? '';
     const [search, setSearch] = useState(initial);
+    const [selectedCity, setSelectedCity] = useState(initialCity);
+    const [selectedCountry, setSelectedCountry] = useState(initialCountry);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
     const [guestSidebarCollapsed, setGuestSidebarCollapsed] = useState(false);
     const ticketButtonClass = 'btn-primary';
-    const page = usePage<{ flash?: { success?: string; error?: string } }>();
+    const page = usePage<{ flash?: { success?: string; error?: string; newsletter_success?: string }; cities?: string[]; countries?: string[] }>();
+    const cityOptions = page.props?.cities ?? [];
+    const countryOptions = page.props?.countries ?? [];
 
     // Removed artist signup and login forms
 
@@ -54,6 +60,14 @@ export default function GuestLanding({ events }: Props) {
         return `€${minNumber.toFixed(2)}-€${maxNumber.toFixed(2)}`;
     };
 
+    const formatEventDate = (value?: string | null): string => {
+        if (!value) {
+            return 'Date TBD';
+        }
+
+        return new Date(value).toLocaleDateString();
+    };
+
     useEffect(() => {
         if (firstRender.current) {
             firstRender.current = false;
@@ -73,6 +87,20 @@ export default function GuestLanding({ events }: Props) {
                 qs.delete('q');
             }
 
+            if (selectedCity) {
+                qs.set('city', selectedCity);
+            } else {
+                qs.delete('city');
+            }
+
+            if (selectedCountry) {
+                qs.set('country', selectedCountry);
+            } else {
+                qs.delete('country');
+            }
+
+            qs.delete('page');
+
             router.get(`${window.location.pathname}${qs.toString() ? `?${qs.toString()}` : ''}`);
         }, delay);
 
@@ -81,7 +109,25 @@ export default function GuestLanding({ events }: Props) {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [search]);
+    }, [search, selectedCity, selectedCountry]);
+
+    function resetFilters() {
+        setSearch('');
+        setSelectedCity('');
+        setSelectedCountry('');
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const sp = new URLSearchParams(window.location.search);
+        sp.delete('q');
+        sp.delete('city');
+        sp.delete('country');
+        sp.delete('sort');
+        sp.delete('page');
+        router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
 
     function applySort(key: string) {
         if (typeof window === 'undefined') {
@@ -205,6 +251,38 @@ export default function GuestLanding({ events }: Props) {
                 <section className="mt-6">
                     <ListControls path="/" links={events?.links} showSearch={false} showSort={false} />
 
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <select
+                            value={selectedCountry}
+                            onChange={(e) => setSelectedCountry(e.target.value)}
+                            className="input w-full sm:w-56"
+                            aria-label="Filter by country"
+                        >
+                            <option value="">All countries</option>
+                            {countryOptions.map((country) => (
+                                <option key={country} value={country}>{country}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            className="input w-full sm:w-56"
+                            aria-label="Filter by city"
+                        >
+                            <option value="">All cities</option>
+                            {cityOptions.map((city) => (
+                                <option key={city} value={city}>{city}</option>
+                            ))}
+                        </select>
+
+                        {(search || selectedCity || selectedCountry || params?.get('sort')) ? (
+                            <button type="button" className="btn-secondary" onClick={resetFilters}>
+                                Reset filters
+                            </button>
+                        ) : null}
+                    </div>
+
                     <div className="hidden max-[799px]:block mt-3">
                         <input
                             name="q"
@@ -292,10 +370,15 @@ export default function GuestLanding({ events }: Props) {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="text-lg font-medium break-words whitespace-normal">{event.title}</div>
+                                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+                                                        <span>{formatEventDate(event.start_at)}</span>
+                                                        <span>•</span>
+                                                        <span>{event.city ?? 'City TBD'}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</span>
+                                                    </div>
                                                     <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm min-[800px]:hidden">
                                                         <span className="text-muted">{event.country ?? '—'}</span>
                                                         <span className="text-muted">{event.city ?? '—'}</span>
-                                                        <span className="text-muted">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</span>
+                                                        <span className="text-muted">{formatEventDate(event.start_at)}</span>
                                                         <span />
                                                     </div>
                                                 </div>
@@ -303,7 +386,7 @@ export default function GuestLanding({ events }: Props) {
 
                                             <div className="text-sm text-muted text-center max-[799px]:hidden">{event.country ?? '—'}</div>
                                             <div className="text-sm text-muted text-center max-[799px]:hidden">{event.city ?? '—'}</div>
-                                            <div className="text-sm text-muted text-center whitespace-nowrap max-[799px]:hidden">{event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
+                                            <div className="text-sm text-muted text-center whitespace-nowrap max-[799px]:hidden">{formatEventDate(event.start_at)}</div>
                                             <div className="flex flex-col items-end text-right max-[799px]:absolute max-[799px]:top-3 max-[799px]:right-3">
                                                 <Link
                                                     href={`/${event.slug}#tickets`}
@@ -323,7 +406,11 @@ export default function GuestLanding({ events }: Props) {
                                 );
                             })
                         ) : (
-                            <div className="text-sm text-muted">No public events available.</div>
+                            <div className="text-sm text-muted">
+                                {(search || selectedCity || selectedCountry)
+                                    ? 'No events match your current filters. Try resetting filters.'
+                                    : 'No public events available.'}
+                            </div>
                         )}
                     </div>
                     {events?.links && (
