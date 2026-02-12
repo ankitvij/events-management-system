@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,7 +11,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Never seed demo/sample data on production.
+        if (app()->environment('production')) {
+            return;
+        }
 
         // Ensure the test user exists without creating duplicates
         \App\Models\User::updateOrCreate(
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Test User', 'password' => bcrypt('password')]
         );
 
-        // Create some sample events
+        // Create sample events
         $this->call(EventsTableSeeder::class);
         // Populate cities and countries for existing events
         $this->call(EventsCityCountrySeeder::class);
@@ -30,8 +31,8 @@ class DatabaseSeeder extends Seeder
         // Add latest curated events
         $this->call(LatestEventsSeeder::class);
 
-        // Add comprehensive linked sample data only when explicitly enabled and outside production.
-        if (config('seeding.allow_sample_data') && ! app()->environment('production')) {
+        // Add comprehensive linked sample data only when explicitly enabled.
+        if (config('seeding.allow_sample_data')) {
             $this->call(EverythingSampleSeeder::class);
         }
     }
