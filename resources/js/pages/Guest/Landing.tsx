@@ -27,10 +27,6 @@ export default function GuestLanding({ events }: Props) {
 
     // Removed artist signup and login forms
 
-    const vendorLoginForm = useForm({
-        email: '',
-    });
-
     const newsletterForm = useForm({
         email: '',
     });
@@ -165,40 +161,6 @@ export default function GuestLanding({ events }: Props) {
 
             <main className="w-full">
                 <div className="min-w-0 flex-1">
-                        <section className="mt-6">
-                            <div className="box">
-                                <h3 className="text-sm font-medium">Already a vendor?</h3>
-                                <form
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        vendorLoginForm.post('/vendors/login/token', {
-                                            onSuccess: () => vendorLoginForm.reset('email'),
-                                        });
-                                    }}
-                                    className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto]"
-                                >
-                                    <div>
-                                        <label htmlFor="vendor_login_email" className="block text-sm font-medium">Email</label>
-                                        <input
-                                            id="vendor_login_email"
-                                            name="email"
-                                            type="email"
-                                            required
-                                            value={vendorLoginForm.data.email}
-                                            onChange={e => vendorLoginForm.setData('email', e.target.value)}
-                                            className="input"
-                                        />
-                                        {vendorLoginForm.errors.email && <div className="mt-1 text-sm text-red-600">{vendorLoginForm.errors.email}</div>}
-                                    </div>
-                                    <div className="flex items-end">
-                                        <button type="submit" className="btn-secondary" disabled={vendorLoginForm.processing}>
-                                            Email sign-in link
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </section>
-
                 <section className="mt-6">
                     <ListControls path="/" links={paginationLinks} showSearch={false} showSort={false} />
 
