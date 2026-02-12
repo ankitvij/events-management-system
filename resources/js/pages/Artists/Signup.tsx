@@ -49,7 +49,12 @@ export default function ArtistsSignup() {
                 )}
                 {page.props?.flash?.success && (
                     <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-                        {page.props.flash.success}
+                        <p>{page.props.flash.success}</p>
+                        <ul className="mt-2 list-disc pl-5">
+                            <li>Check your inbox for the verification email.</li>
+                            <li>Click the verification link to activate your profile.</li>
+                            <li>After activation, your profile appears in the artists directory.</li>
+                        </ul>
                     </div>
                 )}
 
@@ -68,26 +73,31 @@ export default function ArtistsSignup() {
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                         <input id="name" name="name" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
+                        {form.errors.name && <div className="mt-1 text-sm text-red-600">{form.errors.name}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium">Email <span className="text-red-600">*</span></label>
                         <input id="email" name="email" type="email" required value={form.data.email} onChange={e => form.setData('email', e.target.value)} className="input" />
+                        {form.errors.email && <div className="mt-1 text-sm text-red-600">{form.errors.email}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="city" className="block text-sm font-medium">City <span className="text-red-600">*</span></label>
                         <input id="city" name="city" required value={form.data.city} onChange={e => form.setData('city', e.target.value)} className="input" />
+                        {form.errors.city && <div className="mt-1 text-sm text-red-600">{form.errors.city}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="experience_years" className="block text-sm font-medium">Experience (years) <span className="text-red-600">*</span></label>
                         <input id="experience_years" name="experience_years" type="number" min={0} max={80} required value={form.data.experience_years} onChange={e => form.setData('experience_years', Number(e.target.value))} className="input" />
+                        {form.errors.experience_years && <div className="mt-1 text-sm text-red-600">{form.errors.experience_years}</div>}
                     </div>
 
                     <div>
                         <label htmlFor="skills" className="block text-sm font-medium">Skills <span className="text-red-600">*</span></label>
                         <textarea id="skills" name="skills" required value={form.data.skills} onChange={e => form.setData('skills', e.target.value)} className="input" rows={3} />
+                        {form.errors.skills && <div className="mt-1 text-sm text-red-600">{form.errors.skills}</div>}
                     </div>
 
                     <div>
@@ -109,6 +119,7 @@ export default function ArtistsSignup() {
                             ))}
                         </select>
                         <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                        {form.errors.artist_types && <div className="mt-1 text-sm text-red-600">{form.errors.artist_types}</div>}
                     </div>
 
                     <div>
@@ -124,6 +135,7 @@ export default function ArtistsSignup() {
                     <div>
                         <label htmlFor="photo" className="block text-sm font-medium">Photo <span className="text-red-600">*</span></label>
                         <input id="photo" name="photo" type="file" required onChange={e => form.setData('photo', e.target.files?.[0] ?? null)} accept="image/*" />
+                        {form.errors.photo && <div className="mt-1 text-sm text-red-600">{form.errors.photo}</div>}
                     </div>
 
                     <div>
