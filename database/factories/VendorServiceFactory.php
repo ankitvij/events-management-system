@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Vendor;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\VendorService>
@@ -19,8 +20,8 @@ class VendorServiceFactory extends Factory
     {
         return [
             'vendor_id' => Vendor::factory(),
-            'name' => $this->faker->words(3, true),
-            'price' => $this->faker->randomFloat(2, 0, 5000),
+            'name' => 'Service '.Str::upper(Str::random(5)),
+            'price' => round((mt_rand() / mt_getrandmax()) * 5000, 2),
         ];
     }
 }
