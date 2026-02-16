@@ -58,7 +58,7 @@ class EventVerificationTest extends TestCase
         $show = $this->get(route('events.show', $event));
         $show->assertStatus(200);
 
-        Mail::assertQueued(EventOrganiserCreated::class);
+        Mail::assertSent(EventOrganiserCreated::class);
     }
 
     public function test_store_requires_at_least_one_ticket_type(): void

@@ -326,7 +326,7 @@ class EventController extends Controller
                     'token' => $rawEditToken,
                 ]);
 
-                Mail::to($primaryOrganiser->email)->queue(new EventOrganiserCreated(
+                Mail::to($primaryOrganiser->email)->send(new EventOrganiserCreated(
                     $event,
                     $primaryOrganiser,
                     $signedEditUrl,

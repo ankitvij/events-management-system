@@ -357,7 +357,7 @@ class EventCrudTest extends TestCase
         $update->assertRedirect($signedEditUrl);
         $this->assertSame('Updated via link', $event->title);
 
-        Mail::assertQueued(EventOrganiserCreated::class);
+        Mail::assertSent(EventOrganiserCreated::class);
     }
 
     public function test_organiser_cannot_use_their_link_on_another_event(): void

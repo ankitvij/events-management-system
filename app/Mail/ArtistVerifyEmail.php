@@ -4,11 +4,10 @@ namespace App\Mail;
 
 use App\Models\Artist;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class ArtistVerifyEmail extends Mailable implements ShouldQueue
+class ArtistVerifyEmail extends Mailable
 {
     use Queueable, SerializesModels;
 

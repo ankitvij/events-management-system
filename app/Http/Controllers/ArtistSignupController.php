@@ -55,7 +55,7 @@ class ArtistSignupController extends Controller
             'token' => $verifyToken,
         ]);
 
-        Mail::to($artist->email)->queue(new ArtistVerifyEmail($artist, $verifyUrl));
+        Mail::to($artist->email)->send(new ArtistVerifyEmail($artist, $verifyUrl));
 
         return redirect()->back()->with('success', 'Thanks! Please check your email to verify and activate your artist account.');
     }

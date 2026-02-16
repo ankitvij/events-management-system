@@ -44,7 +44,7 @@ class ArtistSignupTest extends TestCase
 
         Storage::disk('public')->assertExists($artist->photo);
 
-        Mail::assertQueued(ArtistVerifyEmail::class);
+        Mail::assertSent(ArtistVerifyEmail::class);
 
         $verifyUrl = URL::signedRoute('artists.verify', [
             'artist' => $artist->id,

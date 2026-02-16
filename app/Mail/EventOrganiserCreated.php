@@ -5,11 +5,10 @@ namespace App\Mail;
 use App\Models\Event;
 use App\Models\Organiser;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class EventOrganiserCreated extends Mailable implements ShouldQueue
+class EventOrganiserCreated extends Mailable
 {
     use Queueable, SerializesModels;
 
