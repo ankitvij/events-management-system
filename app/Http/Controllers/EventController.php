@@ -493,7 +493,7 @@ class EventController extends Controller
             return response()->json(['event' => $event]);
         }
 
-        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters');
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'ticketControllers');
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
         $promoters = User::query()
             ->where('is_super_admin', false)
@@ -526,6 +526,7 @@ class EventController extends Controller
             'vendors' => $vendors,
             'vendorBookingRequests' => $vendorBookingRequests,
             'promoters' => $promoters,
+            'ticketControllers' => $event->ticketControllers,
         ]);
     }
 

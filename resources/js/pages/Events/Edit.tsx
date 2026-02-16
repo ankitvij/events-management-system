@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
@@ -28,6 +28,11 @@ type VendorBookingRequestRow = {
     created_at?: string | null;
     responded_at?: string | null;
     vendor?: { id: number; name: string; email?: string | null };
+};
+
+type TicketControllerEmail = {
+    id: number;
+    email: string;
 };
 
 type Props = { event: Event };
@@ -66,6 +71,8 @@ export default function Edit({ event }: Props) {
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
     const promoters = (page.props?.promoters ?? []) as PromoterShort[];
     const vendorBookingRequests = (page.props?.vendorBookingRequests ?? []) as VendorBookingRequestRow[];
+    const ticketControllers = (page.props?.ticketControllers ?? []) as TicketControllerEmail[];
+    const canManageTicketControllers = Boolean((page.props as any)?.auth?.user);
     const editUrl = (page.props as any)?.editUrl as string | undefined;
     const requiresPassword = Boolean((page.props as any)?.requiresPassword);
     const allowOrganiserChange = (page.props as any)?.allowOrganiserChange ?? true;
@@ -78,6 +85,10 @@ export default function Edit({ event }: Props) {
     const vendorBookingForm = useForm({
         vendor_id: '',
         message: '',
+    });
+
+    const ticketControllerForm = useForm({
+        email: '',
     });
 
     function submit(e: FormEvent) {
@@ -204,6 +215,57 @@ export default function Edit({ event }: Props) {
                     </div>
                     <OrganiserMultiSelect organisers={organisers} value={form.data.organiser_ids} onChange={(v: number[]) => form.setData('organiser_ids', v)} />
                 </div>
+
+                {canManageTicketControllers && (
+                <div className="border-t pt-4">
+                    <h3 className="text-sm font-medium">Ticket controllers</h3>
+                    <p className="mt-1 text-sm text-muted">Add up to 10 emails for ticket controller access to this event.</p>
+
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            ticketControllerForm.post(`/events/${event.slug}/ticket-controllers`, {
+                                preserveScroll: true,
+                                onSuccess: () => ticketControllerForm.reset('email'),
+                            });
+                        }}
+                        className="mt-3 flex flex-col gap-2 md:flex-row md:items-center"
+                    >
+                        <input
+                            type="email"
+                            required
+                            value={ticketControllerForm.data.email}
+                            onChange={(e) => ticketControllerForm.setData('email', e.target.value)}
+                            className="input md:w-96"
+                            placeholder="controller@example.com"
+                        />
+                        <button type="submit" className="btn-primary" disabled={ticketControllerForm.processing}>
+                            Add ticket controller
+                        </button>
+                    </form>
+                    {(ticketControllerForm.errors as Record<string, string | undefined>).ticket_controller_email && (
+                        <p className="mt-2 text-sm text-red-600">{(ticketControllerForm.errors as Record<string, string>).ticket_controller_email}</p>
+                    )}
+                    {ticketControllerForm.errors.email && <p className="mt-2 text-sm text-red-600">{ticketControllerForm.errors.email}</p>}
+
+                    <div className="mt-3 grid gap-2">
+                        {ticketControllers.length > 0 ? ticketControllers.map((controller) => (
+                            <div key={controller.id} className="box flex items-center justify-between">
+                                <div className="text-sm">{controller.email}</div>
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => router.delete(`/events/${event.slug}/ticket-controllers/${controller.id}`, { preserveScroll: true })}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        )) : (
+                            <div className="text-sm text-muted">No ticket controllers added yet.</div>
+                        )}
+                    </div>
+                </div>
+                )}
 
                 <div>
                     <label htmlFor="promoter_ids" className="block text-sm font-medium">Promoters</label>

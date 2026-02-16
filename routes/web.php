@@ -227,12 +227,21 @@ use App\Http\Controllers\OrganiserController;
 Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
 Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
 
+use App\Http\Controllers\EventTicketControllerController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketControllerLoginController;
 
 // Tickets nested under events
 Route::post('events/{event}/tickets', [TicketController::class, 'store'])->middleware(['auth'])->name('events.tickets.store');
 Route::put('events/{event}/tickets/{ticket}', [TicketController::class, 'update'])->middleware(['auth'])->name('events.tickets.update');
 Route::delete('events/{event}/tickets/{ticket}', [TicketController::class, 'destroy'])->middleware(['auth'])->name('events.tickets.destroy');
+Route::post('events/{event}/ticket-controllers', [EventTicketControllerController::class, 'store'])->middleware(['auth'])->name('events.ticket-controllers.store');
+Route::delete('events/{event}/ticket-controllers/{ticketController}', [EventTicketControllerController::class, 'destroy'])->middleware(['auth'])->name('events.ticket-controllers.destroy');
+
+Route::get('ticket-controllers/login/token/{token}', [TicketControllerLoginController::class, 'consumeToken'])->name('ticket-controllers.login.consume');
+Route::get('ticket-controllers/scanner', [TicketControllerLoginController::class, 'scanner'])->name('ticket-controllers.scanner');
+Route::post('ticket-controllers/check-in', [TicketControllerLoginController::class, 'checkIn'])->name('ticket-controllers.check-in');
+Route::post('ticket-controllers/logout', [TicketControllerLoginController::class, 'logout'])->name('ticket-controllers.logout');
 
 use App\Http\Controllers\ArtistAuthController;
 use App\Http\Controllers\ArtistBookingRequestController;
