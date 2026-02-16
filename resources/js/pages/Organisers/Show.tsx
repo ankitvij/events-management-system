@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Organiser } from '@/types/entities';
@@ -17,10 +18,11 @@ export default function Show({ organiser }: { organiser: Organiser }) {
                 <div className="flex items-center justify-between mb-4">
                     <h1 className="text-2xl font-semibold">{organiser.name}</h1>
                     <div className="flex gap-2">
-                        <Link href={`/organisers/${organiser.id}/edit`} className="text-sm text-blue-600">Edit</Link>
+                        <Link href="/organisers" className="btn-secondary" aria-label="Back to organisers" title="Back to organisers"><ArrowLeft className="h-4 w-4" /></Link>
+                        <Link href={`/organisers/${organiser.id}/edit`} className="btn-secondary" aria-label="Edit organiser" title="Edit organiser"><Pencil className="h-4 w-4" /></Link>
                         <form action={`/organisers/${organiser.id}`} method="post" className="inline">
                             <input type="hidden" name="_method" value="delete" />
-                            <button className="btn-danger" type="submit">Delete</button>
+                            <button className="btn-danger" type="submit" aria-label="Delete organiser" title="Delete organiser"><Trash2 className="h-4 w-4" /></button>
                         </form>
                     </div>
                 </div>

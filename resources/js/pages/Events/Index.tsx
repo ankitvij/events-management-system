@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { CheckCircle2, Circle, Pencil } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
@@ -244,8 +245,9 @@ export default function EventsIndex({ events }: Props) {
                                             className="text-xl cursor-pointer mr-2"
                                             aria-pressed={event.active}
                                             aria-label={event.title + ' active toggle'}
+                                            title={event.active ? 'Set inactive' : 'Set active'}
                                         >
-                                            {event.active ? '✅' : '⬜'}
+                                            {event.active ? <CheckCircle2 className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
                                         </button>
                                     ) : (
                                         event.active ? (
@@ -260,7 +262,7 @@ export default function EventsIndex({ events }: Props) {
                                     <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
                                         e.stopPropagation();
                                         router.get(`/events/${event.slug}/edit`);
-                                    }}>Edit</ActionButton>
+                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionButton>
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <Link href={`/${event.slug}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>

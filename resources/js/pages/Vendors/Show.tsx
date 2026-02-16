@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -30,8 +31,8 @@ export default function VendorsShow({ vendor }: Props) {
                         <div className="text-sm text-muted">Status: {vendor.active ? 'Active' : 'Inactive'}</div>
                     </div>
                     <div className="flex gap-2">
-                        <ActionButton href={`/vendors/${vendor.id}/edit`}>Edit</ActionButton>
-                        <Link href="/vendors" className="btn-secondary">Back</Link>
+                        <ActionButton href={`/vendors/${vendor.id}/edit`} aria-label="Edit vendor" title="Edit vendor"><Pencil className="h-4 w-4" /></ActionButton>
+                        <Link href="/vendors" className="btn-secondary" aria-label="Back to vendors" title="Back to vendors"><ArrowLeft className="h-4 w-4" /></Link>
                     </div>
                 </div>
 

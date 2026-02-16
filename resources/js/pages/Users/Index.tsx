@@ -1,4 +1,5 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
+import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
@@ -116,17 +117,22 @@ export default function UsersIndex({ users }: Props) {
                                 <div className="md:col-span-2">
                                 <div className="flex gap-2 items-center justify-start md:justify-end">
                                     {current && (current.is_super_admin || current.id === user.id || (current.role === 'admin' && user.role === 'user' && !user.is_super_admin)) && (
-                                        <label className="flex items-center mr-3">
-                                            <input type="checkbox" checked={!!user.active} onChange={e => toggleActive(user.id, e.target.checked)} />
-                                            <span className="ml-2 text-sm text-muted">Active</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => toggleActive(user.id, !user.active)}
+                                            aria-label={user.active ? 'Set user inactive' : 'Set user active'}
+                                            title={user.active ? 'Set inactive' : 'Set active'}
+                                        >
+                                            {user.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                                        </button>
                                     )}
 
                                     <div className="flex gap-2">
-                                    <Link href={`/users/${user.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
+                                    <Link href={`/users/${user.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit user" title="Edit user"><Pencil className="h-4 w-4" /></Link>
                                     <form action={`/users/${user.id}`} method="post" className="inline">
                                         <input type="hidden" name="_method" value="delete" />
-                                        <button className="btn-danger" type="submit">Delete</button>
+                                        <button className="btn-danger" type="submit" aria-label="Delete user" title="Delete user"><Trash2 className="h-4 w-4" /></button>
                                     </form>
                                     </div>
                                 </div>

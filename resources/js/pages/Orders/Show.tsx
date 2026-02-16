@@ -1,4 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 
 type GuestDetail = {
@@ -97,7 +98,6 @@ function resolveStoragePath(path?: string | null): string {
 export default function OrdersShow() {
     const page = usePage<PageProps>();
     const order = page.props.order ?? null;
-    const paymentDetails = page.props.payment_details;
     const items: OrderItem[] = Array.isArray(order?.items) ? order.items : [];
     const authUser = (page.props as { auth?: { user?: { id: number; is_super_admin?: boolean } } }).auth?.user;
 
@@ -187,6 +187,11 @@ export default function OrdersShow() {
 
             <div className="p-4 text-sm space-y-4">
                 <div className="space-y-2">
+                    <div>
+                        <button type="button" className="btn-secondary" onClick={() => window.history.back()} aria-label="Go back" title="Go back">
+                            <ArrowLeft className="h-4 w-4" />
+                        </button>
+                    </div>
                     <h1 className="text-xl font-semibold">Booking code: {order.booking_code ?? '—'}</h1>
                     <div className="text-sm text-muted">
                         Placed on:{' '}
@@ -203,27 +208,11 @@ export default function OrdersShow() {
                     {order.payment_method && (
                         <div className="mt-2 space-y-1 text-sm">
                             <div className="font-semibold">
-                                Payment method: {paymentDetails?.display_name || order.payment_method.replace('_', ' ')}
+                                Payment method: {order.payment_method.replace('_', ' ')}
                             </div>
                             <div className="text-muted">
                                 Status: {paymentStatusLabel[paymentStatus] ?? paymentStatus}
                             </div>
-                            {paymentDetails && (
-                                <div className="rounded-md border border-border bg-muted/30 p-3 leading-relaxed">
-                                    {order.payment_method === 'bank_transfer' && (
-                                        <>
-                                            <div><strong>Account name:</strong> {paymentDetails.account_name}</div>
-                                            <div><strong>IBAN:</strong> {paymentDetails.iban}</div>
-                                            <div><strong>BIC/SWIFT:</strong> {paymentDetails.bic}</div>
-                                        </>
-                                    )}
-                                    {(order.payment_method === 'paypal_transfer' || order.payment_method === 'revolut_transfer') && (
-                                        <div><strong>Account ID:</strong> {paymentDetails.account_id}</div>
-                                    )}
-                                    {paymentDetails.instructions && <div className="mt-2 text-sm">{paymentDetails.instructions}</div>}
-                                    {paymentDetails.reference_hint && <div className="mt-1 text-xs text-muted">{paymentDetails.reference_hint}</div>}
-                                </div>
-                            )}
                         </div>
                     )}
                     {authUser && (
@@ -263,15 +252,9 @@ export default function OrdersShow() {
                                 </select>
                                 <button type="submit" className="btn-primary">Update payment status</button>
                             </form>
-                            {!order.checked_in ? (
-                                <form method="post" action={`/orders/${order.id}/check-in`}>
-                                    <input type="hidden" name="_method" value="put" />
-                                    <input type="hidden" name="_token" value={csrfToken} />
-                                    <button type="submit" className="btn-confirm">Check in all tickets</button>
-                                </form>
-                            ) : (
+                            {order.checked_in ? (
                                 <span className="text-xs rounded bg-yellow-100 text-yellow-800 px-2 py-1">Checked in — tickets invalid</span>
-                            )}
+                            ) : null}
                         </div>
                     )}
                     {orderEmail && <div className="text-sm text-muted">Confirmation sent to: <strong className="text-black dark:text-white">{orderEmail}</strong></div>}

@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
@@ -98,16 +99,21 @@ export default function CustomersIndex({ customers }: Props) {
                                 <div className="text-sm text-muted md:col-span-4">{customer.email || '—'}</div>
                                 <div className="md:col-span-2">
                                 <div className="flex gap-2 items-center justify-start md:justify-end">
-                                    <label className="flex items-center mr-3">
-                                        <input type="checkbox" checked={!!customer.active} onChange={e => toggleActive(customer.id, e.target.checked)} />
-                                        <span className="ml-2 text-sm text-muted">Active</span>
-                                    </label>
+                                    <button
+                                        type="button"
+                                        className="btn-secondary"
+                                        onClick={() => toggleActive(customer.id, !customer.active)}
+                                        aria-label={customer.active ? 'Set customer inactive' : 'Set customer active'}
+                                        title={customer.active ? 'Set inactive' : 'Set active'}
+                                    >
+                                        {customer.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                                    </button>
 
                                     <div className="flex gap-2">
-                                        <Link href={`/customers/${customer.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
+                                        <Link href={`/customers/${customer.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit customer" title="Edit customer"><Pencil className="h-4 w-4" /></Link>
                                         <form action={`/customers/${customer.id}`} method="post" className="inline">
                                             <input type="hidden" name="_method" value="delete" />
-                                            <button className="btn-danger" type="submit">Delete</button>
+                                            <button className="btn-danger" type="submit" aria-label="Delete customer" title="Delete customer"><Trash2 className="h-4 w-4" /></button>
                                         </form>
                                     </div>
                                 </div>

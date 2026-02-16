@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
@@ -112,16 +113,21 @@ export default function OrganisersIndex({ organisers }: Props) {
                                 <div className="md:col-span-1">
                                 {canManage ? (
                                     <div className="flex gap-2 items-center justify-start md:justify-end">
-                                        <label className="flex items-center mr-3">
-                                            <input type="checkbox" checked={!!org.active} onChange={e => toggleActive(org.id, e.target.checked)} />
-                                            <span className="ml-2 text-sm text-muted">Active</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => toggleActive(org.id, !org.active)}
+                                            aria-label={org.active ? 'Set organiser inactive' : 'Set organiser active'}
+                                            title={org.active ? 'Set inactive' : 'Set active'}
+                                        >
+                                            {org.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                                        </button>
 
                                         <div className="flex gap-2">
-                                            <Link href={`/organisers/${org.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
+                                            <Link href={`/organisers/${org.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit organiser" title="Edit organiser"><Pencil className="h-4 w-4" /></Link>
                                             <form action={`/organisers/${org.id}`} method="post" className="inline">
                                                 <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit">Delete</button>
+                                                <button className="btn-danger" type="submit" aria-label="Delete organiser" title="Delete organiser"><Trash2 className="h-4 w-4" /></button>
                                             </form>
                                         </div>
                                     </div>

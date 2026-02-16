@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
@@ -112,10 +113,10 @@ export default function VendorsIndex({ vendors }: Props) {
                                     {canManage ? (
                                         <div className="flex gap-2 items-center justify-start md:justify-end">
                                         <div className="flex gap-2">
-                                            <Link href={`/vendors/${v.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
+                                            <Link href={`/vendors/${v.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit vendor" title="Edit vendor"><Pencil className="h-4 w-4" /></Link>
                                             <form action={`/vendors/${v.id}`} method="post" className="inline">
                                                 <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit">Delete</button>
+                                                <button className="btn-danger" type="submit" aria-label="Delete vendor" title="Delete vendor"><Trash2 className="h-4 w-4" /></button>
                                             </form>
                                         </div>
                                     </div>

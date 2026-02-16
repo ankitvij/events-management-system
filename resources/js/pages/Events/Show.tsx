@@ -1,5 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
@@ -204,17 +205,32 @@ export default function Show({ event }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
+                <div className="mb-3">
+                    <button type="button" className="btn-secondary" onClick={() => window.history.back()} aria-label="Go back" title="Go back">
+                        <ArrowLeft className="h-4 w-4" />
+                    </button>
+                </div>
                 {(() => {
-                    const p = page.props?.canEdit
-                        ? (event.image_thumbnail ?? '')
-                        : (event.image ?? event.image_thumbnail ?? '');
+                    const toStorageUrl = (path: string) => {
+                        if (path.startsWith('http')) return path;
+                        if (path.startsWith('/storage/')) return path;
+                        if (path.startsWith('storage/')) return `/${path}`;
+                        return `/storage/${path}`;
+                    };
+
+                    const thumbnailPath = event.image_thumbnail ?? '';
+                    const fullImagePath = event.image ?? '';
+                    const publicPath = event.image ?? event.image_thumbnail ?? '';
+
+                    const selectedPath = page.props?.canEdit
+                        ? (thumbnailPath || fullImagePath)
+                        : publicPath;
+
                     let url = '/images/default-event.svg';
-                    if (p) {
-                        if (p.startsWith('http')) url = p;
-                        else if (p.startsWith('/storage/')) url = p;
-                        else if (p.startsWith('storage/')) url = `/${p}`;
-                        else url = `/storage/${p}`;
+                    if (selectedPath) {
+                        url = toStorageUrl(selectedPath);
                     }
+
                     const ts = (event.updated_at ?? event.created_at) as string | undefined;
                     const addCacheBust = (u: string, t?: string) => {
                         if (!t) return u;
@@ -222,9 +238,19 @@ export default function Show({ event }: Props) {
                         return `${u}${sep}v=${encodeURIComponent(t)}`;
                     };
                     const finalUrl = addCacheBust(url, ts);
+                    const fullImageUrl = fullImagePath ? addCacheBust(toStorageUrl(fullImagePath), ts) : null;
+
+                    const imageElement = (
+                        <img src={finalUrl} alt={event.title} className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto" />
+                    );
+
                     return (
                         <div className="mb-4">
-                            <img src={finalUrl} alt={event.title} className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto" />
+                            {page.props?.canEdit && fullImageUrl ? (
+                                <a href={fullImageUrl} target="_blank" rel="noreferrer" title="Open full image">
+                                    {imageElement}
+                                </a>
+                            ) : imageElement}
                         </div>
                     );
                 })()}
@@ -532,7 +558,7 @@ export default function Show({ event }: Props) {
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <ActionButton href={`/events/${event.slug}/edit`}>Edit</ActionButton>
+                            <ActionButton href={`/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionButton>
                         ) : null}
 
                         {!current && !showHomeHeader && null}

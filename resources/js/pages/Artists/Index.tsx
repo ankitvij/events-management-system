@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
@@ -115,16 +116,21 @@ export default function ArtistsIndex({ artists }: Props) {
                                 <div className="md:col-span-2">
                                     {canManage ? (
                                         <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
-                                        <label className="flex items-center mr-3">
-                                            <input type="checkbox" checked={!!a.active} onChange={e => toggleActive(a.id, e.target.checked)} />
-                                            <span className="ml-2 text-sm text-muted">Active</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            className="btn-secondary"
+                                            onClick={() => toggleActive(a.id, !a.active)}
+                                            aria-label={a.active ? 'Set artist inactive' : 'Set artist active'}
+                                            title={a.active ? 'Set inactive' : 'Set active'}
+                                        >
+                                            {a.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                                        </button>
 
                                         <div className="flex gap-2">
-                                            <Link href={`/artists/${a.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
+                                            <Link href={`/artists/${a.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></Link>
                                             <form action={`/artists/${a.id}`} method="post" className="inline">
                                                 <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit">Delete</button>
+                                                <button className="btn-danger" type="submit" aria-label="Delete artist" title="Delete artist"><Trash2 className="h-4 w-4" /></button>
                                             </form>
                                         </div>
                                     </div>
