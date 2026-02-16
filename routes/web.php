@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderPaymentMethodsController;
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
 Route::put('/orders/{order}/items/{item}/check-in', [OrderController::class, 'checkInItem'])->middleware(['auth'])->name('orders.items.checkIn');
+use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
@@ -197,6 +198,8 @@ use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
 Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
+Route::resource('agencies', AgencyController::class)
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency']);
 
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\RoleController;

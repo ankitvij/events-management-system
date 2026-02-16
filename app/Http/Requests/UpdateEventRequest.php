@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Role;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventRequest extends FormRequest
 {
@@ -23,11 +25,18 @@ class UpdateEventRequest extends FormRequest
             return true;
         }
 
+        if ($event && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            return (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0);
+        }
+
         return false;
     }
 
     public function rules(): array
     {
+        $agencyId = $this->user()?->agency_id;
+        $isAgencyManager = $this->user()?->hasRole(Role::AGENCY->value) && ! $this->user()?->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value]);
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -41,15 +50,41 @@ class UpdateEventRequest extends FormRequest
             'instagram_url' => ['nullable', 'url', 'max:255'],
             'whatsapp_url' => ['nullable', 'string', 'max:255'],
             'active' => ['nullable', 'boolean'],
-            'organiser_id' => ['required', 'integer', 'exists:organisers,id'],
+            'organiser_id' => [
+                'required',
+                'integer',
+                Rule::exists('organisers', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {
+                    $rule->where(fn ($query) => $query->where('agency_id', $agencyId));
+                }),
+            ],
             'organiser_ids' => ['nullable', 'array'],
-            'organiser_ids.*' => ['integer', 'exists:organisers,id'],
+            'organiser_ids.*' => [
+                'integer',
+                Rule::exists('organisers', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {
+                    $rule->where(fn ($query) => $query->where('agency_id', $agencyId));
+                }),
+            ],
             'promoter_ids' => ['nullable', 'array'],
-            'promoter_ids.*' => ['integer', 'exists:users,id'],
+            'promoter_ids.*' => [
+                'integer',
+                Rule::exists('users', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {
+                    $rule->where(fn ($query) => $query->where('agency_id', $agencyId)->where('role', Role::USER->value));
+                }),
+            ],
             'vendor_ids' => ['nullable', 'array'],
-            'vendor_ids.*' => ['integer', 'exists:vendors,id'],
+            'vendor_ids.*' => [
+                'integer',
+                Rule::exists('vendors', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {
+                    $rule->where(fn ($query) => $query->where('agency_id', $agencyId));
+                }),
+            ],
             'artist_ids' => ['nullable', 'array'],
-            'artist_ids.*' => ['integer', 'exists:artists,id'],
+            'artist_ids.*' => [
+                'integer',
+                Rule::exists('artists', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {
+                    $rule->where(fn ($query) => $query->where('agency_id', $agencyId));
+                }),
+            ],
         ];
     }
 
