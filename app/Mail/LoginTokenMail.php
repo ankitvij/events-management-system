@@ -14,6 +14,7 @@ class LoginTokenMail extends Mailable
         public string $loginUrl,
         public string $subjectLine,
         public ?string $intro = null,
+        public string $buttonLabel = 'Login',
     ) {}
 
     public function build(): static
@@ -23,6 +24,7 @@ class LoginTokenMail extends Mailable
             ->view('emails.login_token', [
                 'login_url' => $this->loginUrl,
                 'intro' => $this->intro,
+                'button_label' => $this->buttonLabel,
             ]);
     }
 }
