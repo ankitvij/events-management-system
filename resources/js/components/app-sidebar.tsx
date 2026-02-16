@@ -14,6 +14,7 @@ import {
     ClipboardList,
     Folder,
     Mic2,
+    Megaphone,
 } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -73,6 +74,7 @@ export function AppSidebar() {
     if (isAdmin) {
         items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
         items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
+        items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });

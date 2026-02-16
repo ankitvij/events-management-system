@@ -48,6 +48,8 @@ class UpdateEventRequest extends FormRequest
             'promoter_ids.*' => ['integer', 'exists:users,id'],
             'vendor_ids' => ['nullable', 'array'],
             'vendor_ids.*' => ['integer', 'exists:vendors,id'],
+            'artist_ids' => ['nullable', 'array'],
+            'artist_ids.*' => ['integer', 'exists:artists,id'],
         ];
     }
 

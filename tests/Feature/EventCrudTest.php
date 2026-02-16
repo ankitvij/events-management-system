@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\EventOrganiserCreated;
+use App\Models\Artist;
 use App\Models\Event;
 use App\Models\EventTicketController;
 use App\Models\Organiser;
@@ -188,6 +189,8 @@ class EventCrudTest extends TestCase
         $promoterB = User::factory()->create(['name' => 'Promoter B', 'active' => true, 'is_super_admin' => false]);
         $vendorA = Vendor::factory()->create(['active' => true]);
         $vendorB = Vendor::factory()->create(['active' => true]);
+        $artistA = Artist::factory()->create(['active' => true]);
+        $artistB = Artist::factory()->create(['active' => true]);
 
         $create = $this->post(route('events.store'), [
             'title' => 'Linked Event',
@@ -208,6 +211,7 @@ class EventCrudTest extends TestCase
 
         $this->assertTrue($event->promoters()->whereKey($promoterA->id)->exists());
         $this->assertTrue($event->vendors()->whereKey($vendorA->id)->exists());
+        $this->assertFalse($event->artists()->whereKey($artistA->id)->exists());
 
         $update = $this->put(route('events.update', $event), [
             'title' => 'Linked Event Updated',
@@ -217,6 +221,7 @@ class EventCrudTest extends TestCase
             'organiser_id' => $organiser->id,
             'promoter_ids' => [$promoterB->id],
             'vendor_ids' => [$vendorB->id],
+            'artist_ids' => [$artistB->id],
         ]);
         $event->refresh();
 
@@ -226,6 +231,8 @@ class EventCrudTest extends TestCase
         $this->assertTrue($event->promoters()->whereKey($promoterB->id)->exists());
         $this->assertFalse($event->vendors()->whereKey($vendorA->id)->exists());
         $this->assertTrue($event->vendors()->whereKey($vendorB->id)->exists());
+        $this->assertFalse($event->artists()->whereKey($artistA->id)->exists());
+        $this->assertTrue($event->artists()->whereKey($artistB->id)->exists());
     }
 
     public function test_guests_cannot_see_organisers_and_see_placeholder(): void

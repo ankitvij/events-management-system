@@ -448,6 +448,29 @@ class EventController extends Controller
             })->values()
             : collect();
 
+        $availableArtists = collect();
+        $availableVendors = collect();
+        $availablePromoters = collect();
+
+        if ($canEdit) {
+            $availableArtists = Artist::query()
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'city']);
+
+            $availableVendors = Vendor::query()
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'city', 'type']);
+
+            $availablePromoters = User::query()
+                ->where('is_super_admin', false)
+                ->where('active', true)
+                ->where('role', 'user')
+                ->orderBy('name')
+                ->get(['id', 'name', 'email']);
+        }
+
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
@@ -459,6 +482,9 @@ class EventController extends Controller
                 'vendors' => $vendors,
                 'promoters' => $promoters,
                 'ticketControllers' => $ticketControllers,
+                'availableArtists' => $availableArtists,
+                'availableVendors' => $availableVendors,
+                'availablePromoters' => $availablePromoters,
             ]);
         }
 
@@ -472,6 +498,9 @@ class EventController extends Controller
             'vendors' => $vendors,
             'promoters' => $promoters,
             'ticketControllers' => $ticketControllers,
+            'availableArtists' => $availableArtists,
+            'availableVendors' => $availableVendors,
+            'availablePromoters' => $availablePromoters,
         ]);
     }
 
@@ -597,6 +626,10 @@ class EventController extends Controller
 
         if (array_key_exists('vendor_ids', $data)) {
             $event->vendors()->sync($data['vendor_ids'] ?? []);
+        }
+
+        if (array_key_exists('artist_ids', $data)) {
+            $event->artists()->sync($data['artist_ids'] ?? []);
         }
 
         $this->clearPublicEventsCache();

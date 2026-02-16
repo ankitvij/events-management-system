@@ -31,6 +31,7 @@ type Event = {
     image?: string | null;
     image_thumbnail?: string | null;
     active?: boolean;
+    organiser_id?: number | null;
     organisers?: Organiser[];
     user?: { id: number; name?: string | null; email?: string | null } | null;
     start_at?: string | null;
@@ -54,15 +55,35 @@ export default function Show({ event }: Props) {
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
     const promoters = (page.props?.promoters ?? []) as PromoterShort[];
     const ticketControllers = (page.props?.ticketControllers ?? []) as TicketControllerEmail[];
+    const availableArtists = (page.props?.availableArtists ?? []) as ArtistShort[];
+    const availableVendors = (page.props?.availableVendors ?? []) as VendorShort[];
+    const availablePromoters = (page.props?.availablePromoters ?? []) as PromoterShort[];
 
     // debug logging removed
 
-    const organisersForm = useForm({ organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [] });
+    const linksForm = useForm({
+        title: event.title || '',
+        description: event.description || '',
+        start_at: event.start_at ? event.start_at.slice(0, 10) : '',
+        end_at: event.end_at ? event.end_at.slice(0, 10) : '',
+        city: event.city || '',
+        country: event.country || '',
+        address: event.address || '',
+        facebook_url: event.facebook_url || '',
+        instagram_url: event.instagram_url || '',
+        whatsapp_url: event.whatsapp_url || '',
+        active: event.active ?? true,
+        organiser_id: event.organiser_id ?? event.organisers?.[0]?.id ?? null,
+        organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
+        promoter_ids: promoters.map((promoter) => promoter.id),
+        vendor_ids: vendors.map((vendor) => vendor.id),
+        artist_ids: artists.map((artist) => artist.id),
+    });
     const ticketControllerForm = useForm({ email: '' });
 
-    function saveOrganisers(e: FormEvent<HTMLFormElement>) {
+    function saveLinks(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        organisersForm.put(`/events/${event.slug}`, { forceFormData: true });
+        linksForm.put(`/events/${event.slug}`, { preserveScroll: true, forceFormData: true });
     }
 
     function getCookie(name: string): string {
@@ -371,11 +392,90 @@ export default function Show({ event }: Props) {
                     </div>
 
                     {page.props?.canEdit && (
-                        <form onSubmit={saveOrganisers} className="mt-4">
-                            <label className="block text-sm font-medium mb-2">Organisers</label>
-                            <OrganiserMultiSelect organisers={organisers} value={organisersForm.data.organiser_ids} onChange={(v: number[]) => organisersForm.setData('organiser_ids', v)} />
-                            <div className="mt-2">
-                                <button type="submit" className="btn-primary" disabled={organisersForm.processing}>Save organisers</button>
+                        <form onSubmit={saveLinks} className="mt-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium">Main organiser</label>
+                                <select
+                                    className="input"
+                                    required
+                                    value={linksForm.data.organiser_id ?? ''}
+                                    onChange={(e) => linksForm.setData('organiser_id', e.target.value ? Number(e.target.value) : null)}
+                                >
+                                    <option value="">Select organiser</option>
+                                    {organisers.map((organiser) => (
+                                        <option key={organiser.id} value={organiser.id}>{organiser.name}</option>
+                                    ))}
+                                </select>
+                                {linksForm.errors.organiser_id && <p className="mt-1 text-sm text-red-600">{linksForm.errors.organiser_id}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">Organisers</label>
+                                <OrganiserMultiSelect organisers={organisers} value={linksForm.data.organiser_ids} onChange={(v: number[]) => linksForm.setData('organiser_ids', v)} />
+                            </div>
+
+                            <div>
+                                <label htmlFor="artist_ids" className="block text-sm font-medium">Artists</label>
+                                <select
+                                    id="artist_ids"
+                                    className="input min-h-28"
+                                    multiple
+                                    value={linksForm.data.artist_ids.map(String)}
+                                    onChange={(e) => {
+                                        const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                                        linksForm.setData('artist_ids', values);
+                                    }}
+                                >
+                                    {availableArtists.map((artist) => (
+                                        <option key={artist.id} value={artist.id}>{artist.name}{artist.city ? ` (${artist.city})` : ''}</option>
+                                    ))}
+                                </select>
+                                <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                                {linksForm.errors.artist_ids && <p className="mt-1 text-sm text-red-600">{linksForm.errors.artist_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="vendor_ids" className="block text-sm font-medium">Vendors</label>
+                                <select
+                                    id="vendor_ids"
+                                    className="input min-h-28"
+                                    multiple
+                                    value={linksForm.data.vendor_ids.map(String)}
+                                    onChange={(e) => {
+                                        const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                                        linksForm.setData('vendor_ids', values);
+                                    }}
+                                >
+                                    {availableVendors.map((vendor) => (
+                                        <option key={vendor.id} value={vendor.id}>{vendor.name}{vendor.type ? ` (${vendor.type})` : ''}{vendor.city ? ` · ${vendor.city}` : ''}</option>
+                                    ))}
+                                </select>
+                                <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                                {linksForm.errors.vendor_ids && <p className="mt-1 text-sm text-red-600">{linksForm.errors.vendor_ids}</p>}
+                            </div>
+
+                            <div>
+                                <label htmlFor="promoter_ids" className="block text-sm font-medium">Promoters</label>
+                                <select
+                                    id="promoter_ids"
+                                    className="input min-h-28"
+                                    multiple
+                                    value={linksForm.data.promoter_ids.map(String)}
+                                    onChange={(e) => {
+                                        const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                                        linksForm.setData('promoter_ids', values);
+                                    }}
+                                >
+                                    {availablePromoters.map((promoter) => (
+                                        <option key={promoter.id} value={promoter.id}>{promoter.name}{promoter.email ? ` (${promoter.email})` : ''}</option>
+                                    ))}
+                                </select>
+                                <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                                {linksForm.errors.promoter_ids && <p className="mt-1 text-sm text-red-600">{linksForm.errors.promoter_ids}</p>}
+                            </div>
+
+                            <div>
+                                <button type="submit" className="btn-primary" disabled={linksForm.processing}>Save linked people</button>
                             </div>
                         </form>
                     )}
