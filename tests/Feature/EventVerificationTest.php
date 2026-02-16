@@ -35,6 +35,7 @@ class EventVerificationTest extends TestCase
         ]);
 
         $response->assertRedirect(route('events.index'));
+        $response->assertSessionHas('success', 'Event created successfully. An email has been sent. Check the email to manage and activate your event.');
 
         $event = Event::query()->where('title', 'Guest Verification Event')->firstOrFail();
         $this->assertFalse((bool) $event->active);

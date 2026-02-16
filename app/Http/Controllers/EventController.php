@@ -339,7 +339,7 @@ class EventController extends Controller
 
         $this->clearPublicEventsCache();
 
-        return redirect()->route('events.index');
+        return redirect()->route('events.index')->with('success', 'Event created successfully. An email has been sent. Check the email to manage and activate your event.');
     }
 
     public function verifyViaToken(Request $request, Event $event, string $token): RedirectResponse
@@ -510,8 +510,30 @@ class EventController extends Controller
     {
         $this->assertValidEditToken($event, $token);
 
-        $event->load('organisers', 'organiser', 'user');
-        $organisers = $event->organiser ? [$event->organiser] : [];
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        $promoters = User::query()
+            ->where('is_super_admin', false)
+            ->where('active', true)
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
+
+        $vendors = Vendor::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city', 'type']);
+
+        $bookingRequests = BookingRequest::query()
+            ->with('artist')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $vendorBookingRequests = VendorBookingRequest::query()
+            ->with('vendor')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
 
         $editUrl = URL::signedRoute('events.update-link', [
             'event' => $event->slug,
@@ -521,6 +543,12 @@ class EventController extends Controller
         return Inertia::render('Events/Edit', [
             'event' => $event,
             'organisers' => $organisers,
+            'artists' => $artists,
+            'bookingRequests' => $bookingRequests,
+            'vendors' => $vendors,
+            'vendorBookingRequests' => $vendorBookingRequests,
+            'promoters' => $promoters,
+            'ticketControllers' => $event->ticketControllers,
             'editUrl' => $editUrl,
             'requiresPassword' => (bool) $event->edit_password,
             'allowOrganiserChange' => false,
@@ -533,7 +561,7 @@ class EventController extends Controller
             return response()->json(['event' => $event]);
         }
 
-        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'ticketControllers');
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
         $promoters = User::query()
             ->where('is_super_admin', false)
@@ -681,6 +709,18 @@ class EventController extends Controller
             }
             $event->slug = $slug;
             $event->save();
+        }
+
+        if (array_key_exists('promoter_ids', $data)) {
+            $event->promoters()->sync($data['promoter_ids'] ?? []);
+        }
+
+        if (array_key_exists('vendor_ids', $data)) {
+            $event->vendors()->sync($data['vendor_ids'] ?? []);
+        }
+
+        if (array_key_exists('artist_ids', $data)) {
+            $event->artists()->sync($data['artist_ids'] ?? []);
         }
 
         $this->clearPublicEventsCache();

@@ -49,6 +49,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EventsIndex({ events }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
+    const flashSuccess = page.props?.flash?.success;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const showSignInPromptRow = false;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -99,6 +100,12 @@ export default function EventsIndex({ events }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8' : 'px-4 pt-4 pb-4'}>
+                {flashSuccess ? (
+                    <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                        {flashSuccess}
+                    </div>
+                ) : null}
+
                 {showSignInPromptRow && null}
 
                 {current ? (

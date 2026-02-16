@@ -6,6 +6,7 @@ import {
     LayoutGrid,
     LogOut,
     ScrollText,
+    Settings,
     Shield,
     Users,
     Users2,
@@ -63,6 +64,7 @@ export function AppSidebar() {
         items.push({ title: 'Logs', href: '/admin/error-logs', icon: ScrollText });
     }
     if (page.props?.auth?.user) {
+        items.push({ title: 'Settings', href: '/settings/profile', icon: Settings });
         items.push({ title: 'Logout', href: '/logout', method: 'post', icon: LogOut });
     }
 

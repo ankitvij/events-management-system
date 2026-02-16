@@ -59,6 +59,7 @@ export default function Edit({ event }: Props) {
         image: null,
         organiser_id: event.organiser_id ?? event.organiser?.id ?? null,
         organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [],
+        artist_ids: ((event as any).artists ?? []).map((a: ArtistShort) => a.id),
         promoter_ids: ((event as any).promoters ?? []).map((p: PromoterShort) => p.id),
         vendor_ids: ((event as any).vendors ?? []).map((v: VendorShort) => v.id),
         edit_password: '',
@@ -266,6 +267,25 @@ export default function Edit({ event }: Props) {
                     </div>
                 </div>
                 )}
+
+                <div>
+                    <label htmlFor="artist_ids" className="block text-sm font-medium">Linked artists</label>
+                    <select
+                        id="artist_ids"
+                        className="input min-h-28"
+                        multiple
+                        value={form.data.artist_ids.map(String)}
+                        onChange={(e) => {
+                            const values = Array.from(e.target.selectedOptions).map((option) => Number(option.value));
+                            form.setData('artist_ids', values);
+                        }}
+                    >
+                        {artists.map((a) => (
+                            <option key={a.id} value={a.id}>{a.name}{a.city ? ` (${a.city})` : ''}</option>
+                        ))}
+                    </select>
+                    <p className="mt-1 text-sm text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple.</p>
+                </div>
 
                 <div>
                     <label htmlFor="promoter_ids" className="block text-sm font-medium">Promoters</label>
