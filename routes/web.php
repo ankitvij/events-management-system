@@ -7,6 +7,7 @@ use App\Http\Controllers\OrderPaymentMethodsController;
 
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
+Route::put('/orders/{order}/items/{item}/check-in', [OrderController::class, 'checkInItem'])->middleware(['auth'])->name('orders.items.checkIn');
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
@@ -373,9 +374,15 @@ Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.sho
 Route::put('orders/{order}/payment-received', [OrderController::class, 'markPaymentReceived'])
     ->middleware(['auth'])
     ->name('orders.payment-received');
+Route::put('orders/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])
+    ->middleware(['auth'])
+    ->name('orders.payment-status');
 Route::put('orders/{order}/check-in', [OrderController::class, 'checkIn'])
     ->middleware(['auth'])
     ->name('orders.check-in');
+Route::post('orders/{order}/items/{item}/send-ticket', [OrderController::class, 'sendTicketItem'])
+    ->middleware(['auth'])
+    ->name('orders.items.sendTicket');
 Route::get('orders/{order}/tickets/download-all', [OrderController::class, 'downloadAllTickets'])->name('orders.tickets.downloadAll');
 Route::get('orders/{order}/tickets/{item}/download', [OrderController::class, 'downloadTicket'])->name('orders.tickets.download');
 Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');

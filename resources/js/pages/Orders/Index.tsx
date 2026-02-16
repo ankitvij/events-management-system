@@ -1,10 +1,66 @@
-import { Head, usePage, Link } from '@inertiajs/react';
-import React from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 
 export default function OrdersIndex() {
-    const page = usePage();
-    const orders = page.props?.orders ?? { data: [] };
+    const page = usePage<{ orders?: { data?: any[]; links?: any[] } }>();
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const orders = page.props?.orders ?? { data: [], links: [] };
+
+    function applySort(key: string) {
+        const cur = params?.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) {
+            next = `${key}_desc`;
+        } else if (cur === `${key}_desc`) {
+            next = '';
+        } else {
+            next = `${key}_asc`;
+        }
+
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
+
+        router.get(`/orders${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
+
+    function eventName(order: any): string {
+        const names = Array.from(
+            new Set(((order.items ?? []) as any[]).map((item: any) => item?.event?.title).filter(Boolean))
+        ) as string[];
+
+        if (names.length === 0) {
+            return '—';
+        }
+
+        if (names.length === 1) {
+            return names[0];
+        }
+
+        return `${names[0]} +${names.length - 1}`;
+    }
+
+    function customerName(order: any): string {
+        return order.contact_name || order.customer?.name || order.user?.name || '—';
+    }
+
+    function customerEmail(order: any): string {
+        return order.contact_email || order.customer?.email || order.user?.email || '—';
+    }
 
     return (
         <AppLayout>
@@ -12,27 +68,64 @@ export default function OrdersIndex() {
 
             <div className="p-4">
                 <h1 className="text-xl font-semibold">Orders</h1>
-                <div className="mt-4 space-y-3">
-                    {orders.data.length === 0 ? (
+
+                <div className="mt-4">
+                    <CompactPagination links={orders.links} />
+                </div>
+
+                <div className="mt-4 hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <div className="md:col-span-3 flex items-center gap-3">
+                        <button onClick={() => applySort('booking_code')} className="btn-primary shrink-0">
+                            Booking code
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('booking_code_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search orders..."
+                            className="input w-full"
+                        />
+                    </div>
+                    <button onClick={() => applySort('name')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                        Customer name
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <button onClick={() => applySort('event')} className="btn-primary md:col-span-3 w-full justify-start min-w-max whitespace-nowrap">
+                        Event name
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('event_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                        Customer email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <button onClick={() => applySort('date')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                        Order date
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('date_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                </div>
+
+                <div className="space-y-3">
+                    {orders.data?.length === 0 ? (
                         <div className="text-sm text-muted">No orders yet.</div>
                     ) : (
-                        orders.data.map((o: any) => (
-                            <Link key={o.id} href={`/orders/${o.id}`} className="box block" as="a">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="font-medium">Order #{o.id}</div>
-                                        <div className="text-sm text-muted">Placed: {o.created_at}</div>
-                                        {o.booking_code ? <div className="text-sm">Booking: <strong>{o.booking_code}</strong></div> : null}
-                                        {o.contact_name ? <div className="text-sm">Contact: {o.contact_name}</div> : null}
+                        orders.data?.map((order: any) => (
+                            <Link key={order.id} href={`/orders/${order.id}`} className="box block transition hover:opacity-90">
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center">
+                                    <div className="md:col-span-3">
+                                        <span className="font-medium">{order.booking_code || '—'}</span>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="font-medium">€{Number(o.total).toFixed(2)}</div>
-                                        <div className="text-sm text-muted">Ticket types: {o.items?.length ?? 0}</div>
-                                    </div>
+                                    <div className="md:col-span-2 text-sm">{customerName(order)}</div>
+                                    <div className="md:col-span-3 text-sm">{eventName(order)}</div>
+                                    <div className="md:col-span-2 text-sm text-muted break-all">{customerEmail(order)}</div>
+                                    <div className="md:col-span-2 text-sm text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                                 </div>
                             </Link>
                         ))
                     )}
+                </div>
+
+                <div className="mt-4">
+                    <CompactPagination links={orders.links} />
                 </div>
             </div>
         </AppLayout>

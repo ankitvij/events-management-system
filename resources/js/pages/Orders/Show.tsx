@@ -1,5 +1,4 @@
 import { Head, usePage } from '@inertiajs/react';
-import React, { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 
 type GuestDetail = {
@@ -21,6 +20,7 @@ type EventInfo = {
 type OrderItem = {
     id: number;
     quantity: number;
+    checked_in_quantity?: number | null;
     price: number;
     ticket?: Ticket | null;
     event?: EventInfo | null;
@@ -70,8 +70,9 @@ export default function OrdersShow() {
     const order = page.props.order ?? null;
     const paymentDetails = page.props.payment_details;
     const items: OrderItem[] = Array.isArray(order?.items) ? order.items : [];
+    const authUser = (page.props as { auth?: { user?: { id: number; is_super_admin?: boolean } } }).auth?.user;
 
-    const downloadParams = (() => {
+    const baseDownloadParams = (() => {
         if (!order?.booking_code) return '';
         const params = new URLSearchParams();
         params.set('booking_code', order.booking_code);
@@ -83,81 +84,51 @@ export default function OrdersShow() {
         return query ? `?${query}` : '';
     })();
 
-    const downloadAllUrl = order?.id ? `/orders/${order.id}/tickets/download-all${downloadParams}` : '#';
+    const downloadAllUrl = order?.id ? `/orders/${order.id}/tickets/download-all${baseDownloadParams}` : '#';
     const totalTickets = items.reduce((sum: number, it: OrderItem) => sum + (Number(it?.quantity) || 1), 0);
     const orderEmail = order?.contact_email ?? order?.user?.email ?? null;
-    const authUser = (page.props as { auth?: { user?: { id: number; is_super_admin?: boolean } } }).auth?.user;
     const csrfToken = typeof document !== 'undefined'
         ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         : '';
 
-    const [guestDetails, setGuestDetails] = useState<GuestDetail[][]>(() => {
-        return items.map(it => (Array.isArray(it.guest_details) ? [...it.guest_details] : []));
+    const invalidPaymentStatuses = new Set(['not_paid', 'failed', 'refunded']);
+    const isInvalidByPayment = invalidPaymentStatuses.has(order?.payment_status ?? '');
+
+    const paymentStatusLabel: Record<string, string> = {
+        pending: 'Pending',
+        paid: 'Paid',
+        not_paid: 'Not paid',
+        failed: 'Failed',
+        refunded: 'Refunded',
+    };
+
+    const ticketRows = items.flatMap((item) => {
+        const quantity = Math.max(1, Number(item.quantity) || 1);
+        const checkedInQuantity = Math.min(quantity, Math.max(0, Number(item.checked_in_quantity ?? 0)));
+        const guestDetails = Array.isArray(item.guest_details) ? item.guest_details : [];
+        const eventStart = item.event?.start_at ? new Date(item.event.start_at) : null;
+        const isExpired = Boolean(eventStart && eventStart.getTime() < Date.now());
+
+        return Array.from({ length: quantity }, (_, index) => {
+            const guest = guestDetails[index] ?? null;
+            const checkedIn = index < checkedInQuantity;
+
+            return {
+                key: `${item.id}-${index + 1}`,
+                itemId: item.id,
+                ticketIndex: index + 1,
+                eventTitle: item.event?.title ?? 'Event',
+                ticketName: item.ticket?.name ?? 'Ticket',
+                guestName: guest?.name ?? null,
+                guestEmail: guest?.email ?? null,
+                price: Number(item.price) || 0,
+                isCheckedIn: checkedIn,
+                isExpired,
+            };
+        });
     });
-    const [saving, setSaving] = useState<number | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
 
-    const handleGuestDetailChange = (itemIdx: number, guestIdx: number, field: 'name' | 'email', value: string) => {
-        setGuestDetails(prev =>
-            prev.map((guests, idx) => {
-                if (idx !== itemIdx) return guests;
-                return guests.map((g, gidx) => (gidx === guestIdx ? { ...g, [field]: value } : g));
-            })
-        );
-    };
-
-    const handleSaveGuestDetails = async (itemIdx: number, itemId: number) => {
-        setSaving(itemId);
-        setSaveError(null);
-        try {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const res = await fetch(`/orders/${order.id}/items/${itemId}/ticket-holder`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({ guest_details: guestDetails[itemIdx] }),
-            });
-            if (!res.ok) throw new Error(await res.text());
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to save';
-            setSaveError(message);
-        } finally {
-            setSaving(null);
-        }
-    };
-
-    const sendTickets = async (initialEmail?: string | null): Promise<void> => {
-        if (order.checked_in) {
-            alert('Tickets for this order are already checked in and no longer valid.');
-            return;
-        }
-
-        const email = initialEmail || window.prompt('Email to send tickets to');
-        if (!email) {
-            alert('Email is required');
-            return;
-        }
-        try {
-            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const res = await fetch('/orders/send-ticket', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify({ booking_code: order.booking_code, email }),
-            });
-            if (!res.ok) throw new Error(await res.text());
-            alert('Tickets emailed successfully');
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to send ticket to email';
-            alert(message);
-        }
-    };
+    const paymentStatus = order?.payment_status ?? 'pending';
 
     if (!order) {
         return (
@@ -206,7 +177,7 @@ export default function OrdersShow() {
                                 Payment method: {paymentDetails?.display_name || order.payment_method.replace('_', ' ')}
                             </div>
                             <div className="text-muted">
-                                Status: {order.payment_status === 'paid' || order.paid ? 'Paid' : 'Pending payment'}
+                                Status: {paymentStatusLabel[paymentStatus] ?? paymentStatus}
                             </div>
                             {paymentDetails && (
                                 <div className="rounded-md border border-border bg-muted/30 p-3 leading-relaxed">
@@ -228,33 +199,30 @@ export default function OrdersShow() {
                     )}
                     {authUser && (
                         <div className="flex flex-wrap items-center gap-2 pt-2">
-                            {!(order.payment_status === 'paid' || order.paid) && (
-                                <form method="post" action={`/orders/${order.id}/payment-received`}>
-                                    <input type="hidden" name="_method" value="put" />
-                                    <input type="hidden" name="_token" value={csrfToken} />
-                                    <button type="submit" className="btn-primary">Mark payment received</button>
-                                </form>
-                            )}
+                            <form method="post" action={`/orders/${order.id}/payment-status`} className="flex items-center gap-2">
+                                <input type="hidden" name="_method" value="put" />
+                                <input type="hidden" name="_token" value={csrfToken} />
+                                <select name="payment_status" aria-label="Payment status" defaultValue={paymentStatus} className="input h-9 w-44">
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="not_paid">Not paid</option>
+                                    <option value="failed">Failed</option>
+                                    <option value="refunded">Refunded</option>
+                                </select>
+                                <button type="submit" className="btn-primary">Update payment status</button>
+                            </form>
                             {!order.checked_in ? (
                                 <form method="post" action={`/orders/${order.id}/check-in`}>
                                     <input type="hidden" name="_method" value="put" />
                                     <input type="hidden" name="_token" value={csrfToken} />
-                                    <button type="submit" className="btn-confirm">Check in tickets</button>
+                                    <button type="submit" className="btn-confirm">Check in all tickets</button>
                                 </form>
                             ) : (
                                 <span className="text-xs rounded bg-yellow-100 text-yellow-800 px-2 py-1">Checked in — tickets invalid</span>
                             )}
                         </div>
                     )}
-                    {orderEmail && (
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-muted">
-                            <span>Confirmation sent to:</span>
-                            <strong className="text-sm font-semibold text-black dark:text-white">{orderEmail}</strong>
-                            <button type="button" className="btn-confirm" onClick={() => sendTickets(orderEmail)}>
-                                Resend tickets
-                            </button>
-                        </div>
-                    )}
+                    {orderEmail && <div className="text-sm text-muted">Confirmation sent to: <strong className="text-black dark:text-white">{orderEmail}</strong></div>}
                     {totalTickets > 1 && (
                         <div className="flex flex-wrap gap-2">
                             <a href={downloadAllUrl} className="btn-download">
@@ -265,80 +233,59 @@ export default function OrdersShow() {
                 </div>
 
                 <div className="space-y-2">
-                    {items.map((it: OrderItem, itemIdx: number) => {
-                        const guests: GuestDetail[] = Array.isArray(guestDetails[itemIdx]) ? guestDetails[itemIdx] : [];
-                        const defaultEmail = guests.length > 0 ? guests[0]?.email ?? null : null;
+                    {ticketRows.map((row) => {
+                        const status = row.isCheckedIn
+                            ? { label: 'Checked in', classes: 'border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200' }
+                            : row.isExpired
+                                ? { label: 'Expired', classes: 'border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200' }
+                                : isInvalidByPayment
+                                    ? { label: 'Invalid', classes: 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200' }
+                                    : { label: 'Valid', classes: 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200' };
+
+                        const params = new URLSearchParams(baseDownloadParams.replace(/^\?/, ''));
+                        params.set('ticket_index', String(row.ticketIndex));
+                        if (row.guestEmail) {
+                            params.set('email', row.guestEmail);
+                        }
+
+                        const downloadUrl = `/orders/${order.id}/tickets/${row.itemId}/download?${params.toString()}`;
+                        const canCheckIn = authUser && !row.isCheckedIn && !row.isExpired && !isInvalidByPayment;
 
                         return (
-                            <div key={it.id} className="box">
-                                <div className="flex flex-col gap-3 min-[700px]:flex-row min-[700px]:items-start min-[700px]:justify-between">
-                                    <div className="flex-1 space-y-3">
-                                        {(it.event?.image_thumbnail_url || it.event?.image_url) && (
-                                            <img
-                                                src={it.event?.image_thumbnail_url ?? it.event?.image_url}
-                                                alt={it.event?.title}
-                                                className="w-full rounded min-[600px]:w-auto"
-                                            />
-                                        )}
-                                        <div className="text-left mt-2 min-[700px]:mt-3">
-                                            <div className="font-medium">{it.event?.title ?? it.ticket?.name ?? 'Item'}</div>
-                                            <div className="text-sm text-muted">
-                                                {it.ticket?.name ? `Ticket type: ${it.ticket.name}` : 'Ticket type'}
-                                            </div>
-                                            {guests.length > 0 && (
-                                                <div className="space-y-2 mt-2">
-                                                    {guests.map((g: GuestDetail, guestIdx: number) => (
-                                                        <div key={guestIdx} className="flex flex-col gap-2">
-                                                            <input
-                                                                type="text"
-                                                                value={g.name || ''}
-                                                                onChange={e => handleGuestDetailChange(itemIdx, guestIdx, 'name', e.target.value)}
-                                                                className="border rounded px-2 py-1 text-sm w-[300px]"
-                                                                placeholder="Ticket holder name"
-                                                            />
-                                                            <input
-                                                                type="email"
-                                                                value={g.email || ''}
-                                                                onChange={e => handleGuestDetailChange(itemIdx, guestIdx, 'email', e.target.value)}
-                                                                className="border rounded px-2 py-1 text-sm w-[300px]"
-                                                                placeholder="Ticket holder email (optional)"
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                    <div className="mt-2">
-                                                        <button
-                                                            type="button"
-                                                            className={`btn-primary ${saving === it.id ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                            disabled={saving === it.id}
-                                                            onClick={() => handleSaveGuestDetails(itemIdx, it.id)}
-                                                        >
-                                                            {saving === it.id ? 'Saving...' : 'Update this ticket'}
-                                                        </button>
-                                                    </div>
-                                                    {saveError && saving === it.id && (
-                                                        <div className="text-sm text-red-600 mt-1">{saveError}</div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <div className="mt-3">
-                                                <button
-                                                    type="button"
-                                                    className="btn-confirm"
-                                                    onClick={() => sendTickets(defaultEmail || orderEmail)}
-                                                >
-                                                    Email this ticket
-                                                </button>
-                                            </div>
+                            <div key={row.key} className={`box border ${status.classes}`}>
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="space-y-1">
+                                        <div className="font-semibold">
+                                            {row.eventTitle} — {row.ticketName} #{row.ticketIndex}
                                         </div>
+                                        <div className="text-xs opacity-90">
+                                            {row.guestName ? row.guestName : 'Ticket holder not set'}
+                                            {row.guestEmail ? ` • ${row.guestEmail}` : ''}
+                                        </div>
+                                        <div className="text-xs font-semibold">{status.label}</div>
                                     </div>
-                                    <div className="min-[700px]:ml-6 flex flex-col items-end gap-3 mt-3 min-[700px]:mt-5">
-                                        <a
-                                            href={`/orders/${order.id}/tickets/${it.id}/download${downloadParams}`}
-                                            className="btn-download"
-                                        >
-                                            {it.quantity && it.quantity > 1 ? 'Download tickets' : 'Download ticket'}
-                                        </a>
-                                        <div className="text-lg font-semibold">€{Number(it.price).toFixed(2)}</div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {authUser && (
+                                            <form method="post" action={`/orders/${order.id}/items/${row.itemId}/send-ticket`}>
+                                                <input type="hidden" name="_token" value={csrfToken} />
+                                                <input type="hidden" name="ticket_index" value={row.ticketIndex} />
+                                                {row.guestEmail && <input type="hidden" name="email" value={row.guestEmail} />}
+                                                <button type="submit" className="btn-primary">Resend ticket</button>
+                                            </form>
+                                        )}
+                                        <a href={downloadUrl} className="btn-download">Download ticket</a>
+                                        {authUser && canCheckIn ? (
+                                            <form method="post" action={`/orders/${order.id}/items/${row.itemId}/check-in`}>
+                                                <input type="hidden" name="_method" value="put" />
+                                                <input type="hidden" name="_token" value={csrfToken} />
+                                                <button type="submit" className="btn-confirm">Check in ticket</button>
+                                            </form>
+                                        ) : authUser ? (
+                                            <button type="button" className="btn-confirm opacity-50" disabled>
+                                                Check in ticket
+                                            </button>
+                                        ) : null}
+                                        <span className="text-sm font-semibold">€{row.price.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -353,5 +300,3 @@ export default function OrdersShow() {
         </AppLayout>
     );
 }
-
-/* SendTicketButton removed (send ticket functionality removed from this page) */

@@ -14,6 +14,64 @@ class OrderAdminActionsTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_can_check_in_order_item_tickets_separately(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Separate Check In',
+            'price' => 10.00,
+            'quantity_total' => 10,
+            'quantity_available' => 10,
+            'active' => true,
+        ]);
+
+        $order = Order::create([
+            'status' => 'paid',
+            'total' => 20.00,
+            'contact_name' => 'Guest Buyer',
+            'contact_email' => 'guest@example.com',
+            'booking_code' => 'SEP123',
+            'paid' => true,
+            'checked_in' => false,
+        ]);
+
+        $item = OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 2,
+            'checked_in_quantity' => 0,
+            'price' => 10.00,
+        ]);
+
+        $this->actingAs($admin)->put(route('orders.items.checkIn', [$order, $item]))->assertRedirect();
+
+        $this->assertDatabaseHas('order_items', [
+            'id' => $item->id,
+            'checked_in_quantity' => 1,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'checked_in' => false,
+        ]);
+
+        $this->actingAs($admin)->put(route('orders.items.checkIn', [$order, $item]))->assertRedirect();
+
+        $this->assertDatabaseHas('order_items', [
+            'id' => $item->id,
+            'checked_in_quantity' => 2,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'checked_in' => true,
+        ]);
+    }
+
     public function test_admin_can_mark_payment_received(): void
     {
         $admin = User::factory()->create([
@@ -32,6 +90,29 @@ class OrderAdminActionsTest extends TestCase
             'id' => $order->id,
             'payment_status' => 'paid',
             'paid' => true,
+        ]);
+    }
+
+    public function test_admin_can_update_payment_status_to_not_paid(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'paid',
+            'paid' => true,
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('orders.payment-status', $order), [
+            'payment_status' => 'not_paid',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_status' => 'not_paid',
+            'paid' => false,
         ]);
     }
 

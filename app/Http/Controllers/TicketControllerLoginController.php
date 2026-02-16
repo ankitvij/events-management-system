@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use App\Models\LoginToken;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -106,7 +107,9 @@ class TicketControllerLoginController extends Controller
             ->whereHas('items', function ($query) use ($eventIds): void {
                 $query->whereIn('event_id', $eventIds);
             })
-            ->with(['items.event'])
+            ->with(['items' => function ($query) use ($eventIds): void {
+                $query->whereIn('event_id', $eventIds)->with('event', 'ticket');
+            }])
             ->first();
 
         if (! $order) {
@@ -117,21 +120,41 @@ class TicketControllerLoginController extends Controller
             ]);
         }
 
-        if ($order->checked_in) {
+        $itemToCheckIn = $order->items->first(function (OrderItem $item): bool {
+            $quantity = max(1, (int) $item->quantity);
+            $checkedIn = max(0, (int) ($item->checked_in_quantity ?? 0));
+
+            return $checkedIn < $quantity;
+        });
+
+        if (! $itemToCheckIn) {
             return back()->with('ticketScan', [
                 'status' => 'already_checked_in',
                 'label' => 'Already checked in',
-                'detail' => 'Booking code '.$order->booking_code.' has already been checked in.',
+                'detail' => 'All tickets for booking code '.$order->booking_code.' are already checked in.',
             ]);
         }
 
-        $order->checked_in = true;
-        $order->save();
+        $quantity = max(1, (int) $itemToCheckIn->quantity);
+        $checkedIn = max(0, (int) ($itemToCheckIn->checked_in_quantity ?? 0));
+        $itemToCheckIn->checked_in_quantity = min($quantity, $checkedIn + 1);
+        $itemToCheckIn->save();
+
+        $this->syncOrderCheckInState($order);
+
+        $remainingForBooking = (int) $order->items->sum(function (OrderItem $item): int {
+            $itemQuantity = max(1, (int) $item->quantity);
+            $itemCheckedIn = max(0, (int) ($item->checked_in_quantity ?? 0));
+
+            return max(0, $itemQuantity - $itemCheckedIn);
+        });
+
+        $ticketName = $itemToCheckIn->ticket?->name ?? 'Ticket';
 
         return back()->with('ticketScan', [
             'status' => 'ready_to_check_in',
             'label' => 'Ready to check in',
-            'detail' => 'Booking code '.$order->booking_code.' is now checked in.',
+            'detail' => $ticketName.' checked in for booking code '.$order->booking_code.'. Remaining tickets: '.$remainingForBooking.'.',
         ]);
     }
 
@@ -175,5 +198,20 @@ class TicketControllerLoginController extends Controller
         }
 
         return null;
+    }
+
+    protected function syncOrderCheckInState(Order $order): void
+    {
+        $order->loadMissing('items');
+
+        $remaining = (int) $order->items->sum(function (OrderItem $item): int {
+            $quantity = max(1, (int) $item->quantity);
+            $checkedIn = max(0, (int) ($item->checked_in_quantity ?? 0));
+
+            return max(0, $quantity - $checkedIn);
+        });
+
+        $order->checked_in = $remaining === 0;
+        $order->save();
     }
 }

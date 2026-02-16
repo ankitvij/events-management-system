@@ -114,12 +114,28 @@ class TicketControllerAccessTest extends TestCase
             'order_id' => $order->id,
             'ticket_id' => $ticket->id,
             'event_id' => $event->id,
-            'quantity' => 1,
+            'quantity' => 2,
+            'checked_in_quantity' => 0,
             'price' => 10,
         ]);
 
         $payload = json_encode([
             'booking_code' => 'BOOK123',
+        ]);
+
+        $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
+            ->post(route('ticket-controllers.check-in'), ['payload' => $payload])
+            ->assertSessionHas('ticketScan.status', 'ready_to_check_in')
+            ->assertSessionHas('ticketScan.label', 'Ready to check in');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'checked_in' => false,
+        ]);
+
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'checked_in_quantity' => 1,
         ]);
 
         $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
