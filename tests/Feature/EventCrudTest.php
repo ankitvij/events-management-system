@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\EventOrganiserCreated;
 use App\Models\Event;
+use App\Models\EventTicketController;
 use App\Models\Organiser;
 use App\Models\User;
 use App\Models\Vendor;
@@ -286,6 +287,11 @@ class EventCrudTest extends TestCase
 
         $event = Event::where('title', 'Auth Visibility Event')->firstOrFail();
 
+        EventTicketController::query()->create([
+            'event_id' => $event->id,
+            'email' => 'scanner-auth@example.test',
+        ]);
+
         $index = $this->get(route('events.index'));
         $index->assertStatus(200);
         $index->assertJsonFragment(['showOrganisers' => true]);
@@ -295,6 +301,7 @@ class EventCrudTest extends TestCase
         $show->assertStatus(200);
         $show->assertJsonFragment(['showOrganisers' => true]);
         $show->assertJsonFragment(['email' => 'alice2@example.test']);
+        $show->assertJsonFragment(['email' => 'scanner-auth@example.test']);
     }
 
     public function test_guest_can_edit_event_via_signed_link_with_password(): void

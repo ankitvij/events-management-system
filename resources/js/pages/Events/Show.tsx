@@ -15,6 +15,7 @@ type ArtistShort = { id: number; name: string; city?: string | null; photo_url?:
 
 type VendorShort = { id: number; name: string; city?: string | null; type?: string | null };
 type PromoterShort = { id: number; name: string; email?: string | null };
+type TicketControllerEmail = { id: number; email: string };
 
 type Event = {
     id: number;
@@ -52,6 +53,7 @@ export default function Show({ event }: Props) {
     const artists = (page.props?.artists ?? []) as ArtistShort[];
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
     const promoters = (page.props?.promoters ?? []) as PromoterShort[];
+    const ticketControllers = (page.props?.ticketControllers ?? []) as TicketControllerEmail[];
 
     // debug logging removed
 
@@ -279,6 +281,19 @@ export default function Show({ event }: Props) {
                                 <div key={promoter.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
                                     <span className="font-medium">{promoter.name}</span>
                                     {promoter.email ? <span className="text-muted">· {promoter.email}</span> : null}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {page.props?.canEdit && ticketControllers.length > 0 && (
+                    <div className="mt-2">
+                        <div className="text-sm text-muted">Ticket controllers:</div>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {ticketControllers.map((ticketController) => (
+                                <div key={ticketController.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
+                                    <span className="font-medium">{ticketController.email}</span>
                                 </div>
                             ))}
                         </div>

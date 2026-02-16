@@ -365,7 +365,7 @@ class EventController extends Controller
     {
         $event->load('user');
         if (auth()->check()) {
-            $event->load('organisers');
+            $event->load('organisers', 'ticketControllers');
         }
         $event->load('artists');
         $event->load('vendors');
@@ -439,6 +439,15 @@ class EventController extends Controller
             ];
         })->values();
 
+        $ticketControllers = auth()->check()
+            ? $event->ticketControllers->map(function ($ticketController) {
+                return [
+                    'id' => $ticketController->id,
+                    'email' => $ticketController->email,
+                ];
+            })->values()
+            : collect();
+
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
             return response()->json([
                 'event' => $event,
@@ -449,6 +458,7 @@ class EventController extends Controller
                 'artists' => $artists,
                 'vendors' => $vendors,
                 'promoters' => $promoters,
+                'ticketControllers' => $ticketControllers,
             ]);
         }
 
@@ -461,6 +471,7 @@ class EventController extends Controller
             'artists' => $artists,
             'vendors' => $vendors,
             'promoters' => $promoters,
+            'ticketControllers' => $ticketControllers,
         ]);
     }
 
