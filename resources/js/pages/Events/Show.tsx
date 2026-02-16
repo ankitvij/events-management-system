@@ -1,6 +1,7 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
 import type { FormEvent } from 'react';
+import { useMemo, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
@@ -58,6 +59,9 @@ export default function Show({ event }: Props) {
     const availableArtists = (page.props?.availableArtists ?? []) as ArtistShort[];
     const availableVendors = (page.props?.availableVendors ?? []) as VendorShort[];
     const availablePromoters = (page.props?.availablePromoters ?? []) as PromoterShort[];
+    const [artistSearch, setArtistSearch] = useState('');
+    const [vendorSearch, setVendorSearch] = useState('');
+    const [promoterSearch, setPromoterSearch] = useState('');
 
     // debug logging removed
 
@@ -80,6 +84,41 @@ export default function Show({ event }: Props) {
         artist_ids: artists.map((artist) => artist.id),
     });
     const ticketControllerForm = useForm({ email: '' });
+    const bookingForm = useForm({ artist_id: '', message: '' });
+    const vendorBookingForm = useForm({ vendor_id: '', message: '' });
+
+    const filteredAvailableArtists = useMemo(() => {
+        const query = artistSearch.trim().toLowerCase();
+        if (!query) {
+            return availableArtists;
+        }
+
+        return availableArtists.filter((artist) =>
+            [artist.name, artist.city ?? ''].join(' ').toLowerCase().includes(query)
+        );
+    }, [availableArtists, artistSearch]);
+
+    const filteredAvailableVendors = useMemo(() => {
+        const query = vendorSearch.trim().toLowerCase();
+        if (!query) {
+            return availableVendors;
+        }
+
+        return availableVendors.filter((vendor) =>
+            [vendor.name, vendor.city ?? '', vendor.type ?? ''].join(' ').toLowerCase().includes(query)
+        );
+    }, [availableVendors, vendorSearch]);
+
+    const filteredAvailablePromoters = useMemo(() => {
+        const query = promoterSearch.trim().toLowerCase();
+        if (!query) {
+            return availablePromoters;
+        }
+
+        return availablePromoters.filter((promoter) =>
+            [promoter.name, promoter.email ?? ''].join(' ').toLowerCase().includes(query)
+        );
+    }, [availablePromoters, promoterSearch]);
 
     function saveLinks(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -362,6 +401,112 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
+                {page.props?.canEdit && availableArtists.length > 0 && (
+                    <div className="mt-4 border-t pt-4">
+                        <h3 className="text-sm font-medium">Booking requests</h3>
+                        <div className="mt-2 rounded border border-border bg-muted/20 p-3">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    bookingForm.post(`/events/${event.slug}/booking-requests`, {
+                                        preserveScroll: true,
+                                        onSuccess: () => bookingForm.reset('artist_id', 'message'),
+                                    });
+                                }}
+                                className="grid grid-cols-1 gap-3 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label htmlFor="artist_id" className="block text-sm font-medium">Artist <span className="text-red-600">*</span></label>
+                                    <select
+                                        id="artist_id"
+                                        className="input"
+                                        required
+                                        value={bookingForm.data.artist_id}
+                                        onChange={(e) => bookingForm.setData('artist_id', e.target.value)}
+                                    >
+                                        <option value="">Select artist</option>
+                                        {availableArtists.map((artist) => (
+                                            <option key={artist.id} value={String(artist.id)}>{artist.name}{artist.city ? ` (${artist.city})` : ''}</option>
+                                        ))}
+                                    </select>
+                                    {bookingForm.errors.artist_id && <p className="mt-1 text-sm text-red-600">{bookingForm.errors.artist_id}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="booking_message" className="block text-sm font-medium">Message</label>
+                                    <textarea
+                                        id="booking_message"
+                                        className="input"
+                                        rows={3}
+                                        value={bookingForm.data.message}
+                                        onChange={(e) => bookingForm.setData('message', e.target.value)}
+                                    />
+                                    {bookingForm.errors.message && <p className="mt-1 text-sm text-red-600">{bookingForm.errors.message}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <button type="submit" className="btn-secondary" disabled={bookingForm.processing}>
+                                        Send booking request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {page.props?.canEdit && availableVendors.length > 0 && (
+                    <div className="mt-4 border-t pt-4">
+                        <h3 className="text-sm font-medium">Vendor booking requests</h3>
+                        <div className="mt-2 rounded border border-border bg-muted/20 p-3">
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    vendorBookingForm.post(`/events/${event.slug}/vendor-booking-requests`, {
+                                        preserveScroll: true,
+                                        onSuccess: () => vendorBookingForm.reset('vendor_id', 'message'),
+                                    });
+                                }}
+                                className="grid grid-cols-1 gap-3 md:grid-cols-2"
+                            >
+                                <div>
+                                    <label htmlFor="vendor_id" className="block text-sm font-medium">Vendor <span className="text-red-600">*</span></label>
+                                    <select
+                                        id="vendor_id"
+                                        className="input"
+                                        required
+                                        value={vendorBookingForm.data.vendor_id}
+                                        onChange={(e) => vendorBookingForm.setData('vendor_id', e.target.value)}
+                                    >
+                                        <option value="">Select vendor</option>
+                                        {availableVendors.map((vendor) => (
+                                            <option key={vendor.id} value={String(vendor.id)}>{vendor.name}{vendor.type ? ` (${vendor.type})` : ''}{vendor.city ? ` · ${vendor.city}` : ''}</option>
+                                        ))}
+                                    </select>
+                                    {vendorBookingForm.errors.vendor_id && <p className="mt-1 text-sm text-red-600">{vendorBookingForm.errors.vendor_id}</p>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="vendor_booking_message" className="block text-sm font-medium">Message</label>
+                                    <textarea
+                                        id="vendor_booking_message"
+                                        className="input"
+                                        rows={3}
+                                        value={vendorBookingForm.data.message}
+                                        onChange={(e) => vendorBookingForm.setData('message', e.target.value)}
+                                    />
+                                    {vendorBookingForm.errors.message && <p className="mt-1 text-sm text-red-600">{vendorBookingForm.errors.message}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <button type="submit" className="btn-secondary" disabled={vendorBookingForm.processing}>
+                                        Send vendor booking request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 <div
                     className="mt-4"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
@@ -416,6 +561,13 @@ export default function Show({ event }: Props) {
 
                             <div>
                                 <label htmlFor="artist_ids" className="block text-sm font-medium">Artists</label>
+                                <input
+                                    type="text"
+                                    className="input mt-2"
+                                    value={artistSearch}
+                                    onChange={(e) => setArtistSearch(e.target.value)}
+                                    placeholder="Search artists..."
+                                />
                                 <select
                                     id="artist_ids"
                                     className="input min-h-28"
@@ -426,7 +578,7 @@ export default function Show({ event }: Props) {
                                         linksForm.setData('artist_ids', values);
                                     }}
                                 >
-                                    {availableArtists.map((artist) => (
+                                    {filteredAvailableArtists.map((artist) => (
                                         <option key={artist.id} value={artist.id}>{artist.name}{artist.city ? ` (${artist.city})` : ''}</option>
                                     ))}
                                 </select>
@@ -436,6 +588,13 @@ export default function Show({ event }: Props) {
 
                             <div>
                                 <label htmlFor="vendor_ids" className="block text-sm font-medium">Vendors</label>
+                                <input
+                                    type="text"
+                                    className="input mt-2"
+                                    value={vendorSearch}
+                                    onChange={(e) => setVendorSearch(e.target.value)}
+                                    placeholder="Search vendors..."
+                                />
                                 <select
                                     id="vendor_ids"
                                     className="input min-h-28"
@@ -446,7 +605,7 @@ export default function Show({ event }: Props) {
                                         linksForm.setData('vendor_ids', values);
                                     }}
                                 >
-                                    {availableVendors.map((vendor) => (
+                                    {filteredAvailableVendors.map((vendor) => (
                                         <option key={vendor.id} value={vendor.id}>{vendor.name}{vendor.type ? ` (${vendor.type})` : ''}{vendor.city ? ` · ${vendor.city}` : ''}</option>
                                     ))}
                                 </select>
@@ -456,6 +615,13 @@ export default function Show({ event }: Props) {
 
                             <div>
                                 <label htmlFor="promoter_ids" className="block text-sm font-medium">Promoters</label>
+                                <input
+                                    type="text"
+                                    className="input mt-2"
+                                    value={promoterSearch}
+                                    onChange={(e) => setPromoterSearch(e.target.value)}
+                                    placeholder="Search promoters..."
+                                />
                                 <select
                                     id="promoter_ids"
                                     className="input min-h-28"
@@ -466,7 +632,7 @@ export default function Show({ event }: Props) {
                                         linksForm.setData('promoter_ids', values);
                                     }}
                                 >
-                                    {availablePromoters.map((promoter) => (
+                                    {filteredAvailablePromoters.map((promoter) => (
                                         <option key={promoter.id} value={promoter.id}>{promoter.name}{promoter.email ? ` (${promoter.email})` : ''}</option>
                                     ))}
                                 </select>

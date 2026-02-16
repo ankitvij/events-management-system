@@ -59,22 +59,20 @@ export function AppSidebar() {
     }
     items.push({ title: 'Events', href: '/events', icon: Calendar });
     if (isAdmin) {
-        items.push({ title: 'Pages', href: '/pages', icon: FileText });
+        items.push({ title: 'Users', href: '/users', icon: Users });
+    }
+    if (page.props?.auth?.user) {
+        items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
     }
     if (isSuper) {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
     }
     if (isAdmin) {
-        items.push({ title: 'Users', href: '/users', icon: Users });
-    }
-    if (page.props?.auth?.user) {
-        items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
-        items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
-    }
-    if (isAdmin) {
         items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
         items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
         items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
+        items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
+        items.push({ title: 'Pages', href: '/pages', icon: FileText });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });
