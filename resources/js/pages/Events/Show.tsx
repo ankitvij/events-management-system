@@ -31,7 +31,9 @@ type Event = {
     instagram_url?: string | null;
     whatsapp_url?: string | null;
     image?: string | null;
+    image_url?: string | null;
     image_thumbnail?: string | null;
+    image_thumbnail_url?: string | null;
     active?: boolean;
     organiser_id?: number | null;
     organisers?: Organiser[];
@@ -218,9 +220,9 @@ export default function Show({ event }: Props) {
                         return `/storage/${path}`;
                     };
 
-                    const thumbnailPath = event.image_thumbnail ?? '';
-                    const fullImagePath = event.image ?? '';
-                    const publicPath = event.image ?? event.image_thumbnail ?? '';
+                    const thumbnailPath = event.image_thumbnail_url ?? event.image_thumbnail ?? '';
+                    const fullImagePath = event.image_url ?? event.image ?? '';
+                    const publicPath = event.image_url ?? event.image ?? event.image_thumbnail_url ?? event.image_thumbnail ?? '';
 
                     const selectedPath = page.props?.canEdit
                         ? (thumbnailPath || fullImagePath)

@@ -15,6 +15,7 @@ type EventInfo = {
     title?: string | null;
     start_at?: string | null;
     image_thumbnail_url?: string | null;
+    image_thumbnail?: string | null;
     image_url?: string | null;
 };
 
@@ -286,9 +287,11 @@ export default function OrdersShow() {
                         const downloadUrl = `/orders/${order.id}/tickets/${row.itemId}/download?${params.toString()}`;
                         const canCheckIn = authUser && !row.isCheckedIn && !row.isExpired && !isInvalidByPayment;
                         const sourceItem = items.find((item) => item.id === row.itemId);
-                        const eventThumbnail = sourceItem?.event?.image_thumbnail_url
-                            ? resolveStoragePath(sourceItem.event.image_thumbnail_url)
-                            : null;
+                        const eventThumbnailPath = sourceItem?.event?.image_thumbnail_url
+                            ?? sourceItem?.event?.image_thumbnail
+                            ?? sourceItem?.event?.image_url
+                            ?? null;
+                        const eventThumbnail = eventThumbnailPath ? resolveStoragePath(eventThumbnailPath) : null;
 
                         return (
                             <div key={row.key} className={`box border ${status.classes}`}>
