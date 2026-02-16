@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
 import type { FormEvent } from 'react';
 import ActionButton from '@/components/ActionButton';
@@ -58,6 +58,7 @@ export default function Show({ event }: Props) {
     // debug logging removed
 
     const organisersForm = useForm({ organiser_ids: event.organisers ? event.organisers.map((o: Organiser) => o.id) : [] });
+    const ticketControllerForm = useForm({ email: '' });
 
     function saveOrganisers(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -241,7 +242,7 @@ export default function Show({ event }: Props) {
                     )
                 )}
 
-                {artists.length > 0 && (
+                {(artists.length > 0 || page.props?.canEdit) && (
                     <div className="mt-2">
                         <div className="text-sm text-muted">Artists:</div>
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -254,11 +255,12 @@ export default function Show({ event }: Props) {
                                     {a.city ? <span className="text-muted">· {a.city}</span> : null}
                                 </div>
                             ))}
+                            {artists.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No artists linked yet.</div> : null}
                         </div>
                     </div>
                 )}
 
-                {vendors.length > 0 && (
+                {(vendors.length > 0 || page.props?.canEdit) && (
                     <div className="mt-2">
                         <div className="text-sm text-muted">Vendors:</div>
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -269,11 +271,12 @@ export default function Show({ event }: Props) {
                                     {v.city ? <span className="text-muted">· {v.city}</span> : null}
                                 </div>
                             ))}
+                            {vendors.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No vendors linked yet.</div> : null}
                         </div>
                     </div>
                 )}
 
-                {promoters.length > 0 && (
+                {(promoters.length > 0 || page.props?.canEdit) && (
                     <div className="mt-2">
                         <div className="text-sm text-muted">Promoters:</div>
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -283,19 +286,57 @@ export default function Show({ event }: Props) {
                                     {promoter.email ? <span className="text-muted">· {promoter.email}</span> : null}
                                 </div>
                             ))}
+                            {promoters.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No promoters linked yet.</div> : null}
                         </div>
                     </div>
                 )}
 
-                {page.props?.canEdit && ticketControllers.length > 0 && (
+                {page.props?.canEdit && (
                     <div className="mt-2">
                         <div className="text-sm text-muted">Ticket controllers:</div>
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                ticketControllerForm.post(`/events/${event.slug}/ticket-controllers`, {
+                                    preserveScroll: true,
+                                    onSuccess: () => ticketControllerForm.reset('email'),
+                                });
+                            }}
+                            className="mt-2 flex flex-col gap-2 md:flex-row md:items-center"
+                        >
+                            <input
+                                type="email"
+                                required
+                                value={ticketControllerForm.data.email}
+                                onChange={(e) => ticketControllerForm.setData('email', e.target.value)}
+                                className="input md:w-96"
+                                placeholder="controller@example.com"
+                            />
+                            <button type="submit" className="btn-primary" disabled={ticketControllerForm.processing}>
+                                Add ticket controller
+                            </button>
+                        </form>
+
+                        {(ticketControllerForm.errors as Record<string, string | undefined>).ticket_controller_email && (
+                            <p className="mt-2 text-sm text-red-600">{(ticketControllerForm.errors as Record<string, string>).ticket_controller_email}</p>
+                        )}
+                        {ticketControllerForm.errors.email && <p className="mt-2 text-sm text-red-600">{ticketControllerForm.errors.email}</p>}
+
                         <div className="mt-2 flex flex-wrap gap-2">
                             {ticketControllers.map((ticketController) => (
                                 <div key={ticketController.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
                                     <span className="font-medium">{ticketController.email}</span>
+                                    <button
+                                        type="button"
+                                        className="btn-secondary"
+                                        onClick={() => router.delete(`/events/${event.slug}/ticket-controllers/${ticketController.id}`, { preserveScroll: true })}
+                                    >
+                                        Remove
+                                    </button>
                                 </div>
                             ))}
+                            {ticketControllers.length === 0 ? <div className="text-sm text-muted">No ticket controllers added yet.</div> : null}
                         </div>
                     </div>
                 )}
