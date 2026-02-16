@@ -95,7 +95,7 @@ class OrderController extends Controller
 
         // Access control: only order owner, customer, or booking code session
         if ($current) {
-            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id) || $this->userCanManageOrderByAgency($current, $order))) {
                 abort(403);
             }
         } elseif ($bookingOrderId) {
@@ -128,6 +128,13 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::query()->with('items.event', 'user', 'customer');
+        $current = $request->user();
+
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $query->whereHas('items.event', function ($subQuery) use ($current): void {
+                $subQuery->where('agency_id', $current->agency_id);
+            });
+        }
 
         $search = $request->string('q')->toString();
         if ($search === '') {
@@ -228,9 +235,10 @@ class OrderController extends Controller
             $isSuper = (bool) ($current->is_super_admin ?? false);
             $isOwner = $order->user_id && $current->id === $order->user_id;
             $hasValidBookingCode = $providedBookingCode && $providedBookingCode === $order->booking_code;
+            $isAgencyManager = $this->userCanManageOrderByAgency($current, $order);
 
             // Authenticated users can view if they are super admin, owners, or provide the matching booking code
-            if (! ($isSuper || $isOwner || $hasValidBookingCode)) {
+            if (! ($isSuper || $isOwner || $isAgencyManager || $hasValidBookingCode)) {
                 abort(404);
             }
         } elseif ($bookingOrderId) {
@@ -584,7 +592,7 @@ class OrderController extends Controller
         $email = $request->query('email');
 
         if ($current) {
-            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+            if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id) || $this->userCanManageOrderByAgency($current, $order))) {
                 abort(404);
             }
 
@@ -635,9 +643,35 @@ class OrderController extends Controller
             abort(403);
         }
 
-        if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id))) {
+        if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id) || $this->userCanManageOrderByAgency($current, $order))) {
             abort(403);
         }
+    }
+
+    protected function userCanManageOrderByAgency($current, Order $order): bool
+    {
+        if (! $current) {
+            return false;
+        }
+
+        if (! $current->hasRole('agency') || $current->hasRole(['admin', 'super_admin'])) {
+            return false;
+        }
+
+        if (! $current->agency_id) {
+            return false;
+        }
+
+        $totalItems = $order->items()->count();
+        if ($totalItems === 0) {
+            return false;
+        }
+
+        $agencyItems = $order->items()->whereHas('event', function ($query) use ($current): void {
+            $query->where('agency_id', $current->agency_id);
+        })->count();
+
+        return $agencyItems === $totalItems;
     }
 
     protected function orderHasAnyValidTickets(Order $order): bool

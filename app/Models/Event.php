@@ -35,6 +35,7 @@ class Event extends Model
         'image',
         'image_thumbnail',
         'user_id',
+        'agency_id',
         'active',
         'organiser_id',
         'edit_token',
@@ -54,6 +55,7 @@ class Event extends Model
         'start_at' => 'date',
         'end_at' => 'date',
         'active' => 'boolean',
+        'agency_id' => 'integer',
         'city_id' => 'integer',
         'country_id' => 'integer',
         'edit_token_expires_at' => 'datetime',
@@ -62,6 +64,11 @@ class Event extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
     }
 
     public function organiser(): BelongsTo

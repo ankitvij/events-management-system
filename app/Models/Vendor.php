@@ -21,6 +21,7 @@ class Vendor extends Model
         'city',
         'city_id',
         'country_id',
+        'agency_id',
         'description',
         'active',
     ];
@@ -32,7 +33,13 @@ class Vendor extends Model
             'active' => 'boolean',
             'city_id' => 'integer',
             'country_id' => 'integer',
+            'agency_id' => 'integer',
         ];
+    }
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
     }
 
     public function countryRef(): BelongsTo

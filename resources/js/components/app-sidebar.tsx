@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Building2,
     Calendar,
     CreditCard,
     FileText,
@@ -31,18 +32,20 @@ import AppLogo from './app-logo';
 export function AppSidebar() {
     const page = usePage();
     const isSuper = !!page.props?.auth?.user?.is_super_admin;
+    const role = page.props?.auth?.user?.role;
 
-    const isAdmin = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+    const isManager = !!page.props?.auth?.user && (role === 'admin' || role === 'agency' || page.props.auth.user.is_super_admin);
 
     const items: NavItem[] = [];
 
     items.push({ title: 'Dashboard', href: dashboard(), icon: LayoutGrid });
-    if (isAdmin) {
+    if (isManager) {
         items.push({ title: 'Orders', href: '/orders', icon: ClipboardList });
     }
     items.push({ title: 'Events', href: '/events', icon: Calendar });
-    if (isAdmin) {
+    if (isManager) {
         items.push({ title: 'Users', href: '/users', icon: Users });
+        items.push({ title: 'Agencies', href: '/agencies', icon: Building2 });
     }
     if (page.props?.auth?.user) {
         items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
@@ -50,7 +53,7 @@ export function AppSidebar() {
     if (isSuper) {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
     }
-    if (isAdmin) {
+    if (isManager) {
         items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
         items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
         items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });

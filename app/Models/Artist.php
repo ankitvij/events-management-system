@@ -24,6 +24,7 @@ class Artist extends Model
         'city',
         'city_id',
         'country_id',
+        'agency_id',
         'experience_years',
         'skills',
         'artist_types',
@@ -39,6 +40,7 @@ class Artist extends Model
         'active' => 'boolean',
         'city_id' => 'integer',
         'country_id' => 'integer',
+        'agency_id' => 'integer',
         'experience_years' => 'integer',
         'artist_types' => 'array',
         'email_verified_at' => 'datetime',
@@ -52,6 +54,11 @@ class Artist extends Model
     public function cityRef(): BelongsTo
     {
         return $this->belongsTo(City::class, 'city_id');
+    }
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
     }
 
     public function getPhotoUrlAttribute(): ?string
