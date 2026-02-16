@@ -213,7 +213,7 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load('items.ticket', 'items.event.organiser', 'items.event.organisers', 'user');
+        $order->load('items.ticket', 'items.event.organiser', 'items.event.organisers', 'user', 'customer');
         $order->items->each(function ($item) {
             if ($item->event) {
                 $item->event->append(['image_url', 'image_thumbnail_url']);

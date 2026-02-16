@@ -42,12 +42,21 @@ type OrderUser = {
     email?: string | null;
 };
 
+type OrderCustomer = {
+    id?: number | null;
+    name?: string | null;
+    email?: string | null;
+};
+
 type Order = {
     id: number;
+    status?: string | null;
+    session_id?: string | null;
     booking_code: string;
     contact_email?: string | null;
     contact_name?: string | null;
     user?: OrderUser | null;
+    customer?: OrderCustomer | null;
     items: OrderItem[];
     payment_method?: string | null;
     payment_status?: string | null;
@@ -64,6 +73,26 @@ type PageProps = {
         success?: string;
     };
 };
+
+function resolveStoragePath(path?: string | null): string {
+    if (!path) {
+        return '/images/default-event.svg';
+    }
+
+    if (path.startsWith('http')) {
+        return path;
+    }
+
+    if (path.startsWith('/storage/')) {
+        return path;
+    }
+
+    if (path.startsWith('storage/')) {
+        return `/${path}`;
+    }
+
+    return `/storage/${path}`;
+}
 
 export default function OrdersShow() {
     const page = usePage<PageProps>();
@@ -198,6 +227,29 @@ export default function OrdersShow() {
                         </div>
                     )}
                     {authUser && (
+                        <div className="box space-y-2">
+                            <div className="text-sm font-semibold">Order details</div>
+                            <div className="grid grid-cols-1 gap-x-6 gap-y-1 md:grid-cols-2">
+                                <div><strong>Order ID:</strong> {order.id}</div>
+                                <div><strong>Status:</strong> {order.status ?? '—'}</div>
+                                <div><strong>Booking code:</strong> {order.booking_code ?? '—'}</div>
+                                <div><strong>Session ID:</strong> {order.session_id ?? '—'}</div>
+                                <div><strong>Contact name:</strong> {order.contact_name ?? '—'}</div>
+                                <div><strong>Contact email:</strong> {order.contact_email ?? '—'}</div>
+                                <div><strong>User:</strong> {order.user?.name ?? '—'}</div>
+                                <div><strong>User email:</strong> {order.user?.email ?? '—'}</div>
+                                <div><strong>Customer ID:</strong> {order.customer?.id ?? '—'}</div>
+                                <div><strong>Customer:</strong> {order.customer?.name ?? '—'}</div>
+                                <div><strong>Customer email:</strong> {order.customer?.email ?? '—'}</div>
+                                <div><strong>Paid:</strong> {order.paid ? 'Yes' : 'No'}</div>
+                                <div><strong>Checked in:</strong> {order.checked_in ? 'Yes' : 'No'}</div>
+                                <div><strong>Payment method:</strong> {order.payment_method ?? '—'}</div>
+                                <div><strong>Payment status:</strong> {paymentStatusLabel[paymentStatus] ?? paymentStatus}</div>
+                                <div><strong>Created at:</strong> {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
+                            </div>
+                        </div>
+                    )}
+                    {authUser && (
                         <div className="flex flex-wrap items-center gap-2 pt-2">
                             <form method="post" action={`/orders/${order.id}/payment-status`} className="flex items-center gap-2">
                                 <input type="hidden" name="_method" value="put" />
@@ -250,11 +302,19 @@ export default function OrdersShow() {
 
                         const downloadUrl = `/orders/${order.id}/tickets/${row.itemId}/download?${params.toString()}`;
                         const canCheckIn = authUser && !row.isCheckedIn && !row.isExpired && !isInvalidByPayment;
+                        const sourceItem = items.find((item) => item.id === row.itemId);
+                        const eventThumbnail = sourceItem?.event?.image_thumbnail_url
+                            ? resolveStoragePath(sourceItem.event.image_thumbnail_url)
+                            : null;
 
                         return (
                             <div key={row.key} className={`box border ${status.classes}`}>
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                                    <div className="space-y-1">
+                                    <div className="flex items-start gap-3">
+                                        {eventThumbnail && (
+                                            <img src={eventThumbnail} alt={row.eventTitle} className="h-12 w-20 rounded object-cover" />
+                                        )}
+                                        <div className="space-y-1">
                                         <div className="font-semibold">
                                             {row.eventTitle} — {row.ticketName} #{row.ticketIndex}
                                         </div>
@@ -263,6 +323,7 @@ export default function OrdersShow() {
                                             {row.guestEmail ? ` • ${row.guestEmail}` : ''}
                                         </div>
                                         <div className="text-xs font-semibold">{status.label}</div>
+                                        </div>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2">
                                         {authUser && (
