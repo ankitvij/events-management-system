@@ -35,10 +35,12 @@ export default function Index({ pages }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <ListControls path="/pages" links={pages.links} showSearch searchPlaceholder="Search pages..." />
+                                <ListControls path="/pages" links={pages.links} showSearch searchPlaceholder="Search pages..." />
                     </div>
                     <ActionButton href="/pages/create">New Page</ActionButton>
                 </div>
+
+                <CompactPagination links={pages.links} />
 
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
                     <button
@@ -53,10 +55,6 @@ export default function Index({ pages }: Props) {
                 </div>
 
                 <div>
-                    <div className="mb-4">
-                        <CompactPagination links={pages.links} />
-                    </div>
-
                     <div className="grid gap-3">
                     {pages.data?.map((page: LooseObject) => (
                         <div key={page.id} className="box">

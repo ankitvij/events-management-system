@@ -1,7 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Pagination, Customer } from '@/types/entities';
@@ -22,15 +21,24 @@ export default function CustomersIndex({ customers }: Props) {
     }
 
     function applySort(key: string) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        const cur = sp.get('sort') ?? '';
+        const cur = params?.get('sort') ?? '';
         let next = '';
         if (cur === `${key}_asc`) next = `${key}_desc`;
         else if (cur === `${key}_desc`) next = '';
         else next = `${key}_asc`;
-        if (next === '') sp.delete('sort'); else sp.set('sort', next);
-        sp.delete('page');
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
         router.get(`/customers${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
@@ -39,48 +47,57 @@ export default function CustomersIndex({ customers }: Props) {
             <Head title="Customers" />
 
             <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <ListControls path="/customers" links={customers.links} showSearch searchPlaceholder="Search customers..." />
-                    </div>
-
+                <div className="mb-4 flex justify-end">
                     <div className="flex gap-2">
                         <ActionButton href="/customers/create">New Customer</ActionButton>
                     </div>
                 </div>
 
+                <CompactPagination links={customers.links} />
+
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <div className="md:col-span-6 flex items-center gap-3">
+                        <button
+                            onClick={() => applySort('name')}
+                            className="btn-primary shrink-0"
+                        >
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search customers..."
+                            className="input w-full"
+                        />
+                    </div>
                     <button
-                        onClick={() => applySort('name')}
-                        className="md:col-span-6 text-left min-w-max whitespace-nowrap"
+                        onClick={() => applySort('email')}
+                        className="btn-primary md:col-span-4 w-full justify-start min-w-max whitespace-nowrap"
                     >
-                        Name
-                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <div className="md:col-span-4 min-w-max whitespace-nowrap">Email / Phone</div>
                     <div className="md:col-span-1 min-w-max whitespace-nowrap">Active</div>
                     <div className="md:col-span-1" />
                 </div>
 
                 <div>
-                    <div className="mb-4">
-                        <CompactPagination links={customers.links} />
-                    </div>
-
                     <div className="grid gap-3">
                     {customers.data?.map((customer: Customer) => (
                         <div key={customer.id} className="box">
-                            <div className="flex justify-between">
-                                <div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                                <div className="md:col-span-6">
                                     <div className="flex items-center gap-2">
                                         <Link href={`/customers/${customer.id}`} className="text-lg font-medium">{customer.name}</Link>
                                         {!customer.active && (
                                             <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-muted">{customer.email || customer.phone}</div>
                                 </div>
-                                <div className="flex gap-2 items-center">
+                                <div className="text-sm text-muted md:col-span-4">{customer.email || '—'}</div>
+                                <div className="md:col-span-2">
+                                <div className="flex gap-2 items-center justify-start md:justify-end">
                                     <label className="flex items-center mr-3">
                                         <input type="checkbox" checked={!!customer.active} onChange={e => toggleActive(customer.id, e.target.checked)} />
                                         <span className="ml-2 text-sm text-muted">Active</span>
@@ -93,6 +110,7 @@ export default function CustomersIndex({ customers }: Props) {
                                             <button className="btn-danger" type="submit">Delete</button>
                                         </form>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         </div>

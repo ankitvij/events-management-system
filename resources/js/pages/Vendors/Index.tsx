@@ -1,7 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Pagination, Vendor } from '@/types/entities';
@@ -16,7 +15,30 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function VendorsIndex({ vendors }: Props) {
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+
+    function applySort(key: string) {
+        const cur = params?.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) next = `${key}_desc`;
+        else if (cur === `${key}_desc`) next = '';
+        else next = `${key}_asc`;
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
+        router.get(`/vendors${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -34,10 +56,7 @@ export default function VendorsIndex({ vendors }: Props) {
                     </div>
                 )}
 
-                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
-                    <div className="w-full min-[900px]:w-auto">
-                        <ListControls path="/vendors" links={vendors.links} showSearch searchPlaceholder="Search vendors..." />
-                    </div>
+                <div className="mb-4 flex justify-end">
                     <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/vendors/create">New Vendor</ActionButton>
@@ -52,11 +71,31 @@ export default function VendorsIndex({ vendors }: Props) {
 
                 <CompactPagination links={vendors.links} />
 
+                <div className="mb-2 hidden md:grid md:grid-cols-12 gap-4 text-sm text-muted">
+                    <div className="md:col-span-6 flex items-center gap-3">
+                        <button onClick={() => applySort('name')} className="btn-primary shrink-0">
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search vendors..."
+                            className="input w-full"
+                        />
+                    </div>
+                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-4 w-full justify-start min-w-max whitespace-nowrap">
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-2" />
+                </div>
+
                 <div className="grid gap-3">
                     {vendors.data?.map((v: Vendor) => (
                         <div key={v.id} className="box">
-                            <div className="flex justify-between gap-4">
-                                <div className="min-w-0">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                                <div className="min-w-0 md:col-span-6">
                                     <div className="flex items-center gap-2">
                                         <Link href={`/vendors/${v.id}`} className="text-lg font-medium break-words">
                                             {v.name}
@@ -65,12 +104,13 @@ export default function VendorsIndex({ vendors }: Props) {
                                             <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-muted break-words">{v.email}</div>
                                     <div className="text-sm text-muted">{v.type}{v.city ? ` · ${v.city}` : ''}</div>
                                 </div>
+                                <div className="text-sm text-muted break-words md:col-span-4">{v.email}</div>
 
-                                {canManage ? (
-                                    <div className="flex gap-2 items-center shrink-0">
+                                <div className="md:col-span-2">
+                                    {canManage ? (
+                                        <div className="flex gap-2 items-center justify-start md:justify-end">
                                         <div className="flex gap-2">
                                             <Link href={`/vendors/${v.id}/edit`} className="btn-secondary px-3 py-1 text-sm">Edit</Link>
                                             <form action={`/vendors/${v.id}`} method="post" className="inline">
@@ -79,7 +119,8 @@ export default function VendorsIndex({ vendors }: Props) {
                                             </form>
                                         </div>
                                     </div>
-                                ) : null}
+                                    ) : null}
+                                </div>
                             </div>
                         </div>
                     ))}

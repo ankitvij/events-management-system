@@ -2,7 +2,6 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -101,16 +100,17 @@ export default function EventsIndex({ events }: Props) {
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8' : 'px-4 pt-4 pb-4'}>
                 {showSignInPromptRow && null}
 
-                <div className="mb-4 flex items-center justify-between">
-                    <ListControls path="/events" links={events.links} showSearch={false} />
-                    {current ? (
+                {current ? (
+                    <div className="mb-4 flex justify-end">
                         <ActionButton href="/events/create">New Event</ActionButton>
-                    ) : null}
-                </div>
+                    </div>
+                ) : null}
+
+                <CompactPagination links={events.links} />
 
                 <div>
                     <div className="hidden md:grid md:grid-cols-12 gap-4 p-3 text-sm text-muted">
-                        <div className="md:col-span-6 flex items-center justify-between">
+                        <div className="md:col-span-6 flex items-center gap-3">
                             <button
                                 onClick={() => applySort('title')}
                                 className="text-left text-white bg-black px-3 py-2 rounded cursor-pointer"
@@ -164,8 +164,6 @@ export default function EventsIndex({ events }: Props) {
                         </button>
                         <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">Actions</div>
                     </div>
-
-                    <CompactPagination links={events.links} />
 
                     <div className="space-y-3">
                     {events.data?.map((event: Event) => (

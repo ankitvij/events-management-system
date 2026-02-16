@@ -158,7 +158,7 @@ export default function GuestLanding({ events }: Props) {
             <main className="w-full">
                 <div className="min-w-0 flex-1">
                 <section className="mt-6">
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
                         <select
                             value={selectedCountry}
                             onChange={(e) => setSelectedCountry(e.target.value)}
@@ -199,6 +199,10 @@ export default function GuestLanding({ events }: Props) {
                             className="w-full border-2 border-gray-800 px-3 py-2"
                         />
                     </div>
+
+                    {events?.links && (
+                        <CompactPagination links={events.links} className="justify-start" />
+                    )}
 
                     <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_100px] gap-4 p-3 text-sm">
                         <div className="flex items-center gap-3 min-w-0">
@@ -242,10 +246,6 @@ export default function GuestLanding({ events }: Props) {
                         </button>
 
                     </div>
-
-                    {events?.links && (
-                        <CompactPagination links={events.links} className="justify-start" />
-                    )}
 
                     <div className="space-y-3">
                         {events?.data?.length ? (

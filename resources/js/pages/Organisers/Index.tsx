@@ -1,7 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Pagination, Organiser } from '@/types/entities';
@@ -27,15 +26,24 @@ export default function OrganisersIndex({ organisers }: Props) {
     }
 
     function applySort(key: string) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        const cur = sp.get('sort') ?? '';
+        const cur = params?.get('sort') ?? '';
         let next = '';
         if (cur === `${key}_asc`) next = `${key}_desc`;
         else if (cur === `${key}_desc`) next = '';
         else next = `${key}_asc`;
-        if (next === '') sp.delete('sort'); else sp.set('sort', next);
-        sp.delete('page');
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
         router.get(`/organisers${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
@@ -46,10 +54,7 @@ export default function OrganisersIndex({ organisers }: Props) {
             <Head title="Organisers" />
 
             <div className="p-4">
-                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
-                    <div className="w-full min-[900px]:w-auto">
-                        <ListControls path="/organisers" links={organisers.links} showSearch searchPlaceholder="Search organisers..." />
-                    </div>
+                <div className="mb-4 flex justify-end">
                     <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/organisers/create">New Organiser</ActionButton>
@@ -62,36 +67,51 @@ export default function OrganisersIndex({ organisers }: Props) {
                     </div>
                 </div>
 
+                <CompactPagination links={organisers.links} />
+
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <div className="md:col-span-8 flex items-center gap-3">
+                        <button
+                            onClick={() => applySort('name')}
+                            className="btn-primary shrink-0"
+                        >
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search organisers..."
+                            className="input w-full"
+                        />
+                    </div>
                     <button
-                        onClick={() => applySort('name')}
-                        className="md:col-span-8 text-left min-w-max whitespace-nowrap"
+                        onClick={() => applySort('email')}
+                        className="btn-primary md:col-span-3 w-full justify-start min-w-max whitespace-nowrap"
                     >
-                        Name
-                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <div className="md:col-span-3 min-w-max whitespace-nowrap">Email</div>
                     <div className="md:col-span-1" />
                 </div>
 
                 <div>
-                    <CompactPagination links={organisers.links} />
-
                     <div className="grid gap-3">
                     {organisers.data?.map((org: Organiser) => (
                         <div key={org.id} className="box">
-                            <div className="flex justify-between">
-                                <div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                                <div className="md:col-span-8">
                                     <div className="flex items-center gap-2">
                                         <Link href={`/organisers/${org.id}`} className="text-lg font-medium">{org.name}</Link>
                                         {!org.active && (
                                             <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-muted">{org.email}</div>
                                 </div>
+                                <div className="text-sm text-muted md:col-span-3">{org.email}</div>
+                                <div className="md:col-span-1">
                                 {canManage ? (
-                                    <div className="flex gap-2 items-center">
+                                    <div className="flex gap-2 items-center justify-start md:justify-end">
                                         <label className="flex items-center mr-3">
                                             <input type="checkbox" checked={!!org.active} onChange={e => toggleActive(org.id, e.target.checked)} />
                                             <span className="ml-2 text-sm text-muted">Active</span>
@@ -106,6 +126,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                                         </div>
                                     </div>
                                 ) : null}
+                                </div>
                             </div>
                         </div>
                     ))}

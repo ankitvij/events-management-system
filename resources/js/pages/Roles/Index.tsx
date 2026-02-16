@@ -1,5 +1,4 @@
 import { Head, usePage, router } from '@inertiajs/react';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { UserShort } from '@/types/entities';
@@ -17,7 +16,6 @@ export default function RolesIndex({ roles, users }: Props) {
     const page = usePage();
     const currentId = page.props?.auth?.user?.id;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const sort = params?.get('sort') ?? '';
 
     function applyFilters(updates: Record<string, string | null>) {
         if (typeof window === 'undefined') return;
@@ -34,6 +32,19 @@ export default function RolesIndex({ roles, users }: Props) {
         router.get(`/roles${q ? `?${q}` : ''}`);
     }
 
+    function applySort(key: string): void {
+        const current = params?.get('sort') ?? '';
+        let next = '';
+        if (current === `${key}_asc`) {
+            next = `${key}_desc`;
+        } else if (current === `${key}_desc`) {
+            next = '';
+        } else {
+            next = `${key}_asc`;
+        }
+        applyFilters({ sort: next || null, page: null });
+    }
+
     function changeRole(userId: number, role: string) {
         // confirmation
         if (!confirm('Change role for this user?')) {
@@ -48,21 +59,35 @@ export default function RolesIndex({ roles, users }: Props) {
             <Head title="Roles" />
 
             <div className="p-4">
-                <ListControls
-                    search={params?.get('q') ?? ''}
-                    onSearch={(v) => applyFilters({ q: v || null, page: null })}
-                    sort={sort}
-                    onSortChange={(v) => applyFilters({ sort: v || null, page: null })}
-                />
-
+                <div className="mb-2 hidden md:grid md:grid-cols-12 gap-4 text-sm text-muted">
+                    <div className="md:col-span-5 flex items-center gap-3">
+                        <button onClick={() => applySort('name')} className="btn-primary shrink-0">
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search users..."
+                            className="input w-full"
+                        />
+                    </div>
+                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-5 w-full justify-start min-w-max whitespace-nowrap">
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-2" />
+                </div>
                 <div className="grid gap-2">
                     {users.map((u) => (
-                        <div key={u.id} className="box flex items-center justify-between">
-                            <div>
+                        <div key={u.id} className="box">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                            <div className="md:col-span-5">
                                 <div className="text-lg font-medium">{u.name}</div>
-                                <div className="text-sm text-muted">{u.email}</div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="text-sm text-muted md:col-span-5">{u.email}</div>
+                            <div className="md:col-span-2">
+                            <div className="flex items-center gap-2 justify-start md:justify-end">
                                 <select
                                     value={u.role}
                                     onChange={(e) => changeRole(u.id, e.target.value)}
@@ -82,6 +107,8 @@ export default function RolesIndex({ roles, users }: Props) {
                                 >
                                     Undo
                                 </button>
+                            </div>
+                            </div>
                             </div>
                         </div>
                     ))}

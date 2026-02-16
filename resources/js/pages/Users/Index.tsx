@@ -35,15 +35,24 @@ export default function UsersIndex({ users }: Props) {
 
 
     function applySort(key: string) {
-        if (typeof window === 'undefined') return;
-        const sp = new URLSearchParams(window.location.search);
-        const cur = sp.get('sort') ?? '';
+        const cur = params?.get('sort') ?? '';
         let next = '';
         if (cur === `${key}_asc`) next = `${key}_desc`;
         else if (cur === `${key}_desc`) next = '';
         else next = `${key}_asc`;
-        if (next === '') sp.delete('sort'); else sp.set('sort', next);
-        sp.delete('page');
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
         router.get(`/users${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
@@ -54,45 +63,58 @@ export default function UsersIndex({ users }: Props) {
             <div className="p-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                        <ListControls path="/users" links={paginationLinks} showSearch showActive />
+                        <ListControls path="/users" links={paginationLinks} showSearch={false} showActive />
                     </div>
                     <div className="flex gap-2">
                         <ActionButton href="/users/create">New User</ActionButton>
                     </div>
                 </div>
 
+                <CompactPagination links={users.links} />
+
                 <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                    <div className="md:col-span-6 flex items-center gap-3">
+                        <button
+                            onClick={() => applySort('name')}
+                            className="btn-primary shrink-0"
+                        >
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search users..."
+                            className="input w-full"
+                        />
+                    </div>
                     <button
-                        onClick={() => applySort('name')}
-                        className="md:col-span-6 text-left min-w-max whitespace-nowrap"
+                        onClick={() => applySort('email')}
+                        className="btn-primary md:col-span-4 w-full justify-start min-w-max whitespace-nowrap"
                     >
-                        Name
-                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <div className="md:col-span-4 min-w-max whitespace-nowrap">Email</div>
                     <div className="md:col-span-1 min-w-max whitespace-nowrap">Active</div>
                     <div className="md:col-span-1" />
                 </div>
 
                 <div>
-                    <div className="mb-4">
-                        <CompactPagination links={users.links} />
-                    </div>
-
                     <div className="grid gap-3">
                     {users.data?.map((user: UserRow) => (
                         <div key={user.id} className="box">
-                            <div className="flex justify-between">
-                                <div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                                <div className="md:col-span-6">
                                     <div className="flex items-center gap-2">
                                         <Link href={`/users/${user.id}`} className="text-lg font-medium">{user.name}</Link>
                                         {!user.active && (
                                             <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-muted">{user.email}</div>
                                 </div>
-                                <div className="flex gap-2 items-center">
+                                <div className="text-sm text-muted md:col-span-4">{user.email}</div>
+                                <div className="md:col-span-2">
+                                <div className="flex gap-2 items-center justify-start md:justify-end">
                                     {current && (current.is_super_admin || current.id === user.id || (current.role === 'admin' && user.role === 'user' && !user.is_super_admin)) && (
                                         <label className="flex items-center mr-3">
                                             <input type="checkbox" checked={!!user.active} onChange={e => toggleActive(user.id, e.target.checked)} />
@@ -107,6 +129,7 @@ export default function UsersIndex({ users }: Props) {
                                         <button className="btn-danger" type="submit">Delete</button>
                                     </form>
                                     </div>
+                                </div>
                                 </div>
                             </div>
                         </div>

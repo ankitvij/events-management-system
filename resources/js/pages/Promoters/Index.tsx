@@ -1,7 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
 import CompactPagination from '@/components/compact-pagination';
-import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Pagination, Promoter } from '@/types/entities';
@@ -16,17 +15,37 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function PromotersIndex({ promoters }: Props) {
     const page = usePage<{ auth?: { user?: { role?: string; is_super_admin?: boolean } } }>();
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+
+    function applySort(key: string) {
+        const cur = params?.get('sort') ?? '';
+        let next = '';
+        if (cur === `${key}_asc`) next = `${key}_desc`;
+        else if (cur === `${key}_desc`) next = '';
+        else next = `${key}_asc`;
+        applyFilters({ sort: next || null, page: null });
+    }
+
+    function applyFilters(updates: Record<string, string | null>) {
+        if (typeof window === 'undefined') return;
+        const sp = new URLSearchParams(window.location.search);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null || value === '') {
+                sp.delete(key);
+            } else {
+                sp.set(key, value);
+            }
+        });
+        router.get(`/promoters${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Promoters" />
 
             <div className="p-4">
-                <div className="mb-4 flex flex-col gap-3 min-[900px]:flex-row min-[900px]:items-center min-[900px]:justify-between">
-                    <div className="w-full min-[900px]:w-auto">
-                        <ListControls path="/promoters" links={promoters.links} showSearch searchPlaceholder="Search promoters..." />
-                    </div>
+                <div className="mb-4 flex justify-end">
                     <div className="flex flex-wrap gap-2">
                         {canManage ? (
                             <ActionButton href="/users/create">New Promoter</ActionButton>
@@ -41,11 +60,34 @@ export default function PromotersIndex({ promoters }: Props) {
 
                 <CompactPagination links={promoters.links} />
 
+                <div className="mb-2 hidden md:grid md:grid-cols-12 gap-4 text-sm text-muted">
+                    <div className="md:col-span-6 flex items-center gap-3">
+                        <button onClick={() => applySort('name')} className="btn-primary shrink-0">
+                            Name
+                            <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                        </button>
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search promoters..."
+                            className="input w-full"
+                        />
+                    </div>
+                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-4 w-full justify-start min-w-max whitespace-nowrap">
+                        Email
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <div className="md:col-span-2" />
+                </div>
+
                 <div className="grid gap-3">
                     {promoters.data?.map((p: Promoter) => (
                         <div key={p.id} className="box">
-                            <div className="font-medium break-words">{p.name ?? 'Promoter'}</div>
-                            {p.email ? <div className="text-sm text-muted break-words">{p.email}</div> : null}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
+                                <div className="md:col-span-6 font-medium break-words">{p.name ?? 'Promoter'}</div>
+                                <div className="md:col-span-4 text-sm text-muted break-words">{p.email ?? '—'}</div>
+                                <div className="md:col-span-2" />
+                            </div>
                         </div>
                     ))}
                 </div>

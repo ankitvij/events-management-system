@@ -12,7 +12,6 @@ type Props = {
     links?: LinkItem[];
     showSearch?: boolean;
     searchPlaceholder?: string;
-    showSort?: boolean;
     showActive?: boolean;
 };
 
@@ -21,7 +20,6 @@ export default function ListControls({
     links: _links = [],
     showSearch = true,
     searchPlaceholder = 'Search...',
-    showSort = false,
     showActive = false,
 }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -65,22 +63,12 @@ export default function ListControls({
     }
 
     return (
-        <div className="mb-4 flex w-full flex-wrap items-center gap-3">
+        <div className="mb-4 flex w-full flex-wrap items-center justify-end gap-3">
                 {showSearch && (
                     <input name="q" value={search} onChange={e => setSearch(e.target.value)} placeholder={searchPlaceholder} className="input" />
                 )}
 
                 {/* city/country filters removed — controlled centrally where needed */}
-
-                {showSort && (
-                    <select value={params?.get('sort') ?? ''} onChange={e => applyFilters({ sort: e.target.value || null, page: null })} className="input">
-                        <option value="">Sort: Latest</option>
-                        <option value="start_asc">Sort: Start (soonest)</option>
-                        <option value="start_desc">Sort: Start (latest)</option>
-                        <option value="created_desc">Sort: Newest</option>
-                        <option value="title_asc">Sort: Title (A–Z)</option>
-                    </select>
-                )}
 
                 {showActive && (
                     <select value={params?.get('active') ?? 'all'} onChange={e => applyFilters({ active: e.target.value || null, page: null })} className="input">
