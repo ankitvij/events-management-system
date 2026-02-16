@@ -1,28 +1,23 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     Calendar,
     CreditCard,
     FileText,
     LayoutGrid,
+    LogOut,
     ScrollText,
-    Settings,
     Shield,
     Users,
     Users2,
     UserSquare2,
     ClipboardList,
-    Folder,
     Mic2,
     Megaphone,
 } from 'lucide-react';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
-    SidebarFooter,
     SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
@@ -31,19 +26,6 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 import AppLogo from './app-logo';
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/ankitvij/events-management-system',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
-];
 
 export function AppSidebar() {
     const page = usePage();
@@ -77,11 +59,11 @@ export function AppSidebar() {
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });
     }
-    if (page.props?.auth?.user) {
-        items.push({ title: 'Settings', href: '/settings/profile', icon: Settings });
-    }
     if (isSuper) {
         items.push({ title: 'Logs', href: '/admin/error-logs', icon: ScrollText });
+    }
+    if (page.props?.auth?.user) {
+        items.push({ title: 'Logout', href: '/logout', method: 'post', icon: LogOut });
     }
 
     return (
@@ -101,11 +83,6 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={items} />
             </SidebarContent>
-
-            <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
-            </SidebarFooter>
         </Sidebar>
     );
 }
