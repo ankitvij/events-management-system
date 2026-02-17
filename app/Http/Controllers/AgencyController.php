@@ -94,4 +94,17 @@ class AgencyController extends Controller
 
         return redirect()->route('agencies.index')->with('success', 'Agency deleted.');
     }
+
+    public function toggleActive(Request $request, Agency $agency): RedirectResponse
+    {
+        $this->authorize('update', $agency);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $agency->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Agency status updated.');
+    }
 }

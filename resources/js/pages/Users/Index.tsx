@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -29,7 +30,7 @@ export default function UsersIndex({ users }: Props) {
     }));
 
     function toggleActive(userId: number, value: boolean) {
-        router.put(`/users/${userId}`, { active: value });
+        router.put(`/users/${userId}/active`, { active: value });
     }
 
 
@@ -109,7 +110,7 @@ export default function UsersIndex({ users }: Props) {
                                     <div className="flex items-center gap-2">
                                         <Link href={`/users/${user.id}`} className="text-lg font-medium">{user.name}</Link>
                                         {!user.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
                                 </div>
@@ -117,15 +118,11 @@ export default function UsersIndex({ users }: Props) {
                                 <div className="md:col-span-2">
                                 <div className="flex gap-2 items-center justify-start md:justify-end">
                                     {current && (current.is_super_admin || current.id === user.id || (current.role === 'admin' && user.role === 'user' && !user.is_super_admin)) && (
-                                        <button
-                                            type="button"
-                                            className="btn-secondary"
-                                            onClick={() => toggleActive(user.id, !user.active)}
-                                            aria-label={user.active ? 'Set user inactive' : 'Set user active'}
-                                            title={user.active ? 'Set inactive' : 'Set active'}
-                                        >
-                                            {user.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                                        </button>
+                                        <ActiveToggleButton
+                                            active={!!user.active}
+                                            onToggle={() => toggleActive(user.id, !user.active)}
+                                            label="user"
+                                        />
                                     )}
 
                                     <div className="flex gap-2">

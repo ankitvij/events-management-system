@@ -6,6 +6,7 @@ use App\Http\Requests\StorePageRequest;
 use App\Http\Requests\UpdatePageRequest;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -97,5 +98,16 @@ class PageController extends Controller
         $page->delete();
 
         return redirect()->route('pages.index');
+    }
+
+    public function toggleActive(Request $request, Page $page): RedirectResponse
+    {
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $page->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Page status updated.');
     }
 }

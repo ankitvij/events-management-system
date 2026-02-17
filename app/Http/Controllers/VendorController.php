@@ -151,4 +151,17 @@ class VendorController extends Controller
 
         return redirect()->route('vendors.index')->with('success', 'Vendor deleted.');
     }
+
+    public function toggleActive(Request $request, Vendor $vendor): RedirectResponse
+    {
+        $this->authorize('update', $vendor);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $vendor->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Vendor status updated.');
+    }
 }

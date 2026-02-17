@@ -165,4 +165,22 @@ class ArtistController extends Controller
 
         return redirect()->route('artists.index')->with('success', 'Artist deleted.');
     }
+
+    public function toggleActive(Request $request, Artist $artist): RedirectResponse
+    {
+        $this->authorize('update', $artist);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $update = ['active' => (bool) $data['active']];
+        if ($update['active'] && ! $artist->email_verified_at) {
+            $update['email_verified_at'] = now();
+        }
+
+        $artist->update($update);
+
+        return redirect()->back()->with('success', 'Artist status updated.');
+    }
 }

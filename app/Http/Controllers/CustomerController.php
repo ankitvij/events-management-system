@@ -133,4 +133,17 @@ class CustomerController extends Controller
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted.');
     }
+
+    public function toggleActive(Request $request, Customer $customer): RedirectResponse
+    {
+        $this->authorize('update', $customer);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $customer->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Customer status updated.');
+    }
 }

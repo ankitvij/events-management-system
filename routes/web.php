@@ -197,9 +197,13 @@ Route::put('events/{event}/active', [EventController::class, 'toggleActive'])->m
 use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
+Route::put('users/{user}/active', [UserController::class, 'toggleActive'])->middleware(['auth'])->name('users.active');
 Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
 Route::get('promoters/{promoter}', [UserController::class, 'showPromoter'])->whereNumber('promoter')->name('promoters.show');
 Route::resource('agencies', AgencyController::class)->only(['index', 'show']);
+Route::put('agencies/{agency}/active', [AgencyController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin'])
+    ->name('agencies.active');
 Route::resource('agencies', AgencyController::class)
     ->except(['index', 'show'])
     ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency']);
@@ -232,6 +236,7 @@ Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
 use App\Http\Controllers\OrganiserController;
 
 Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
+Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])->middleware(['auth'])->name('organisers.active');
 Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\EventTicketControllerController;
@@ -289,6 +294,7 @@ Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name(
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
+Route::put('customers/{customer}/active', [CustomerController::class, 'toggleActive'])->middleware(['auth'])->name('customers.active');
 
 // Public artist signup (from landing page)
 Route::get('artists/signup', [ArtistSignupController::class, 'create'])->middleware('guest')->name('artists.signup.form');
@@ -344,10 +350,12 @@ Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestContr
 
 // Admin artists management
 Route::resource('artists', ArtistController::class)->only(['index', 'show']);
+Route::put('artists/{artist}/active', [ArtistController::class, 'toggleActive'])->middleware(['auth'])->name('artists.active');
 Route::resource('artists', ArtistController::class)->middleware(['auth'])->except(['index', 'show']);
 
 // Admin vendors management
 Route::resource('vendors', VendorController::class)->only(['index', 'show']);
+Route::put('vendors/{vendor}/active', [VendorController::class, 'toggleActive'])->middleware(['auth'])->name('vendors.active');
 Route::resource('vendors', VendorController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\Admin\LogController;
@@ -398,6 +406,7 @@ Route::get('customer/orders', [OrderController::class, 'customerIndex'])->name('
 
 use App\Http\Controllers\PageController;
 
+Route::put('pages/{page}/active', [PageController::class, 'toggleActive'])->middleware(['auth', 'can:access-pages'])->name('pages.active');
 Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);
 
 // Public event show at root-level slug (must remain after all other routes)

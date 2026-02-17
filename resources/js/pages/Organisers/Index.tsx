@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -23,7 +24,7 @@ export default function OrganisersIndex({ organisers }: Props) {
 
 
     function toggleActive(id: number, value: boolean) {
-        router.put(`/organisers/${id}`, { active: value });
+        router.put(`/organisers/${id}/active`, { active: value });
     }
 
     function applySort(key: string) {
@@ -105,7 +106,7 @@ export default function OrganisersIndex({ organisers }: Props) {
                                     <div className="flex items-center gap-2">
                                         <Link href={`/organisers/${org.id}`} className="text-lg font-medium">{org.name}</Link>
                                         {!org.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
                                 </div>
@@ -113,15 +114,11 @@ export default function OrganisersIndex({ organisers }: Props) {
                                 <div className="md:col-span-1">
                                 {canManage ? (
                                     <div className="flex gap-2 items-center justify-start md:justify-end">
-                                        <button
-                                            type="button"
-                                            className="btn-secondary"
-                                            onClick={() => toggleActive(org.id, !org.active)}
-                                            aria-label={org.active ? 'Set organiser inactive' : 'Set organiser active'}
-                                            title={org.active ? 'Set inactive' : 'Set active'}
-                                        >
-                                            {org.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                                        </button>
+                                        <ActiveToggleButton
+                                            active={!!org.active}
+                                            onToggle={() => toggleActive(org.id, !org.active)}
+                                            label="organiser"
+                                        />
 
                                         <div className="flex gap-2">
                                             <Link href={`/organisers/${org.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit organiser" title="Edit organiser"><Pencil className="h-4 w-4" /></Link>

@@ -1,7 +1,8 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
@@ -216,7 +217,7 @@ export default function EventsIndex({ events }: Props) {
                                         <div className="flex items-center gap-2">
                                             <Link href={`/${event.slug}`} className="text-lg font-medium" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
                                             {!event.active && (
-                                                <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                                <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
                                         <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
@@ -243,24 +244,23 @@ export default function EventsIndex({ events }: Props) {
 
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
-                                        <button
-                                            type="button"
+                                        <span
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                toggleActive(event.slug, !event.active);
                                             }}
-                                            className="text-xl cursor-pointer mr-2"
-                                            aria-pressed={event.active}
-                                            aria-label={event.title + ' active toggle'}
-                                            title={event.active ? 'Set inactive' : 'Set active'}
                                         >
-                                            {event.active ? <CheckCircle2 className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
-                                        </button>
+                                            <ActiveToggleButton
+                                                active={!!event.active}
+                                                onToggle={() => toggleActive(event.slug, !event.active)}
+                                                label="event"
+                                                size="md"
+                                            />
+                                        </span>
                                     ) : (
                                         event.active ? (
                                             <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded">Active</span>
                                         ) : (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )
                                     )}
 

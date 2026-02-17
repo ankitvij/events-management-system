@@ -239,6 +239,36 @@ class UserController
         ]);
     }
 
+    public function toggleActive(Request $request, User $user): RedirectResponse
+    {
+        $current = auth()->user();
+        if (! $current) {
+            abort(404);
+        }
+
+        if (! ($current->id === $user->id || $current->is_super_admin)) {
+            if ($current->role === Role::ADMIN) {
+                if ($user->is_super_admin || $user->role === Role::ADMIN) {
+                    abort(404);
+                }
+            } elseif ($current->hasRole(Role::AGENCY->value)) {
+                if ($user->is_super_admin || $user->role !== Role::USER->value || (int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                    abort(404);
+                }
+            } else {
+                abort(404);
+            }
+        }
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $user->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'User status updated.');
+    }
+
     public function edit(User $user)
     {
         $current = auth()->user();

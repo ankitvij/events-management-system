@@ -126,4 +126,17 @@ class OrganiserController extends Controller
 
         return redirect()->route('organisers.index')->with('success', 'Organiser deleted.');
     }
+
+    public function toggleActive(Request $request, Organiser $organiser): RedirectResponse
+    {
+        $this->authorize('update', $organiser);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $organiser->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Organiser status updated.');
+    }
 }
