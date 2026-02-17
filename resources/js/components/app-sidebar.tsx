@@ -15,6 +15,7 @@ import {
     ClipboardList,
     Mic2,
     Megaphone,
+    BadgePercent,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -65,6 +66,9 @@ export function AppSidebar() {
     }
     if (page.props?.auth?.user && !isManager) {
         items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
+    }
+    if (page.props?.auth?.user) {
+        items.push({ title: 'Discount Codes', href: '/discount-codes', icon: BadgePercent });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });
