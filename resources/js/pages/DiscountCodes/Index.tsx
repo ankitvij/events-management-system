@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -40,15 +41,17 @@ export default function DiscountCodesIndex({ discountCodes }: Props) {
                                 </div>
 
                                 <div className="md:col-span-3 flex items-center justify-start gap-2 md:justify-end">
-                                    <Link href={`/discount-codes/${discountCode.id}/edit`} className="btn-secondary" aria-label="Edit discount code" title="Edit discount code">
+                                    <ActionIcon href={`/discount-codes/${discountCode.id}/edit`} aria-label="Edit discount code" title="Edit discount code">
                                         <Pencil className="h-4 w-4" />
-                                    </Link>
-                                    <form action={`/discount-codes/${discountCode.id}`} method="post" className="inline">
-                                        <input type="hidden" name="_method" value="delete" />
-                                        <button className="btn-danger" type="submit" aria-label="Delete discount code" title="Delete discount code">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </form>
+                                    </ActionIcon>
+                                    <ActionIcon
+                                        danger
+                                        onClick={() => router.delete(`/discount-codes/${discountCode.id}`)}
+                                        aria-label="Delete discount code"
+                                        title="Delete discount code"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </ActionIcon>
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
@@ -266,10 +267,10 @@ export default function EventsIndex({ events }: Props) {
 
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
-                                    <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
+                                    <ActionIcon onClick={(e) => {
                                         e.stopPropagation();
                                         router.get(`/events/${event.slug}/edit`);
-                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionButton>
+                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <Link href={`/${event.slug}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>

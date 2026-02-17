@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
@@ -64,11 +65,15 @@ export default function AgenciesIndex({ agencies }: Props) {
                                                 onToggle={() => toggleActive(agency.id, !agency.active)}
                                                 label="agency"
                                             />
-                                            <Link href={`/agencies/${agency.id}/edit`} className="btn-secondary" aria-label="Edit agency" title="Edit agency"><Pencil className="h-4 w-4" /></Link>
-                                            <form action={`/agencies/${agency.id}`} method="post" className="inline">
-                                                <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit" aria-label="Delete agency" title="Delete agency"><Trash2 className="h-4 w-4" /></button>
-                                            </form>
+                                            <ActionIcon href={`/agencies/${agency.id}/edit`} aria-label="Edit agency" title="Edit agency"><Pencil className="h-4 w-4" /></ActionIcon>
+                                            <ActionIcon
+                                                danger
+                                                onClick={() => router.delete(`/agencies/${agency.id}`)}
+                                                aria-label="Delete agency"
+                                                title="Delete agency"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </ActionIcon>
                                         </>
                                     ) : null}
                                 </div>

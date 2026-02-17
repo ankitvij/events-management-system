@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -28,7 +29,7 @@ export default function ShowAgency({ agency }: { agency: Agency }) {
             <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">{agency.name}</h1>
-                    <Link href={`/agencies/${agency.id}/edit`} className="btn-secondary" aria-label="Edit agency" title="Edit agency"><Pencil className="h-4 w-4" /></Link>
+                    <ActionIcon href={`/agencies/${agency.id}/edit`} aria-label="Edit agency" title="Edit agency"><Pencil className="h-4 w-4" /></ActionIcon>
                 </div>
 
                 <div className="box grid gap-2 text-sm">

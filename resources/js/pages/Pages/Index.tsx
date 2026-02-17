@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
@@ -75,11 +76,15 @@ export default function Index({ pages }: Props) {
                                         onToggle={() => toggleActive(Number(page.id), !Boolean(page.active))}
                                         label="page"
                                     />
-                                    <Link href={`/pages/${page.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit page" title="Edit page"><Pencil className="h-4 w-4" /></Link>
-                                    <form action={`/pages/${page.id}`} method="post" className="inline">
-                                        <input type="hidden" name="_method" value="delete" />
-                                        <button className="btn-danger" type="submit" aria-label="Delete page" title="Delete page"><Trash2 className="h-4 w-4" /></button>
-                                    </form>
+                                    <ActionIcon href={`/pages/${page.id}/edit`} aria-label="Edit page" title="Edit page"><Pencil className="h-4 w-4" /></ActionIcon>
+                                    <ActionIcon
+                                        danger
+                                        onClick={() => router.delete(`/pages/${page.id}`)}
+                                        aria-label="Delete page"
+                                        title="Delete page"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </ActionIcon>
                                 </div>
                             </div>
                         </div>

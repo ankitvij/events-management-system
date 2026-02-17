@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
@@ -124,11 +125,15 @@ export default function ArtistsIndex({ artists }: Props) {
                                         />
 
                                         <div className="flex gap-2">
-                                            <Link href={`/artists/${a.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></Link>
-                                            <form action={`/artists/${a.id}`} method="post" className="inline">
-                                                <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit" aria-label="Delete artist" title="Delete artist"><Trash2 className="h-4 w-4" /></button>
-                                            </form>
+                                            <ActionIcon href={`/artists/${a.id}/edit`} aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></ActionIcon>
+                                            <ActionIcon
+                                                danger
+                                                onClick={() => router.delete(`/artists/${a.id}`)}
+                                                aria-label="Delete artist"
+                                                title="Delete artist"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </ActionIcon>
                                         </div>
                                     </div>
                                     ) : null}

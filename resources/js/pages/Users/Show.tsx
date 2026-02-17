@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Pencil } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { UserShort } from '@/types/entities';
@@ -28,7 +29,7 @@ export default function Show({ user, roleChanges = [] }: { user: UserShort; role
 
                             <div className="mt-6">
                                 <Link href="/users" className="btn-secondary mr-2" aria-label="Back to users" title="Back to users"><ArrowLeft className="h-4 w-4" /></Link>
-                                <Link href={`/users/${user.id}/edit`} className="btn" aria-label="Edit user" title="Edit user"><Pencil className="h-4 w-4" /></Link>
+                                <ActionIcon href={`/users/${user.id}/edit`} aria-label="Edit user" title="Edit user"><Pencil className="h-4 w-4" /></ActionIcon>
                 </div>
 
                 <div className="mt-8">

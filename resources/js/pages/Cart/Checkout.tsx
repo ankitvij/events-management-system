@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Trash } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
+import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
@@ -168,14 +169,14 @@ export default function CartCheckout() {
                                                 <div className="text-base font-semibold">{item.ticket?.name ?? 'Ticket'}</div>
                                                 <div className="text-sm text-muted">Qty: {item.quantity}</div>
                                             </div>
-                                            <button
-                                                type="button"
+                                            <ActionIcon
                                                 aria-label="Delete item"
-                                                className="btn-danger ml-3"
+                                                className="ml-3"
                                                 onClick={() => removeItem(item.id)}
+                                                danger
                                             >
                                                 <Trash className="h-4 w-4" />
-                                            </button>
+                                            </ActionIcon>
                                         </div>
 
                                         <div className="mt-4 space-y-4">

@@ -1,4 +1,5 @@
 import { CheckCircle2, Circle } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 
 type ActiveToggleButtonProps = {
     active?: boolean;
@@ -12,13 +13,10 @@ export default function ActiveToggleButton({ active = false, onToggle, label, di
     const iconSize = size === 'md' ? 'h-5 w-5' : 'h-4 w-4';
 
     return (
-        <button
-            type="button"
-            className="btn-secondary"
+        <ActionIcon
             onClick={onToggle}
             aria-label={active ? `Set ${label} inactive` : `Set ${label} active`}
             title={active ? 'Set inactive' : 'Set active'}
-            aria-pressed={active}
             disabled={disabled}
         >
             {active ? (
@@ -26,6 +24,6 @@ export default function ActiveToggleButton({ active = false, onToggle, label, di
             ) : (
                 <Circle className={`${iconSize} text-gray-400`} />
             )}
-        </button>
+        </ActionIcon>
     );
 }
