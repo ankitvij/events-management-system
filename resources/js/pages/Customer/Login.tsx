@@ -64,7 +64,7 @@ export default function CustomerLogin() {
                 </div>
                 <div>
                     Organiser?{' '}
-                    <TextLink href={login()}>
+                    <TextLink href="/organisers/login">
                         Organiser login
                     </TextLink>
                 </div>

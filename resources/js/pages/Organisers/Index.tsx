@@ -62,8 +62,8 @@ export default function OrganisersIndex({ organisers }: Props) {
                             <ActionButton href="/organisers/create">New Organiser</ActionButton>
                         ) : (
                             <>
-                                <ActionButton href="/register">Signup as Organiser</ActionButton>
-                                <Link href="/login" className="btn-secondary">Sign in as Organiser</Link>
+                                <ActionButton href="/organisers/signup">Signup as Organiser</ActionButton>
+                                <Link href="/organisers/login" className="btn-secondary">Sign in as Organiser</Link>
                             </>
                         )}
                     </div>

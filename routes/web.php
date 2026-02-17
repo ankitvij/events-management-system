@@ -235,6 +235,14 @@ Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
 
 use App\Http\Controllers\OrganiserController;
 
+// Organiser signup and magic-link login
+Route::get('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'create'])->middleware('guest')->name('organisers.signup');
+Route::post('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'store'])->middleware('guest')->name('organisers.signup.store');
+Route::get('organisers/login', [\App\Http\Controllers\OrganiserAuthController::class, 'showLogin'])->middleware('guest')->name('organisers.login');
+Route::post('organisers/login/token', [\App\Http\Controllers\OrganiserAuthController::class, 'sendToken'])->middleware('guest')->name('organisers.login.token.send');
+Route::get('organisers/login/token/{token}', [\App\Http\Controllers\OrganiserAuthController::class, 'consumeToken'])->middleware('guest')->name('organisers.login.token.consume');
+Route::post('organisers/logout', [\App\Http\Controllers\OrganiserAuthController::class, 'logout'])->name('organisers.logout');
+
 Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
 Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])->middleware(['auth'])->name('organisers.active');
 Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
