@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\Role;
+use App\Models\Organiser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,17 @@ class UpdateEventRequest extends FormRequest
 
         if ($event && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
             return (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0);
+        }
+
+        if ($event && $current->email) {
+            $organiserIds = Organiser::query()->where('email', $current->email)->pluck('id');
+            if ($organiserIds->isNotEmpty()) {
+                if ($event->organiser_id && $organiserIds->contains((int) $event->organiser_id)) {
+                    return true;
+                }
+
+                return $event->organisers()->whereIn('organisers.id', $organiserIds->all())->exists();
+            }
         }
 
         return false;

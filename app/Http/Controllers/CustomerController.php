@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Organiser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,6 +20,22 @@ class CustomerController extends Controller
         $this->authorize('viewAny', Customer::class);
 
         $query = Customer::orderBy('name');
+        $current = $request->user();
+
+        if ($current && ! $current->hasRole(['admin', 'super_admin', 'agency'])) {
+            $organiserIds = Organiser::query()->where('email', $current->email)->pluck('id');
+
+            if ($organiserIds->isNotEmpty()) {
+                $query->whereHas('orders.items.event', function ($eventQuery) use ($organiserIds): void {
+                    $eventQuery->whereIn('organiser_id', $organiserIds->all())
+                        ->orWhereHas('organisers', function ($organiserQuery) use ($organiserIds): void {
+                            $organiserQuery->whereIn('organisers.id', $organiserIds->all());
+                        });
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
 
         $search = request('q', '');
         if ($search) {
@@ -71,6 +88,27 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $this->authorize('view', $customer);
+
+        $current = auth()->user();
+        if ($current && ! $current->hasRole(['admin', 'super_admin', 'agency'])) {
+            $organiserIds = Organiser::query()->where('email', $current->email)->pluck('id');
+            if ($organiserIds->isEmpty()) {
+                abort(404);
+            }
+
+            $canAccess = $customer->orders()
+                ->whereHas('items.event', function ($eventQuery) use ($organiserIds): void {
+                    $eventQuery->whereIn('organiser_id', $organiserIds->all())
+                        ->orWhereHas('organisers', function ($organiserQuery) use ($organiserIds): void {
+                            $organiserQuery->whereIn('organisers.id', $organiserIds->all());
+                        });
+                })
+                ->exists();
+
+            if (! $canAccess) {
+                abort(404);
+            }
+        }
 
         return Inertia::render('Customers/Show', ['customer' => $customer]);
     }

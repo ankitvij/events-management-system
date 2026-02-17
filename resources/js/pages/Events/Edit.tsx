@@ -44,7 +44,26 @@ export default function Edit({ event }: Props) {
         { title: 'Edit', href: `/events/${event.slug}/edit` },
     ];
 
-    const form = useForm({
+    const form = useForm<{
+        title: string;
+        description: string;
+        start_at: string;
+        end_at: string;
+        city: string;
+        country: string;
+        address: string;
+        facebook_url: string;
+        instagram_url: string;
+        whatsapp_url: string;
+        active: boolean;
+        image: File | null;
+        organiser_id: number | null;
+        organiser_ids: number[];
+        artist_ids: number[];
+        promoter_ids: number[];
+        vendor_ids: number[];
+        edit_password: string;
+    }>({
         title: event.title || '',
         description: event.description || '',
         start_at: event.start_at ? event.start_at.slice(0, 10) : '',
@@ -66,7 +85,7 @@ export default function Edit({ event }: Props) {
     });
 
     const page = usePage();
-    const organisers = page.props?.organisers ?? [];
+    const organisers = (page.props?.organisers ?? []) as Organiser[];
     const artists = (page.props?.artists ?? []) as ArtistShort[];
     const bookingRequests = (page.props?.bookingRequests ?? []) as BookingRequestRow[];
     const vendors = (page.props?.vendors ?? []) as VendorShort[];
@@ -185,6 +204,17 @@ export default function Edit({ event }: Props) {
                 <div>
                     <label className="block text-sm font-medium">Description</label>
                     <RichEditor value={form.data.description} onChange={v => form.setData('description', v)} />
+                </div>
+
+                <div>
+                    <label className="inline-flex items-center gap-2 text-sm font-medium">
+                        <input
+                            type="checkbox"
+                            checked={!!form.data.active}
+                            onChange={(e) => form.setData('active', e.target.checked)}
+                        />
+                        <span>Active</span>
+                    </label>
                 </div>
 
                 <div>

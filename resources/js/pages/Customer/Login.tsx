@@ -55,11 +55,25 @@ export default function CustomerLogin() {
                 </div>
             )}
 
-            <div className="mt-6 text-center text-sm text-muted-foreground">
-                Admin?{' '}
-                <TextLink href={login()}>
-                    Log in here
-                </TextLink>
+            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+                <div>
+                    Admin?{' '}
+                    <TextLink href={login()}>
+                        Log in here
+                    </TextLink>
+                </div>
+                <div>
+                    Organiser?{' '}
+                    <TextLink href={login()}>
+                        Organiser login
+                    </TextLink>
+                </div>
+                <div>
+                    Agency?{' '}
+                    <TextLink href={login()}>
+                        Agency login
+                    </TextLink>
+                </div>
             </div>
 
         </AuthLayout>

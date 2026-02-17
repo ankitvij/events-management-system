@@ -42,6 +42,9 @@ export function AppSidebar() {
     if (isManager) {
         items.push({ title: 'Orders', href: '/orders', icon: ClipboardList });
     }
+    if (page.props?.auth?.user && !isManager) {
+        items.push({ title: 'Orders', href: '/orders', icon: ClipboardList });
+    }
     items.push({ title: 'Events', href: '/events', icon: Calendar });
     if (isManager) {
         items.push({ title: 'Users', href: '/users', icon: Users });
@@ -59,6 +62,9 @@ export function AppSidebar() {
         items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
         items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
         items.push({ title: 'Pages', href: '/pages', icon: FileText });
+    }
+    if (page.props?.auth?.user && !isManager) {
+        items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
     }
     if (isSuper) {
         items.push({ title: 'Payment Methods', href: '/orders/payment-methods', icon: CreditCard });

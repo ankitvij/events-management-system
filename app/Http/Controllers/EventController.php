@@ -18,6 +18,7 @@ use App\Services\LocationResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -42,13 +43,27 @@ class EventController extends Controller
                 $query->where('agency_id', $current->agency_id);
             }
 
+            if (! $current->hasRole(['admin', 'super_admin', 'agency'])) {
+                $organiserIds = $this->organiserIdsForUser($current);
+                if ($organiserIds->isNotEmpty()) {
+                    $query->where(function ($builder) use ($organiserIds, $current): void {
+                        $builder
+                            ->where('user_id', $current->id)
+                            ->orWhereIn('organiser_id', $organiserIds->all())
+                            ->orWhereHas('organisers', function ($subQuery) use ($organiserIds): void {
+                                $subQuery->whereIn('organisers.id', $organiserIds->all());
+                            });
+                    });
+                }
+            }
+
             // For authenticated non-super-admin users, hide events created by super-admins
             if (! $current->is_super_admin) {
                 $query->whereHas('user', function ($q) {
                     $q->where('is_super_admin', false);
                 });
 
-                if (! $current->hasRole(['admin', 'super_admin', 'agency'])) {
+                if (! $current->hasRole(['admin', 'super_admin', 'agency']) && $this->organiserIdsForUser($current)->isEmpty()) {
                     // only show active events to regular users
                     $query->where('active', true);
                 }
@@ -215,7 +230,7 @@ class EventController extends Controller
         $data['edit_token_expires_at'] = null;
         $data['edit_password'] = $request->filled('edit_password') ? Hash::make($request->string('edit_password')) : null;
 
-        DB::transaction(function () use ($request, $data, $rawEditToken, $isGuest) {
+        DB::transaction(function () use ($request, $data, $rawEditToken) {
             $local = $data;
 
             $tickets = $local['tickets'] ?? [];
@@ -337,25 +352,20 @@ class EventController extends Controller
                     'token' => $rawEditToken,
                 ]);
 
-                $signedVerifyUrl = URL::signedRoute('events.verify-link', [
-                    'event' => $event->slug,
-                    'token' => $rawEditToken,
-                ]);
-
                 Mail::to($primaryOrganiser->email)->send(new EventOrganiserCreated(
                     $event,
                     $primaryOrganiser,
                     $signedEditUrl,
                     $request->input('edit_password'),
-                    $signedVerifyUrl,
-                    $isGuest
+                    null,
+                    false
                 ));
             }
         });
 
         $this->clearPublicEventsCache();
 
-        return redirect()->route('events.index')->with('success', 'Event created successfully. An email has been sent. Check the email to manage and activate your event.');
+        return redirect()->route('events.index')->with('success', 'Event created successfully. An email has been sent. Check the email to manage your event.');
     }
 
     public function verifyViaToken(Request $request, Event $event, string $token): RedirectResponse
@@ -421,7 +431,8 @@ class EventController extends Controller
         if ($current) {
             $canEdit = $current->is_super_admin
                 || ($event->user_id && $current->id === $event->user_id)
-                || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0));
+                || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+                || $this->userIsEventOrganiser($current, $event);
 
             if ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
                 abort(404);
@@ -603,7 +614,8 @@ class EventController extends Controller
 
         $canEdit = $current->is_super_admin
             || ($event->user_id && $current->id === $event->user_id)
-            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0));
+            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+            || $this->userIsEventOrganiser($current, $event);
 
         if (! $canEdit) {
             abort(404);
@@ -813,7 +825,7 @@ class EventController extends Controller
         }
 
         // Allow super admins or the event owner to toggle active
-        if (! ($current->is_super_admin || $event->user_id === $current->id || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0)))) {
+        if (! ($current->is_super_admin || $event->user_id === $current->id || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0)) || $this->userIsEventOrganiser($current, $event))) {
             abort(403);
         }
 
@@ -838,7 +850,8 @@ class EventController extends Controller
 
         $canDelete = $current->is_super_admin
             || ($event->user_id && $current->id === $event->user_id)
-            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0));
+            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+            || $this->userIsEventOrganiser($current, $event);
 
         if (! $canDelete) {
             abort(404);
@@ -1054,5 +1067,30 @@ class EventController extends Controller
         } catch (\Exception $e) {
             // Non-fatal; we can still rely on fallback clearing.
         }
+    }
+
+    protected function organiserIdsForUser(User $user): Collection
+    {
+        if (! $user->email) {
+            return collect();
+        }
+
+        return Organiser::query()
+            ->where('email', $user->email)
+            ->pluck('id');
+    }
+
+    protected function userIsEventOrganiser(User $user, Event $event): bool
+    {
+        $organiserIds = $this->organiserIdsForUser($user);
+        if ($organiserIds->isEmpty()) {
+            return false;
+        }
+
+        if ($event->organiser_id && $organiserIds->contains((int) $event->organiser_id)) {
+            return true;
+        }
+
+        return $event->organisers()->whereIn('organisers.id', $organiserIds->all())->exists();
     }
 }
