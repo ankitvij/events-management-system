@@ -270,6 +270,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\NewsletterSignupController;
 use App\Http\Controllers\PromoterSignupController;
 use App\Http\Controllers\VendorAuthController;
@@ -413,6 +414,8 @@ Route::get('orders/{order}/receipt', [OrderController::class, 'receipt'])->name(
 Route::get('customer/orders', [OrderController::class, 'customerIndex'])->name('customer.orders')->middleware(EnsureCustomerAuthenticated::class);
 
 use App\Http\Controllers\PageController;
+
+Route::resource('discount-codes', DiscountCodeController::class)->middleware(['auth']);
 
 Route::put('pages/{page}/active', [PageController::class, 'toggleActive'])->middleware(['auth', 'can:access-pages'])->name('pages.active');
 Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);
