@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Organiser;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -33,8 +34,27 @@ class PublicSignupPagesTest extends TestCase
     public function test_guest_can_open_signup_pages(): void
     {
         $this->get('/artists/signup')->assertStatus(200);
+        $this->get('/organisers/signup')->assertStatus(200);
+        $this->get('/organisers/login')->assertStatus(200);
         $this->get('/promoters/signup')->assertStatus(200);
         $this->get('/vendors/signup')->assertStatus(200);
+    }
+
+    public function test_guest_can_submit_organiser_signup(): void
+    {
+        $response = $this->post('/organisers/signup', [
+            'name' => 'Organiser Test',
+            'email' => 'organiser-signup@example.test',
+        ]);
+
+        $response->assertRedirect('/organisers/signup');
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas((new Organiser)->getTable(), [
+            'name' => 'Organiser Test',
+            'email' => 'organiser-signup@example.test',
+            'active' => false,
+        ]);
     }
 
     public function test_guest_can_submit_promoter_signup(): void

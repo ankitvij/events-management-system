@@ -17,7 +17,7 @@ class EventVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_created_event_is_inactive_until_verified_and_then_redirects_to_manage(): void
+    public function test_guest_created_event_receives_manage_link_without_verification_step(): void
     {
         Mail::fake();
         Storage::fake('public');
@@ -35,30 +35,22 @@ class EventVerificationTest extends TestCase
         ]);
 
         $response->assertRedirect(route('events.index'));
+        $response->assertSessionHas('success', 'Event created successfully. An email has been sent. Check the email to manage your event.');
 
         $event = Event::query()->where('title', 'Guest Verification Event')->firstOrFail();
         $this->assertFalse((bool) $event->active);
-
-        $verifyUrl = URL::signedRoute('events.verify-link', [
-            'event' => $event->slug,
-            'token' => $event->edit_token,
-        ]);
 
         $editUrl = URL::signedRoute('events.edit-link', [
             'event' => $event->slug,
             'token' => $event->edit_token,
         ]);
 
-        $verify = $this->get($verifyUrl);
-        $verify->assertRedirect($editUrl);
+        $edit = $this->get($editUrl);
+        $edit->assertStatus(200);
 
-        $event->refresh();
-        $this->assertTrue((bool) $event->active);
-
-        $show = $this->get(route('events.show', $event));
-        $show->assertStatus(200);
-
-        Mail::assertSent(EventOrganiserCreated::class);
+        Mail::assertSent(EventOrganiserCreated::class, function (EventOrganiserCreated $mail) {
+            return $mail->build()->subject === 'ChancePass:"Guest Verification Event" manage.';
+        });
     }
 
     public function test_store_requires_at_least_one_ticket_type(): void

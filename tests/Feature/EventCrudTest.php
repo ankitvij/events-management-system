@@ -333,6 +333,13 @@ class EventCrudTest extends TestCase
         $response->assertRedirect(route('events.index'));
 
         $event = Event::firstOrFail();
+        $promoter = User::factory()->create([
+            'is_super_admin' => false,
+            'active' => true,
+            'role' => 'user',
+        ]);
+        $vendor = Vendor::factory()->create(['active' => true]);
+        $artist = Artist::factory()->create(['active' => true]);
 
         $this->assertNotNull($event->edit_token);
         $signedUpdateUrl = URL::signedRoute('events.update-link', [
@@ -344,6 +351,9 @@ class EventCrudTest extends TestCase
             'title' => 'Updated via link',
             'start_at' => now()->addDays(2)->toDateString(),
             'city' => 'Madrid',
+            'promoter_ids' => [$promoter->id],
+            'vendor_ids' => [$vendor->id],
+            'artist_ids' => [$artist->id],
             'edit_password' => 'secret123',
         ]);
 
@@ -356,6 +366,9 @@ class EventCrudTest extends TestCase
 
         $update->assertRedirect($signedEditUrl);
         $this->assertSame('Updated via link', $event->title);
+        $this->assertTrue($event->promoters()->whereKey($promoter->id)->exists());
+        $this->assertTrue($event->vendors()->whereKey($vendor->id)->exists());
+        $this->assertTrue($event->artists()->whereKey($artist->id)->exists());
 
         Mail::assertSent(EventOrganiserCreated::class);
     }

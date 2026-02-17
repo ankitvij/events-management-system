@@ -14,13 +14,18 @@ class UserController
 {
     public function promoters(Request $request)
     {
-        $promoters = User::query()
+        $query = User::query()
             ->where('is_super_admin', false)
             ->where('active', true)
             ->where('role', Role::USER->value)
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderBy('name');
+
+        $current = $request->user();
+        if ($current && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            $query->where('agency_id', $current->agency_id);
+        }
+
+        $promoters = $query->paginate(20)->withQueryString();
 
         if ($request->expectsJson() || app()->runningUnitTests()) {
             return response()->json(['promoters' => $promoters]);
@@ -68,6 +73,10 @@ class UserController
         } elseif ($current->role === Role::ADMIN) {
             // admins should not see admins or super admins
             $query->where('is_super_admin', false)->where('role', Role::USER->value);
+        } elseif ($current->hasRole(Role::AGENCY->value)) {
+            $query->where('is_super_admin', false)
+                ->where('role', Role::USER->value)
+                ->where('agency_id', $current->agency_id);
         } else {
             // regular users only see themselves (we'll exclude current user from the listing)
             $query->where('id', $current->id);
@@ -131,11 +140,18 @@ class UserController
     {
         $data = $request->validated();
         $data['password'] = bcrypt($data['password']);
+        $current = $request->user();
+
+        if ($current && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            $data['agency_id'] = $current->agency_id;
+            $data['role'] = Role::USER->value;
+            $data['is_super_admin'] = false;
+        }
 
         // Set super admin flag based on role if provided
-        if (array_key_exists('role', $data)) {
+        if (! array_key_exists('is_super_admin', $data) && array_key_exists('role', $data)) {
             $data['is_super_admin'] = ($data['role'] === 'super_admin');
-        } else {
+        } elseif (! array_key_exists('is_super_admin', $data)) {
             $data['is_super_admin'] = false;
         }
 
@@ -159,6 +175,10 @@ class UserController
             if ($user->is_super_admin || $user->role === Role::ADMIN) {
                 abort(404);
             }
+        } elseif ($current->hasRole(Role::AGENCY->value)) {
+            if ($user->is_super_admin || $user->role !== Role::USER->value || (int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                abort(404);
+            }
         } else {
             // regular users may only view themselves
             abort(404);
@@ -177,6 +197,78 @@ class UserController
         return Inertia::render('Users/Show', ['user' => $user, 'roleChanges' => $roleChanges]);
     }
 
+    public function showPromoter(Request $request, User $promoter)
+    {
+        if ($promoter->is_super_admin || ! $promoter->hasRole(Role::USER->value)) {
+            abort(404);
+        }
+
+        if (! auth()->check() && ! $promoter->active) {
+            abort(404);
+        }
+
+        $current = $request->user();
+        if ($current && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            if ((int) ($promoter->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                abort(404);
+            }
+        }
+
+        $promoter->loadCount('promotedEvents');
+
+        if ($request->expectsJson() || app()->runningUnitTests()) {
+            return response()->json([
+                'promoter' => [
+                    'id' => $promoter->id,
+                    'name' => $promoter->name,
+                    'email' => $promoter->email,
+                    'active' => (bool) $promoter->active,
+                    'promoted_events_count' => (int) $promoter->promoted_events_count,
+                ],
+            ]);
+        }
+
+        return Inertia::render('Promoters/Show', [
+            'promoter' => [
+                'id' => $promoter->id,
+                'name' => $promoter->name,
+                'email' => $promoter->email,
+                'active' => (bool) $promoter->active,
+                'promoted_events_count' => (int) $promoter->promoted_events_count,
+            ],
+        ]);
+    }
+
+    public function toggleActive(Request $request, User $user): RedirectResponse
+    {
+        $current = auth()->user();
+        if (! $current) {
+            abort(404);
+        }
+
+        if (! ($current->id === $user->id || $current->is_super_admin)) {
+            if ($current->role === Role::ADMIN) {
+                if ($user->is_super_admin || $user->role === Role::ADMIN) {
+                    abort(404);
+                }
+            } elseif ($current->hasRole(Role::AGENCY->value)) {
+                if ($user->is_super_admin || $user->role !== Role::USER->value || (int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                    abort(404);
+                }
+            } else {
+                abort(404);
+            }
+        }
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $user->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'User status updated.');
+    }
+
     public function edit(User $user)
     {
         $current = auth()->user();
@@ -188,6 +280,10 @@ class UserController
             // allowed
         } elseif ($current->role === Role::ADMIN) {
             if ($user->is_super_admin || $user->role === Role::ADMIN) {
+                abort(404);
+            }
+        } elseif ($current->hasRole(Role::AGENCY->value)) {
+            if ($user->is_super_admin || $user->role !== Role::USER->value || (int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
                 abort(404);
             }
         } else {
@@ -209,6 +305,10 @@ class UserController
                 if ($user->is_super_admin || $user->role === Role::ADMIN) {
                     abort(404);
                 }
+            } elseif ($current->hasRole(Role::AGENCY->value)) {
+                if ($user->is_super_admin || $user->role !== Role::USER->value || (int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                    abort(404);
+                }
             } else {
                 abort(404);
             }
@@ -222,7 +322,11 @@ class UserController
         }
 
         // Only update is_super_admin if role was provided in the request
-        if (array_key_exists('role', $data)) {
+        if ($current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            $data['role'] = Role::USER->value;
+            $data['is_super_admin'] = false;
+            $data['agency_id'] = $current->agency_id;
+        } elseif (array_key_exists('role', $data)) {
             $data['is_super_admin'] = ($data['role'] === 'super_admin');
         }
 
@@ -244,8 +348,20 @@ class UserController
                 abort(404);
             }
 
+            if ($current->hasRole(Role::AGENCY->value)) {
+                if ((int) ($user->agency_id ?? 0) !== (int) ($current->agency_id ?? 0) || $user->role !== Role::USER->value) {
+                    abort(404);
+                }
+            }
+
             // regular users cannot delete others
             if ($current->id !== $user->id && $current->role !== Role::ADMIN->value) {
+                if (! $current->hasRole(Role::AGENCY->value)) {
+                    abort(404);
+                }
+            }
+
+            if ($current->hasRole(Role::AGENCY->value) && $current->id === $user->id) {
                 abort(404);
             }
         }

@@ -26,6 +26,11 @@ class VendorController extends Controller
         $this->authorize('viewAny', Vendor::class);
 
         $query = Vendor::query()->orderBy('name');
+        $current = $request->user();
+
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $query->where('agency_id', $current->agency_id);
+        }
 
         if (! auth()->check()) {
             $query->where('active', true);
@@ -74,6 +79,10 @@ class VendorController extends Controller
         $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, null);
         $data = array_merge($data, $locationIds);
         $data['active'] = (bool) ($data['active'] ?? false);
+        $current = $request->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $data['agency_id'] = $current->agency_id;
+        }
 
         $vendor = Vendor::query()->create($data);
 
@@ -86,6 +95,11 @@ class VendorController extends Controller
     public function show(Vendor $vendor)
     {
         $this->authorize('view', $vendor);
+
+        $current = auth()->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($vendor->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+            abort(404);
+        }
 
         if (! auth()->check() && ! $vendor->active) {
             abort(404);
@@ -136,5 +150,18 @@ class VendorController extends Controller
         $vendor->delete();
 
         return redirect()->route('vendors.index')->with('success', 'Vendor deleted.');
+    }
+
+    public function toggleActive(Request $request, Vendor $vendor): RedirectResponse
+    {
+        $this->authorize('update', $vendor);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $vendor->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Vendor status updated.');
     }
 }

@@ -1,6 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import ListControls from '@/components/list-controls';
 import AppLayout from '@/layouts/app-layout';
@@ -27,6 +29,10 @@ export default function Index({ pages }: Props) {
         if (next === '') sp.delete('sort'); else sp.set('sort', next);
         sp.delete('page');
         router.get(`/pages${sp.toString() ? `?${sp.toString()}` : ''}`);
+    }
+
+    function toggleActive(id: number, value: boolean) {
+        router.put(`/pages/${id}/active`, { active: value });
     }
 
     return (
@@ -62,14 +68,23 @@ export default function Index({ pages }: Props) {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <Link href={`/pages/${page.id}`} className="text-lg font-medium">{page.title}</Link>
-                                    {!page.active && <div className="text-sm text-muted">Inactive</div>}
+                                    {!page.active && <div className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">Inactive</div>}
                                 </div>
                                 <div className="flex gap-2">
-                                    <Link href={`/pages/${page.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit page" title="Edit page"><Pencil className="h-4 w-4" /></Link>
-                                    <form action={`/pages/${page.id}`} method="post" className="inline">
-                                        <input type="hidden" name="_method" value="delete" />
-                                        <button className="btn-danger" type="submit" aria-label="Delete page" title="Delete page"><Trash2 className="h-4 w-4" /></button>
-                                    </form>
+                                    <ActiveToggleButton
+                                        active={!!page.active}
+                                        onToggle={() => toggleActive(Number(page.id), !Boolean(page.active))}
+                                        label="page"
+                                    />
+                                    <ActionIcon href={`/pages/${page.id}/edit`} aria-label="Edit page" title="Edit page"><Pencil className="h-4 w-4" /></ActionIcon>
+                                    <ActionIcon
+                                        danger
+                                        onClick={() => router.delete(`/pages/${page.id}`)}
+                                        aria-label="Delete page"
+                                        title="Delete page"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </ActionIcon>
                                 </div>
                             </div>
                         </div>

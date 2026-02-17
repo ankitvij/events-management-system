@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Pencil } from 'lucide-react';
-import ActionButton from '@/components/ActionButton';
+import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import type { Artist } from '@/types/entities';
@@ -26,7 +26,7 @@ export default function ArtistsShow({ artist }: Props) {
                         <div className="text-sm text-muted">{artist.email}</div>
                     </div>
                     <div className="flex gap-2">
-                        <ActionButton href={`/artists/${artist.id}/edit`} aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></ActionButton>
+                        <ActionIcon href={`/artists/${artist.id}/edit`} aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></ActionIcon>
                         <Link href="/artists" className="btn-secondary" aria-label="Back to artists" title="Back to artists"><ArrowLeft className="h-4 w-4" /></Link>
                     </div>
                 </div>

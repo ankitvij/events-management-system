@@ -18,6 +18,7 @@ use App\Services\LocationResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -38,13 +39,34 @@ class EventController extends Controller
         }
         $current = auth()->user();
         if ($current) {
+            if ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+                $query->where('agency_id', $current->agency_id);
+            }
+
+            if (! $current->hasRole(['admin', 'super_admin', 'agency'])) {
+                $organiserIds = $this->organiserIdsForUser($current);
+                if ($organiserIds->isNotEmpty()) {
+                    $query->where(function ($builder) use ($organiserIds, $current): void {
+                        $builder
+                            ->where('user_id', $current->id)
+                            ->orWhereIn('organiser_id', $organiserIds->all())
+                            ->orWhereHas('organisers', function ($subQuery) use ($organiserIds): void {
+                                $subQuery->whereIn('organisers.id', $organiserIds->all());
+                            });
+                    });
+                }
+            }
+
             // For authenticated non-super-admin users, hide events created by super-admins
             if (! $current->is_super_admin) {
                 $query->whereHas('user', function ($q) {
                     $q->where('is_super_admin', false);
                 });
-                // only show active events to non-super users
-                $query->where('active', true);
+
+                if (! $current->hasRole(['admin', 'super_admin', 'agency']) && $this->organiserIdsForUser($current)->isEmpty()) {
+                    // only show active events to regular users
+                    $query->where('active', true);
+                }
             }
         } else {
             // Guests should see public (active) events by default unless an explicit `active` filter is provided
@@ -173,7 +195,15 @@ class EventController extends Controller
         }
 
         // Only provide organisers list to authenticated users
-        $organisers = auth()->check() ? Organiser::orderBy('name')->get(['id', 'name']) : [];
+        $organisers = [];
+        if (auth()->check()) {
+            $organisersQuery = Organiser::orderBy('name');
+            $current = auth()->user();
+            if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+                $organisersQuery->where('agency_id', $current->agency_id);
+            }
+            $organisers = $organisersQuery->get(['id', 'name']);
+        }
 
         return Inertia::render('Events/Create', [
             'organisers' => $organisers,
@@ -190,6 +220,7 @@ class EventController extends Controller
 
         // Allow guest-created events: user_id may be null for guests
         $data['user_id'] = $request->user()?->id;
+        $data['agency_id'] = $request->user()?->agency_id;
 
         $isGuest = ! $request->user();
         $data['active'] = $isGuest ? false : (bool) ($data['active'] ?? true);
@@ -199,7 +230,7 @@ class EventController extends Controller
         $data['edit_token_expires_at'] = null;
         $data['edit_password'] = $request->filled('edit_password') ? Hash::make($request->string('edit_password')) : null;
 
-        DB::transaction(function () use ($request, $data, $rawEditToken, $isGuest) {
+        DB::transaction(function () use ($request, $data, $rawEditToken) {
             $local = $data;
 
             $tickets = $local['tickets'] ?? [];
@@ -321,25 +352,20 @@ class EventController extends Controller
                     'token' => $rawEditToken,
                 ]);
 
-                $signedVerifyUrl = URL::signedRoute('events.verify-link', [
-                    'event' => $event->slug,
-                    'token' => $rawEditToken,
-                ]);
-
                 Mail::to($primaryOrganiser->email)->send(new EventOrganiserCreated(
                     $event,
                     $primaryOrganiser,
                     $signedEditUrl,
                     $request->input('edit_password'),
-                    $signedVerifyUrl,
-                    $isGuest
+                    null,
+                    false
                 ));
             }
         });
 
         $this->clearPublicEventsCache();
 
-        return redirect()->route('events.index');
+        return redirect()->route('events.index')->with('success', 'Event created successfully. An email has been sent. Check the email to manage your event.');
     }
 
     public function verifyViaToken(Request $request, Event $event, string $token): RedirectResponse
@@ -385,7 +411,11 @@ class EventController extends Controller
             }
         }
 
-        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        $organisersQuery = Organiser::orderBy('name');
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $organisersQuery->where('agency_id', $current->agency_id);
+        }
+        $organisers = $organisersQuery->get(['id', 'name']);
 
         // Load tickets: guests see only active tickets with availability, authenticated users see all
         if (auth()->check()) {
@@ -399,7 +429,14 @@ class EventController extends Controller
         $current = auth()->user();
         $canEdit = false;
         if ($current) {
-            $canEdit = $current->is_super_admin || ($event->user_id && $current->id === $event->user_id);
+            $canEdit = $current->is_super_admin
+                || ($event->user_id && $current->id === $event->user_id)
+                || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+                || $this->userIsEventOrganiser($current, $event);
+
+            if ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                abort(404);
+            }
         }
 
         $tickets = $event->tickets->map(function ($t) {
@@ -453,22 +490,31 @@ class EventController extends Controller
         $availablePromoters = collect();
 
         if ($canEdit) {
-            $availableArtists = Artist::query()
+            $availableArtistsQuery = Artist::query()
                 ->where('active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'city']);
+                ->orderBy('name');
 
-            $availableVendors = Vendor::query()
+            $availableVendorsQuery = Vendor::query()
                 ->where('active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'city', 'type']);
+                ->orderBy('name');
 
-            $availablePromoters = User::query()
+            $availablePromotersQuery = User::query()
                 ->where('is_super_admin', false)
                 ->where('active', true)
                 ->where('role', 'user')
-                ->orderBy('name')
-                ->get(['id', 'name', 'email']);
+                ->orderBy('name');
+
+            if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+                $availableArtistsQuery->where('agency_id', $current->agency_id);
+                $availableVendorsQuery->where('agency_id', $current->agency_id);
+                $availablePromotersQuery->where('agency_id', $current->agency_id);
+            }
+
+            $availableArtists = $availableArtistsQuery->get(['id', 'name', 'city']);
+
+            $availableVendors = $availableVendorsQuery->get(['id', 'name', 'city', 'type']);
+
+            $availablePromoters = $availablePromotersQuery->get(['id', 'name', 'email']);
         }
 
         if ($request->expectsJson() || $request->wantsJson() || app()->runningInConsole()) {
@@ -510,8 +556,30 @@ class EventController extends Controller
     {
         $this->assertValidEditToken($event, $token);
 
-        $event->load('organisers', 'organiser', 'user');
-        $organisers = $event->organiser ? [$event->organiser] : [];
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
+        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
+        $promoters = User::query()
+            ->where('is_super_admin', false)
+            ->where('active', true)
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
+
+        $vendors = Vendor::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city', 'type']);
+
+        $bookingRequests = BookingRequest::query()
+            ->with('artist')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $vendorBookingRequests = VendorBookingRequest::query()
+            ->with('vendor')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
 
         $editUrl = URL::signedRoute('events.update-link', [
             'event' => $event->slug,
@@ -521,6 +589,12 @@ class EventController extends Controller
         return Inertia::render('Events/Edit', [
             'event' => $event,
             'organisers' => $organisers,
+            'artists' => $artists,
+            'bookingRequests' => $bookingRequests,
+            'vendors' => $vendors,
+            'vendorBookingRequests' => $vendorBookingRequests,
+            'promoters' => $promoters,
+            'ticketControllers' => $event->ticketControllers,
             'editUrl' => $editUrl,
             'requiresPassword' => (bool) $event->edit_password,
             'allowOrganiserChange' => false,
@@ -533,18 +607,43 @@ class EventController extends Controller
             return response()->json(['event' => $event]);
         }
 
-        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'ticketControllers');
-        $organisers = Organiser::orderBy('name')->get(['id', 'name']);
-        $promoters = User::query()
+        $current = auth()->user();
+        if (! $current) {
+            abort(404);
+        }
+
+        $canEdit = $current->is_super_admin
+            || ($event->user_id && $current->id === $event->user_id)
+            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+            || $this->userIsEventOrganiser($current, $event);
+
+        if (! $canEdit) {
+            abort(404);
+        }
+
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
+        $organisersQuery = Organiser::orderBy('name');
+        $promotersQuery = User::query()
             ->where('is_super_admin', false)
             ->where('active', true)
             ->where('role', 'user')
-            ->orderBy('name')
-            ->get(['id', 'name', 'email']);
+            ->orderBy('name');
 
-        $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
+        $artistsQuery = Artist::query()->where('active', true)->orderBy('name');
 
-        $vendors = Vendor::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city', 'type']);
+        $vendorsQuery = Vendor::query()->where('active', true)->orderBy('name');
+
+        if ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $organisersQuery->where('agency_id', $current->agency_id);
+            $promotersQuery->where('agency_id', $current->agency_id);
+            $artistsQuery->where('agency_id', $current->agency_id);
+            $vendorsQuery->where('agency_id', $current->agency_id);
+        }
+
+        $organisers = $organisersQuery->get(['id', 'name']);
+        $promoters = $promotersQuery->get(['id', 'name', 'email']);
+        $artists = $artistsQuery->get(['id', 'name', 'city']);
+        $vendors = $vendorsQuery->get(['id', 'name', 'city', 'type']);
 
         $bookingRequests = BookingRequest::query()
             ->with('artist')
@@ -572,9 +671,15 @@ class EventController extends Controller
 
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
+        $current = $request->user();
+
         $data = $request->validated();
         $locationIds = app(LocationResolver::class)->resolve($data['city'] ?? null, $data['country'] ?? null);
         $data = array_merge($data, $locationIds);
+
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $data['agency_id'] = $current->agency_id;
+        }
 
         if ($request->hasFile('image')) {
             // delete old image if exists
@@ -683,6 +788,18 @@ class EventController extends Controller
             $event->save();
         }
 
+        if (array_key_exists('promoter_ids', $data)) {
+            $event->promoters()->sync($data['promoter_ids'] ?? []);
+        }
+
+        if (array_key_exists('vendor_ids', $data)) {
+            $event->vendors()->sync($data['vendor_ids'] ?? []);
+        }
+
+        if (array_key_exists('artist_ids', $data)) {
+            $event->artists()->sync($data['artist_ids'] ?? []);
+        }
+
         $this->clearPublicEventsCache();
 
         if (! $event->active) {
@@ -708,7 +825,7 @@ class EventController extends Controller
         }
 
         // Allow super admins or the event owner to toggle active
-        if (! ($current->is_super_admin || $event->user_id === $current->id)) {
+        if (! ($current->is_super_admin || $event->user_id === $current->id || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0)) || $this->userIsEventOrganiser($current, $event))) {
             abort(403);
         }
 
@@ -726,6 +843,20 @@ class EventController extends Controller
 
     public function destroy(Event $event): RedirectResponse
     {
+        $current = auth()->user();
+        if (! $current) {
+            abort(404);
+        }
+
+        $canDelete = $current->is_super_admin
+            || ($event->user_id && $current->id === $event->user_id)
+            || ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) === (int) ($current->agency_id ?? 0))
+            || $this->userIsEventOrganiser($current, $event);
+
+        if (! $canDelete) {
+            abort(404);
+        }
+
         if ($event->image) {
             Storage::disk('public')->delete($event->image);
         }
@@ -936,5 +1067,30 @@ class EventController extends Controller
         } catch (\Exception $e) {
             // Non-fatal; we can still rely on fallback clearing.
         }
+    }
+
+    protected function organiserIdsForUser(User $user): Collection
+    {
+        if (! $user->email) {
+            return collect();
+        }
+
+        return Organiser::query()
+            ->where('email', $user->email)
+            ->pluck('id');
+    }
+
+    protected function userIsEventOrganiser(User $user, Event $event): bool
+    {
+        $organiserIds = $this->organiserIdsForUser($user);
+        if ($organiserIds->isEmpty()) {
+            return false;
+        }
+
+        if ($event->organiser_id && $organiserIds->contains((int) $event->organiser_id)) {
+            return true;
+        }
+
+        return $event->organisers()->whereIn('organisers.id', $organiserIds->all())->exists();
     }
 }

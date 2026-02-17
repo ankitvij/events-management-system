@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { Trash } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
+import ActionIcon from '@/components/action-icon';
 
 export default function CartButton() {
     const [summary, setSummary] = useState<{ count: number; total: number; items?: any[] }>({ count: 0, total: 0, items: [] });
@@ -127,14 +128,14 @@ export default function CartButton() {
                                             <div className="px-3 text-sm">{it.quantity}</div>
                                             <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1)}>+</button>
                                         </div>
-                                        <button
-                                            type="button"
+                                        <ActionIcon
                                             aria-label="Delete item"
-                                            className="btn-danger mt-2"
+                                            className="mt-2"
                                             onClick={() => removeItem(it.id)}
+                                            danger
                                         >
                                             <Trash className="h-4 w-4" />
-                                        </button>
+                                        </ActionIcon>
                                     </div>
                                 </div>
                             ))

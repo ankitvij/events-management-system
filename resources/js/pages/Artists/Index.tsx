@@ -1,6 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -20,7 +22,7 @@ export default function ArtistsIndex({ artists }: Props) {
     const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
 
     function toggleActive(id: number, value: boolean) {
-        router.put(`/artists/${id}`, { active: value }, { preserveScroll: true });
+        router.put(`/artists/${id}/active`, { active: value }, { preserveScroll: true });
     }
 
     function applySort(key: string) {
@@ -106,7 +108,7 @@ export default function ArtistsIndex({ artists }: Props) {
                                             {a.name}
                                         </Link>
                                         {!a.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
                                     <div className="text-sm text-muted">{a.city}</div>
@@ -116,22 +118,22 @@ export default function ArtistsIndex({ artists }: Props) {
                                 <div className="md:col-span-2">
                                     {canManage ? (
                                         <div className="flex flex-wrap gap-2 items-center justify-start md:justify-end">
-                                        <button
-                                            type="button"
-                                            className="btn-secondary"
-                                            onClick={() => toggleActive(a.id, !a.active)}
-                                            aria-label={a.active ? 'Set artist inactive' : 'Set artist active'}
-                                            title={a.active ? 'Set inactive' : 'Set active'}
-                                        >
-                                            {a.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                                        </button>
+                                        <ActiveToggleButton
+                                            active={!!a.active}
+                                            onToggle={() => toggleActive(a.id, !a.active)}
+                                            label="artist"
+                                        />
 
                                         <div className="flex gap-2">
-                                            <Link href={`/artists/${a.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></Link>
-                                            <form action={`/artists/${a.id}`} method="post" className="inline">
-                                                <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit" aria-label="Delete artist" title="Delete artist"><Trash2 className="h-4 w-4" /></button>
-                                            </form>
+                                            <ActionIcon href={`/artists/${a.id}/edit`} aria-label="Edit artist" title="Edit artist"><Pencil className="h-4 w-4" /></ActionIcon>
+                                            <ActionIcon
+                                                danger
+                                                onClick={() => router.delete(`/artists/${a.id}`)}
+                                                aria-label="Delete artist"
+                                                title="Delete artist"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </ActionIcon>
                                         </div>
                                     </div>
                                     ) : null}

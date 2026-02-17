@@ -1,10 +1,12 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { login } from '@/routes';
 
 export default function CustomerLogin() {
     const page = usePage<{ status?: string }>();
@@ -52,6 +54,45 @@ export default function CustomerLogin() {
                     {status}
                 </div>
             )}
+
+            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+                <div>
+                    Admin?{' '}
+                    <TextLink href={login()}>
+                        Log in here
+                    </TextLink>
+                </div>
+                <div>
+                    Organiser?{' '}
+                    <TextLink href="/organisers/login">
+                        Organiser login
+                    </TextLink>
+                </div>
+                <div>
+                    Agency?{' '}
+                    <TextLink href={login()}>
+                        Agency login
+                    </TextLink>
+                </div>
+                <div>
+                    Artist?{' '}
+                    <TextLink href={login()}>
+                        Artist login
+                    </TextLink>
+                </div>
+                <div>
+                    Promoter?{' '}
+                    <TextLink href={login()}>
+                        Promoter login
+                    </TextLink>
+                </div>
+                <div>
+                    Vendor?{' '}
+                    <TextLink href={login()}>
+                        Vendor login
+                    </TextLink>
+                </div>
+            </div>
 
         </AuthLayout>
     );

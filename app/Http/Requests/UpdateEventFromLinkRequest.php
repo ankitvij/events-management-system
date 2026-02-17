@@ -33,6 +33,8 @@ class UpdateEventFromLinkRequest extends FormRequest
             'promoter_ids.*' => ['integer', 'exists:users,id'],
             'vendor_ids' => ['nullable', 'array'],
             'vendor_ids.*' => ['integer', 'exists:vendors,id'],
+            'artist_ids' => ['nullable', 'array'],
+            'artist_ids.*' => ['integer', 'exists:artists,id'],
             'edit_password' => ['nullable', 'string', 'min:6', 'max:64'],
         ];
     }

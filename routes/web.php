@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderPaymentMethodsController;
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
 Route::put('/orders/{order}/items/{item}/check-in', [OrderController::class, 'checkInItem'])->middleware(['auth'])->name('orders.items.checkIn');
+use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Middleware\EnsureCustomerAuthenticated;
@@ -196,7 +197,16 @@ Route::put('events/{event}/active', [EventController::class, 'toggleActive'])->m
 use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
+Route::put('users/{user}/active', [UserController::class, 'toggleActive'])->middleware(['auth'])->name('users.active');
 Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
+Route::get('promoters/{promoter}', [UserController::class, 'showPromoter'])->whereNumber('promoter')->name('promoters.show');
+Route::resource('agencies', AgencyController::class)->only(['index', 'show']);
+Route::put('agencies/{agency}/active', [AgencyController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin'])
+    ->name('agencies.active');
+Route::resource('agencies', AgencyController::class)
+    ->except(['index', 'show'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency']);
 
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\RoleController;
@@ -225,7 +235,16 @@ Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
 
 use App\Http\Controllers\OrganiserController;
 
+// Organiser signup and magic-link login
+Route::get('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'create'])->middleware('guest')->name('organisers.signup');
+Route::post('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'store'])->middleware('guest')->name('organisers.signup.store');
+Route::get('organisers/login', [\App\Http\Controllers\OrganiserAuthController::class, 'showLogin'])->middleware('guest')->name('organisers.login');
+Route::post('organisers/login/token', [\App\Http\Controllers\OrganiserAuthController::class, 'sendToken'])->middleware('guest')->name('organisers.login.token.send');
+Route::get('organisers/login/token/{token}', [\App\Http\Controllers\OrganiserAuthController::class, 'consumeToken'])->middleware('guest')->name('organisers.login.token.consume');
+Route::post('organisers/logout', [\App\Http\Controllers\OrganiserAuthController::class, 'logout'])->name('organisers.logout');
+
 Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
+Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])->middleware(['auth'])->name('organisers.active');
 Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\EventTicketControllerController;
@@ -251,6 +270,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\ArtistSignupController;
 use App\Http\Controllers\BookingRequestController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\NewsletterSignupController;
 use App\Http\Controllers\PromoterSignupController;
 use App\Http\Controllers\VendorAuthController;
@@ -283,6 +303,7 @@ Route::post('customer/logout', [CustomerAuthController::class, 'logout'])->name(
 use App\Http\Controllers\CustomerController;
 
 Route::resource('customers', CustomerController::class)->middleware(['auth']);
+Route::put('customers/{customer}/active', [CustomerController::class, 'toggleActive'])->middleware(['auth'])->name('customers.active');
 
 // Public artist signup (from landing page)
 Route::get('artists/signup', [ArtistSignupController::class, 'create'])->middleware('guest')->name('artists.signup.form');
@@ -338,10 +359,12 @@ Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestContr
 
 // Admin artists management
 Route::resource('artists', ArtistController::class)->only(['index', 'show']);
+Route::put('artists/{artist}/active', [ArtistController::class, 'toggleActive'])->middleware(['auth'])->name('artists.active');
 Route::resource('artists', ArtistController::class)->middleware(['auth'])->except(['index', 'show']);
 
 // Admin vendors management
 Route::resource('vendors', VendorController::class)->only(['index', 'show']);
+Route::put('vendors/{vendor}/active', [VendorController::class, 'toggleActive'])->middleware(['auth'])->name('vendors.active');
 Route::resource('vendors', VendorController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\Admin\LogController;
@@ -392,6 +415,9 @@ Route::get('customer/orders', [OrderController::class, 'customerIndex'])->name('
 
 use App\Http\Controllers\PageController;
 
+Route::resource('discount-codes', DiscountCodeController::class)->middleware(['auth']);
+
+Route::put('pages/{page}/active', [PageController::class, 'toggleActive'])->middleware(['auth', 'can:access-pages'])->name('pages.active');
 Route::resource('pages', PageController::class)->middleware(['auth', 'can:access-pages']);
 
 // Public event show at root-level slug (must remain after all other routes)

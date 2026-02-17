@@ -21,6 +21,11 @@ class OrganiserController extends Controller
         $this->authorize('viewAny', Organiser::class);
 
         $query = Organiser::query()->orderBy('name');
+        $current = $request->user();
+
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $query->where('agency_id', $current->agency_id);
+        }
 
         if (! auth()->check()) {
             $query->where('active', true);
@@ -68,7 +73,13 @@ class OrganiserController extends Controller
     {
         $this->authorize('create', Organiser::class);
 
-        $org = Organiser::create($request->validated());
+        $data = $request->validated();
+        $current = $request->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $data['agency_id'] = $current->agency_id;
+        }
+
+        $org = Organiser::create($data);
 
         return redirect()->route('organisers.index')->with('success', 'Organiser created.');
     }
@@ -76,6 +87,11 @@ class OrganiserController extends Controller
     public function show(Organiser $organiser)
     {
         $this->authorize('view', $organiser);
+
+        $current = auth()->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($organiser->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+            abort(404);
+        }
 
         if (! auth()->check() && ! $organiser->active) {
             abort(404);
@@ -109,5 +125,18 @@ class OrganiserController extends Controller
         $organiser->delete();
 
         return redirect()->route('organisers.index')->with('success', 'Organiser deleted.');
+    }
+
+    public function toggleActive(Request $request, Organiser $organiser): RedirectResponse
+    {
+        $this->authorize('update', $organiser);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $organiser->update(['active' => (bool) $data['active']]);
+
+        return redirect()->back()->with('success', 'Organiser status updated.');
     }
 }

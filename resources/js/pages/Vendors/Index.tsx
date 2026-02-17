@@ -1,6 +1,8 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -18,6 +20,10 @@ export default function VendorsIndex({ vendors }: Props) {
     const page = usePage<{ flash?: { success?: string; error?: string } }>();
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+
+    function toggleActive(id: number, value: boolean) {
+        router.put(`/vendors/${id}/active`, { active: value }, { preserveScroll: true });
+    }
 
     function applySort(key: string) {
         const cur = params?.get('sort') ?? '';
@@ -102,7 +108,7 @@ export default function VendorsIndex({ vendors }: Props) {
                                             {v.name}
                                         </Link>
                                         {!v.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
                                     <div className="text-sm text-muted">{v.type}{v.city ? ` · ${v.city}` : ''}</div>
@@ -112,12 +118,21 @@ export default function VendorsIndex({ vendors }: Props) {
                                 <div className="md:col-span-2">
                                     {canManage ? (
                                         <div className="flex gap-2 items-center justify-start md:justify-end">
+                                        <ActiveToggleButton
+                                            active={!!v.active}
+                                            onToggle={() => toggleActive(v.id, !v.active)}
+                                            label="vendor"
+                                        />
                                         <div className="flex gap-2">
-                                            <Link href={`/vendors/${v.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit vendor" title="Edit vendor"><Pencil className="h-4 w-4" /></Link>
-                                            <form action={`/vendors/${v.id}`} method="post" className="inline">
-                                                <input type="hidden" name="_method" value="delete" />
-                                                <button className="btn-danger" type="submit" aria-label="Delete vendor" title="Delete vendor"><Trash2 className="h-4 w-4" /></button>
-                                            </form>
+                                            <ActionIcon href={`/vendors/${v.id}/edit`} aria-label="Edit vendor" title="Edit vendor"><Pencil className="h-4 w-4" /></ActionIcon>
+                                            <ActionIcon
+                                                danger
+                                                onClick={() => router.delete(`/vendors/${v.id}`)}
+                                                aria-label="Delete vendor"
+                                                title="Delete vendor"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </ActionIcon>
                                         </div>
                                     </div>
                                     ) : null}

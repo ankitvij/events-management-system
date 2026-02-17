@@ -23,7 +23,7 @@ class EventOrganiserCreated extends Mailable
 
     public function build(): self
     {
-        return $this->subject('Your event has been created')
+        return $this->subject('ChancePass:"'.$this->event->title.'" manage.')
             ->markdown('emails.events.organiser_created', [
                 'event' => $this->event,
                 'organiser' => $this->organiser,

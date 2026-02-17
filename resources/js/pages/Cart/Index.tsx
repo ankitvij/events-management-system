@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Trash } from 'lucide-react';
 import React from 'react';
+import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
@@ -100,14 +101,14 @@ export default function CartIndex() {
                                         <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
                                         <div className="px-2">{i.quantity}</div>
                                         <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1)}>+</button>
-                                        <button
-                                            type="button"
+                                        <ActionIcon
                                             aria-label="Delete item"
-                                            className="btn-danger ml-3"
+                                            className="ml-3"
                                             onClick={() => removeItemLocal(i.id)}
+                                            danger
                                         >
                                             <Trash className="h-4 w-4" />
-                                        </button>
+                                        </ActionIcon>
                                     </div>
                                 </div>
                             </div>

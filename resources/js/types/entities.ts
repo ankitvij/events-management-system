@@ -82,3 +82,25 @@ export type PaginationLink = { label?: string | null; url?: string | null; activ
 export type Pagination<T> = { data: T[]; links?: PaginationLink[] };
 
 export type LooseObject = Record<string, unknown>;
+
+export type DiscountCodeTicket = {
+    id: number;
+    event_id: number;
+    ticket_id: number;
+    discount_type: 'euro' | 'percentage';
+    discount_value: number | string;
+    ticket?: { id: number; name: string; price?: number | string | null } | null;
+};
+
+export type DiscountCode = {
+    id: number;
+    code: string;
+    created_by_user_id?: number | null;
+    promoter_user_id?: number | null;
+    organiser_id?: number | null;
+    active?: boolean;
+    promoter?: UserShort | null;
+    creator?: UserShort | null;
+    organiser?: Organiser | null;
+    discounts?: DiscountCodeTicket[];
+};

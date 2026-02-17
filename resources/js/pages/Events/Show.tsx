@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
@@ -560,7 +561,7 @@ export default function Show({ event }: Props) {
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <ActionButton href={`/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionButton>
+                            <ActionIcon href={`/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
                         ) : null}
 
                         {!current && !showHomeHeader && null}

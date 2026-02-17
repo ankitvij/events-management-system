@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\Role;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -26,6 +27,7 @@ class User extends Authenticatable
         'password',
         'is_super_admin',
         'role',
+        'agency_id',
         'active',
     ];
 
@@ -54,8 +56,14 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
             'is_super_admin' => 'boolean',
             'role' => Role::class,
+            'agency_id' => 'integer',
             'active' => 'boolean',
         ];
+    }
+
+    public function agency(): BelongsTo
+    {
+        return $this->belongsTo(Agency::class);
     }
 
     public function hasRole(string|array $roles): bool

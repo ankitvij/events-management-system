@@ -1,6 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -18,7 +20,7 @@ export default function CustomersIndex({ customers }: Props) {
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
 
     function toggleActive(id: number, value: boolean) {
-        router.put(`/customers/${id}`, { active: value });
+        router.put(`/customers/${id}/active`, { active: value });
     }
 
     function applySort(key: string) {
@@ -92,29 +94,29 @@ export default function CustomersIndex({ customers }: Props) {
                                     <div className="flex items-center gap-2">
                                         <Link href={`/customers/${customer.id}`} className="text-lg font-medium">{customer.name}</Link>
                                         {!customer.active && (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
                                     </div>
                                 </div>
                                 <div className="text-sm text-muted md:col-span-4">{customer.email || '—'}</div>
                                 <div className="md:col-span-2">
                                 <div className="flex gap-2 items-center justify-start md:justify-end">
-                                    <button
-                                        type="button"
-                                        className="btn-secondary"
-                                        onClick={() => toggleActive(customer.id, !customer.active)}
-                                        aria-label={customer.active ? 'Set customer inactive' : 'Set customer active'}
-                                        title={customer.active ? 'Set inactive' : 'Set active'}
-                                    >
-                                        {customer.active ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
-                                    </button>
+                                    <ActiveToggleButton
+                                        active={!!customer.active}
+                                        onToggle={() => toggleActive(customer.id, !customer.active)}
+                                        label="customer"
+                                    />
 
                                     <div className="flex gap-2">
-                                        <Link href={`/customers/${customer.id}/edit`} className="btn-secondary px-3 py-1 text-sm" aria-label="Edit customer" title="Edit customer"><Pencil className="h-4 w-4" /></Link>
-                                        <form action={`/customers/${customer.id}`} method="post" className="inline">
-                                            <input type="hidden" name="_method" value="delete" />
-                                            <button className="btn-danger" type="submit" aria-label="Delete customer" title="Delete customer"><Trash2 className="h-4 w-4" /></button>
-                                        </form>
+                                        <ActionIcon href={`/customers/${customer.id}/edit`} aria-label="Edit customer" title="Edit customer"><Pencil className="h-4 w-4" /></ActionIcon>
+                                        <ActionIcon
+                                            danger
+                                            onClick={() => router.delete(`/customers/${customer.id}`)}
+                                            aria-label="Delete customer"
+                                            title="Delete customer"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </ActionIcon>
                                     </div>
                                 </div>
                                 </div>

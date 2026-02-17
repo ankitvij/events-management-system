@@ -1,7 +1,9 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { CheckCircle2, Circle, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import AppLayout from '@/layouts/app-layout';
@@ -49,6 +51,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EventsIndex({ events }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
+    const flashSuccess = page.props?.flash?.success;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const showSignInPromptRow = false;
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -99,6 +102,12 @@ export default function EventsIndex({ events }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 lg:px-8' : 'px-4 pt-4 pb-4'}>
+                {flashSuccess ? (
+                    <div className="mb-4 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                        {flashSuccess}
+                    </div>
+                ) : null}
+
                 {showSignInPromptRow && null}
 
                 {current ? (
@@ -209,7 +218,7 @@ export default function EventsIndex({ events }: Props) {
                                         <div className="flex items-center gap-2">
                                             <Link href={`/${event.slug}`} className="text-lg font-medium" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
                                             {!event.active && (
-                                                <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                                <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
                                         <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
@@ -236,33 +245,32 @@ export default function EventsIndex({ events }: Props) {
 
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     {current && (current.is_super_admin || (event.user && current.id === event.user.id)) ? (
-                                        <button
-                                            type="button"
+                                        <span
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                toggleActive(event.slug, !event.active);
                                             }}
-                                            className="text-xl cursor-pointer mr-2"
-                                            aria-pressed={event.active}
-                                            aria-label={event.title + ' active toggle'}
-                                            title={event.active ? 'Set inactive' : 'Set active'}
                                         >
-                                            {event.active ? <CheckCircle2 className="h-5 w-5" /> : <Circle className="h-5 w-5" />}
-                                        </button>
+                                            <ActiveToggleButton
+                                                active={!!event.active}
+                                                onToggle={() => toggleActive(event.slug, !event.active)}
+                                                label="event"
+                                                size="md"
+                                            />
+                                        </span>
                                     ) : (
                                         event.active ? (
                                             <span className="text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded">Active</span>
                                         ) : (
-                                            <span className="text-xs text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Inactive</span>
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )
                                     )}
 
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
-                                    <ActionButton className="px-3 py-1 text-sm" onClick={(e) => {
+                                    <ActionIcon onClick={(e) => {
                                         e.stopPropagation();
                                         router.get(`/events/${event.slug}/edit`);
-                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionButton>
+                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <Link href={`/${event.slug}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>

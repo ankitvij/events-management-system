@@ -26,6 +26,11 @@ class ArtistController extends Controller
         $this->authorize('viewAny', Artist::class);
 
         $query = Artist::query()->orderBy('name');
+        $current = $request->user();
+
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $query->where('agency_id', $current->agency_id);
+        }
 
         if (! auth()->check()) {
             $query->where('active', true);
@@ -73,6 +78,11 @@ class ArtistController extends Controller
 
         $data['photo'] = $request->file('photo')->store('artists', 'public');
 
+        $current = $request->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin'])) {
+            $data['agency_id'] = $current->agency_id;
+        }
+
         $active = (bool) ($data['active'] ?? false);
         $data['active'] = $active;
         if ($active && empty($data['email_verified_at'])) {
@@ -90,6 +100,11 @@ class ArtistController extends Controller
     public function show(Artist $artist)
     {
         $this->authorize('view', $artist);
+
+        $current = auth()->user();
+        if ($current && $current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($artist->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+            abort(404);
+        }
 
         if (! auth()->check() && ! $artist->active) {
             abort(404);
@@ -149,5 +164,23 @@ class ArtistController extends Controller
         $artist->delete();
 
         return redirect()->route('artists.index')->with('success', 'Artist deleted.');
+    }
+
+    public function toggleActive(Request $request, Artist $artist): RedirectResponse
+    {
+        $this->authorize('update', $artist);
+
+        $data = $request->validate([
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $update = ['active' => (bool) $data['active']];
+        if ($update['active'] && ! $artist->email_verified_at) {
+            $update['email_verified_at'] = now();
+        }
+
+        $artist->update($update);
+
+        return redirect()->back()->with('success', 'Artist status updated.');
     }
 }

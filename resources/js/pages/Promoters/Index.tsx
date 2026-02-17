@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import ActionButton from '@/components/ActionButton';
+import ActiveToggleButton from '@/components/active-toggle-button';
 import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -17,6 +18,10 @@ export default function PromotersIndex({ promoters }: Props) {
     const page = usePage<{ auth?: { user?: { role?: string; is_super_admin?: boolean } } }>();
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const canManage = !!page.props?.auth?.user && (page.props.auth.user.role === 'admin' || page.props.auth.user.is_super_admin);
+
+    function toggleActive(id: number, value: boolean) {
+        router.put(`/users/${id}/active`, { active: value });
+    }
 
     function applySort(key: string) {
         const cur = params?.get('sort') ?? '';
@@ -84,9 +89,26 @@ export default function PromotersIndex({ promoters }: Props) {
                     {promoters.data?.map((p: Promoter) => (
                         <div key={p.id} className="box">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
-                                <div className="md:col-span-6 font-medium break-words">{p.name ?? 'Promoter'}</div>
+                                <div className="md:col-span-6 font-medium break-words">
+                                    <div className="flex items-center gap-2">
+                                        <Link href={`/promoters/${p.id}`} className="text-lg font-medium break-words">
+                                            {p.name ?? 'Promoter'}
+                                        </Link>
+                                        {!p.active && (
+                                            <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
+                                        )}
+                                    </div>
+                                </div>
                                 <div className="md:col-span-4 text-sm text-muted break-words">{p.email ?? '—'}</div>
-                                <div className="md:col-span-2" />
+                                <div className="md:col-span-2 flex items-center justify-start md:justify-end">
+                                    {canManage ? (
+                                        <ActiveToggleButton
+                                            active={!!p.active}
+                                            onToggle={() => toggleActive(p.id, !p.active)}
+                                            label="promoter"
+                                        />
+                                    ) : null}
+                                </div>
                             </div>
                         </div>
                     ))}
