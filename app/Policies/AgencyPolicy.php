@@ -7,18 +7,14 @@ use App\Models\User;
 
 class AgencyPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(?User $user): bool
     {
-        return $user->hasRole(['admin', 'super_admin', 'agency']);
+        return true;
     }
 
-    public function view(User $user, Agency $agency): bool
+    public function view(?User $user, Agency $agency): bool
     {
-        if ($user->hasRole(['admin', 'super_admin'])) {
-            return true;
-        }
-
-        return $user->hasRole('agency') && (int) ($user->agency_id ?? 0) === (int) $agency->id;
+        return true;
     }
 
     public function create(User $user): bool

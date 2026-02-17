@@ -14,6 +14,7 @@ const guestMenuItems: GuestMenuItem[] = [
     { href: '/customer/orders', label: 'My tickets', icon: Ticket },
     { href: '/events/create', label: 'Create event', icon: PlusCircle },
     { href: '/events', label: 'My events', icon: Calendar },
+    { href: '/agencies', label: 'Agencies', icon: Users },
     { href: '/organisers', label: 'Organisers', icon: Users },
     { href: '/artists', label: 'Artists', icon: Mic2 },
     { href: '/promoters', label: 'Promoters', icon: Megaphone },

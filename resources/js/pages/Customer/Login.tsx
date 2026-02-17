@@ -74,6 +74,24 @@ export default function CustomerLogin() {
                         Agency login
                     </TextLink>
                 </div>
+                <div>
+                    Artist?{' '}
+                    <TextLink href={login()}>
+                        Artist login
+                    </TextLink>
+                </div>
+                <div>
+                    Promoter?{' '}
+                    <TextLink href={login()}>
+                        Promoter login
+                    </TextLink>
+                </div>
+                <div>
+                    Vendor?{' '}
+                    <TextLink href={login()}>
+                        Vendor login
+                    </TextLink>
+                </div>
             </div>
 
         </AuthLayout>

@@ -198,7 +198,10 @@ use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
 Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
+Route::get('promoters/{promoter}', [UserController::class, 'showPromoter'])->whereNumber('promoter')->name('promoters.show');
+Route::resource('agencies', AgencyController::class)->only(['index', 'show']);
 Route::resource('agencies', AgencyController::class)
+    ->except(['index', 'show'])
     ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency']);
 
 use App\Http\Controllers\Admin\ErrorLogController;

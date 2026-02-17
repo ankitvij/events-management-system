@@ -32,8 +32,6 @@ class CustomerController extends Controller
                             $organiserQuery->whereIn('organisers.id', $organiserIds->all());
                         });
                 });
-            } else {
-                $query->whereRaw('1 = 0');
             }
         }
 
@@ -92,21 +90,19 @@ class CustomerController extends Controller
         $current = auth()->user();
         if ($current && ! $current->hasRole(['admin', 'super_admin', 'agency'])) {
             $organiserIds = Organiser::query()->where('email', $current->email)->pluck('id');
-            if ($organiserIds->isEmpty()) {
-                abort(404);
-            }
+            if ($organiserIds->isNotEmpty()) {
+                $canAccess = $customer->orders()
+                    ->whereHas('items.event', function ($eventQuery) use ($organiserIds): void {
+                        $eventQuery->whereIn('organiser_id', $organiserIds->all())
+                            ->orWhereHas('organisers', function ($organiserQuery) use ($organiserIds): void {
+                                $organiserQuery->whereIn('organisers.id', $organiserIds->all());
+                            });
+                    })
+                    ->exists();
 
-            $canAccess = $customer->orders()
-                ->whereHas('items.event', function ($eventQuery) use ($organiserIds): void {
-                    $eventQuery->whereIn('organiser_id', $organiserIds->all())
-                        ->orWhereHas('organisers', function ($organiserQuery) use ($organiserIds): void {
-                            $organiserQuery->whereIn('organisers.id', $organiserIds->all());
-                        });
-                })
-                ->exists();
-
-            if (! $canAccess) {
-                abort(404);
+                if (! $canAccess) {
+                    abort(404);
+                }
             }
         }
 

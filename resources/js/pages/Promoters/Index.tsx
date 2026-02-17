@@ -84,7 +84,11 @@ export default function PromotersIndex({ promoters }: Props) {
                     {promoters.data?.map((p: Promoter) => (
                         <div key={p.id} className="box">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
-                                <div className="md:col-span-6 font-medium break-words">{p.name ?? 'Promoter'}</div>
+                                <div className="md:col-span-6 font-medium break-words">
+                                    <Link href={`/promoters/${p.id}`} className="text-lg font-medium break-words">
+                                        {p.name ?? 'Promoter'}
+                                    </Link>
+                                </div>
                                 <div className="md:col-span-4 text-sm text-muted break-words">{p.email ?? '—'}</div>
                                 <div className="md:col-span-2" />
                             </div>

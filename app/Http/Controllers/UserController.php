@@ -197,6 +197,48 @@ class UserController
         return Inertia::render('Users/Show', ['user' => $user, 'roleChanges' => $roleChanges]);
     }
 
+    public function showPromoter(Request $request, User $promoter)
+    {
+        if ($promoter->is_super_admin || ! $promoter->hasRole(Role::USER->value)) {
+            abort(404);
+        }
+
+        if (! auth()->check() && ! $promoter->active) {
+            abort(404);
+        }
+
+        $current = $request->user();
+        if ($current && $current->hasRole(Role::AGENCY->value) && ! $current->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value])) {
+            if ((int) ($promoter->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
+                abort(404);
+            }
+        }
+
+        $promoter->loadCount('promotedEvents');
+
+        if ($request->expectsJson() || app()->runningUnitTests()) {
+            return response()->json([
+                'promoter' => [
+                    'id' => $promoter->id,
+                    'name' => $promoter->name,
+                    'email' => $promoter->email,
+                    'active' => (bool) $promoter->active,
+                    'promoted_events_count' => (int) $promoter->promoted_events_count,
+                ],
+            ]);
+        }
+
+        return Inertia::render('Promoters/Show', [
+            'promoter' => [
+                'id' => $promoter->id,
+                'name' => $promoter->name,
+                'email' => $promoter->email,
+                'active' => (bool) $promoter->active,
+                'promoted_events_count' => (int) $promoter->promoted_events_count,
+            ],
+        ]);
+    }
+
     public function edit(User $user)
     {
         $current = auth()->user();

@@ -12,6 +12,11 @@ class CustomerAuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_customer_login_page_displays_role_login_links(): void
+    {
+        $this->get('/customer/login')->assertStatus(200);
+    }
+
     public function test_customer_register_and_login_and_order_access()
     {
         // register

@@ -144,8 +144,6 @@ class OrderController extends Controller
                             $organiserQuery->whereIn('organisers.id', $organiserIds->all());
                         });
                 });
-            } else {
-                $query->whereRaw('1 = 0');
             }
         }
 
