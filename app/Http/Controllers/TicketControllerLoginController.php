@@ -17,7 +17,6 @@ class TicketControllerLoginController extends Controller
     {
         $hash = hash('sha256', $token);
         $record = LoginToken::query()
-            ->whereNull('used_at')
             ->where('type', 'ticket_controller')
             ->where('token_hash', $hash)
             ->firstOrFail();
@@ -27,13 +26,6 @@ class TicketControllerLoginController extends Controller
         if (! $hasAssignments) {
             abort(403);
         }
-
-        $record->update(['used_at' => now()]);
-        LoginToken::query()
-            ->where('type', 'ticket_controller')
-            ->where('email', $email)
-            ->whereNull('used_at')
-            ->delete();
 
         session()->put('ticket_controller_email', $email);
 

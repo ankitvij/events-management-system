@@ -80,6 +80,10 @@ class TicketControllerAccessTest extends TestCase
         $response = $this->get($loginUrl);
         $response->assertRedirect(route('ticket-controllers.scanner'));
         $this->assertSame('scanner@example.com', session('ticket_controller_email'));
+
+        $response = $this->get($loginUrl);
+        $response->assertRedirect(route('ticket-controllers.scanner'));
+        $this->assertSame('scanner@example.com', session('ticket_controller_email'));
     }
 
     public function test_ticket_controller_check_in_scanner_statuses(): void
