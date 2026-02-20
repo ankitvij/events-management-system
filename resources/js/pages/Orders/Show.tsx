@@ -121,7 +121,7 @@ export default function OrdersShow() {
         ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         : '';
 
-    const invalidPaymentStatuses = new Set(['not_paid', 'failed', 'refunded']);
+    const invalidPaymentStatuses = new Set(['not_paid', 'failed', 'refunded', 'cancelled']);
     const isInvalidByPayment = invalidPaymentStatuses.has(order?.payment_status ?? '');
 
     const paymentStatusLabel: Record<string, string> = {
@@ -130,6 +130,7 @@ export default function OrdersShow() {
         not_paid: 'Not paid',
         failed: 'Failed',
         refunded: 'Refunded',
+        cancelled: 'Cancelled',
     };
 
     const ticketRows = items.flatMap((item) => {
@@ -250,6 +251,7 @@ export default function OrdersShow() {
                                     <option value="not_paid">Not paid</option>
                                     <option value="failed">Failed</option>
                                     <option value="refunded">Refunded</option>
+                                    <option value="cancelled">Cancelled</option>
                                 </select>
                                 <button type="submit" className="btn-primary">Update payment status</button>
                             </form>

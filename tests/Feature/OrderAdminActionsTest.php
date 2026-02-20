@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderStatusChanged;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class OrderAdminActionsTest extends TestCase
@@ -114,6 +116,99 @@ class OrderAdminActionsTest extends TestCase
             'payment_status' => 'not_paid',
             'paid' => false,
         ]);
+    }
+
+    public function test_cancelling_order_restores_ticket_availability(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Cancellation Ticket',
+            'price' => 20.00,
+            'quantity_total' => 10,
+            'quantity_available' => 4,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'paid',
+            'paid' => true,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 3,
+            'price' => 20.00,
+        ]);
+
+        $this->actingAs($admin)->put(route('orders.payment-status', $order), [
+            'payment_status' => 'cancelled',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_status' => 'cancelled',
+            'paid' => false,
+        ]);
+
+        $this->assertDatabaseHas('tickets', [
+            'id' => $ticket->id,
+            'quantity_available' => 7,
+        ]);
+    }
+
+    public function test_status_change_sends_email_to_customer_and_ticket_holder(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Mail Ticket',
+            'price' => 25.00,
+            'quantity_total' => 10,
+            'quantity_available' => 8,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'pending',
+            'paid' => false,
+            'contact_email' => 'customer@example.test',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 25.00,
+            'guest_details' => [
+                ['name' => 'Guest One', 'email' => 'guest.one@example.test'],
+            ],
+        ]);
+
+        $this->actingAs($admin)->put(route('orders.payment-status', $order), [
+            'payment_status' => 'cancelled',
+        ])->assertRedirect();
+
+        Mail::assertSent(OrderStatusChanged::class, function (OrderStatusChanged $mail): bool {
+            return $mail->hasTo('customer@example.test');
+        });
+
+        Mail::assertSent(OrderStatusChanged::class, function (OrderStatusChanged $mail): bool {
+            return $mail->hasTo('guest.one@example.test');
+        });
     }
 
     public function test_checked_in_order_tickets_are_not_downloadable_anymore(): void

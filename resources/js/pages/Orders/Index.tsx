@@ -62,6 +62,22 @@ export default function OrdersIndex() {
         return order.contact_email || order.customer?.email || order.user?.email || '—';
     }
 
+    function ticketStatus(order: any): string {
+        if (order?.payment_status === 'cancelled') {
+            return 'Cancelled';
+        }
+
+        if (order?.checked_in) {
+            return 'Checked in';
+        }
+
+        if (order?.payment_status === 'paid') {
+            return 'Valid';
+        }
+
+        return 'Pending';
+    }
+
     return (
         <AppLayout>
             <Head title="Orders" />
@@ -73,7 +89,7 @@ export default function OrdersIndex() {
                     <CompactPagination links={orders.links} />
                 </div>
 
-                <div className="mt-4 hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                <div className="mt-4 hidden md:grid md:grid-cols-12 gap-3 mb-2 text-sm text-muted">
                     <div className="md:col-span-3 flex items-center gap-3">
                         <button onClick={() => applySort('booking_code')} className="btn-primary shrink-0">
                             Booking code
@@ -86,19 +102,23 @@ export default function OrdersIndex() {
                             className="input w-full"
                         />
                     </div>
-                    <button onClick={() => applySort('name')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                    <button onClick={() => applySort('name')} className="btn-primary md:col-span-2 w-full justify-start">
                         Customer name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <button onClick={() => applySort('event')} className="btn-primary md:col-span-3 w-full justify-start min-w-max whitespace-nowrap">
+                    <button onClick={() => applySort('event')} className="btn-primary md:col-span-2 w-full justify-start">
                         Event name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('event_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                    <button onClick={() => applySort('email')} className="btn-primary md:col-span-2 w-full justify-start">
                         Customer email
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <button onClick={() => applySort('date')} className="btn-primary md:col-span-2 w-full justify-start min-w-max whitespace-nowrap">
+                    <button onClick={() => applySort('status')} className="btn-primary md:col-span-2 w-full justify-start">
+                        Order status
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('status_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <button onClick={() => applySort('date')} className="btn-primary md:col-span-1 w-full justify-start">
                         Order date
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('date_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
@@ -109,15 +129,16 @@ export default function OrdersIndex() {
                         <div className="text-sm text-muted">No orders yet.</div>
                     ) : (
                         orders.data?.map((order: any) => (
-                            <Link key={order.id} href={`/orders/${order.id}`} className="box block transition hover:opacity-90">
+                            <Link key={order.id} href={`/orders/${order.id}`} className="box block !px-2 transition hover:opacity-90">
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center">
-                                    <div className="md:col-span-3">
+                                    <div className="md:col-span-3 px-3">
                                         <span className="font-medium">{order.booking_code || '—'}</span>
                                     </div>
-                                    <div className="md:col-span-2 text-sm">{customerName(order)}</div>
-                                    <div className="md:col-span-3 text-sm">{eventName(order)}</div>
-                                    <div className="md:col-span-2 text-sm text-muted break-all">{customerEmail(order)}</div>
-                                    <div className="md:col-span-2 text-sm text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
+                                    <div className="md:col-span-2 px-3 text-sm">{customerName(order)}</div>
+                                    <div className="md:col-span-2 px-3 text-sm">{eventName(order)}</div>
+                                    <div className="md:col-span-2 px-3 text-sm text-muted break-all">{customerEmail(order)}</div>
+                                    <div className="md:col-span-2 px-3 text-sm">{ticketStatus(order)}</div>
+                                    <div className="md:col-span-1 px-3 text-sm text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                                 </div>
                             </Link>
                         ))
