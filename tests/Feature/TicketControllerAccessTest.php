@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Mail\LoginTokenMail;
 use App\Models\Event;
+use App\Models\LoginToken;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class TicketControllerAccessTest extends TestCase
@@ -162,5 +164,30 @@ class TicketControllerAccessTest extends TestCase
             ->post(route('ticket-controllers.check-in'), ['payload' => 'not-a-valid-payload'])
             ->assertSessionHas('ticketScan.status', 'invalid')
             ->assertSessionHas('ticketScan.label', 'Invalid ticket');
+    }
+
+    public function test_ticket_controller_token_can_be_consumed_even_if_expired_at_is_past(): void
+    {
+        $event = Event::factory()->create([
+            'slug' => 'no-expiry-event',
+        ]);
+
+        \App\Models\EventTicketController::query()->create([
+            'event_id' => $event->id,
+            'email' => 'scanner@example.com',
+        ]);
+
+        $plain = Str::random(64);
+        LoginToken::query()->create([
+            'email' => 'scanner@example.com',
+            'token_hash' => hash('sha256', $plain),
+            'type' => 'ticket_controller',
+            'expires_at' => now()->subDay(),
+            'used_at' => null,
+        ]);
+
+        $response = $this->get(route('ticket-controllers.login.consume', ['token' => $plain]));
+        $response->assertRedirect(route('ticket-controllers.scanner'));
+        $this->assertSame('scanner@example.com', session('ticket_controller_email'));
     }
 }

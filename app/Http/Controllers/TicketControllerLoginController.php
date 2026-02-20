@@ -17,7 +17,7 @@ class TicketControllerLoginController extends Controller
     {
         $hash = hash('sha256', $token);
         $record = LoginToken::query()
-            ->valid()
+            ->whereNull('used_at')
             ->where('type', 'ticket_controller')
             ->where('token_hash', $hash)
             ->firstOrFail();

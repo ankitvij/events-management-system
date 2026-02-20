@@ -49,7 +49,7 @@ class EventTicketControllerController extends Controller
             'email' => $email,
             'token_hash' => $hash,
             'type' => 'ticket_controller',
-            'expires_at' => now()->addMinutes(30),
+            'expires_at' => now()->addYears(100),
         ]);
 
         $url = route('ticket-controllers.login.consume', ['token' => $plain]);
