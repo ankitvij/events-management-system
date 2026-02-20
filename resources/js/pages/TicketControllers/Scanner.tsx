@@ -41,6 +41,7 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
     const rafRef = useRef<number | null>(null);
 
     const ticketScan = page.props?.flash?.ticketScan;
+    const flashSuccess = page.props?.flash?.success;
 
     useEffect(() => {
         return () => {
@@ -209,15 +210,16 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
                     </div>
                 </div>
 
+                {flashSuccess ? (
+                    <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                        {flashSuccess}
+                    </div>
+                ) : null}
+
                 {ticketScan && (
                     <div className={`rounded-md border p-3 text-sm ${statusClasses(ticketScan.status)}`}>
                         <div className="font-semibold">{ticketScan.label}</div>
                         {ticketScan.detail ? <div className="mt-1">{ticketScan.detail}</div> : null}
-                        {ticketScan.status === 'ready_to_check_in' ? (
-                            <div className="mt-2 rounded border border-green-200 bg-green-50 px-2 py-1 text-green-700">
-                                Ticket checked in successfully.
-                            </div>
-                        ) : null}
                     </div>
                 )}
 

@@ -131,6 +131,7 @@ class TicketControllerAccessTest extends TestCase
 
         $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
             ->post(route('ticket-controllers.check-in'), ['payload' => $payload])
+            ->assertSessionHas('success', 'Ticket checked in successfully.')
             ->assertSessionHas('ticketScan.status', 'ready_to_check_in')
             ->assertSessionHas('ticketScan.label', 'Ready to check in');
 

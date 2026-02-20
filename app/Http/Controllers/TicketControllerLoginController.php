@@ -143,11 +143,13 @@ class TicketControllerLoginController extends Controller
 
         $ticketName = $itemToCheckIn->ticket?->name ?? 'Ticket';
 
-        return back()->with('ticketScan', [
-            'status' => 'ready_to_check_in',
-            'label' => 'Ready to check in',
-            'detail' => $ticketName.' checked in for booking code '.$order->booking_code.'. Remaining tickets: '.$remainingForBooking.'.',
-        ]);
+        return back()
+            ->with('success', 'Ticket checked in successfully.')
+            ->with('ticketScan', [
+                'status' => 'ready_to_check_in',
+                'label' => 'Ready to check in',
+                'detail' => $ticketName.' checked in for booking code '.$order->booking_code.'. Remaining tickets: '.$remainingForBooking.'.',
+            ]);
     }
 
     public function logout(Request $request): RedirectResponse
