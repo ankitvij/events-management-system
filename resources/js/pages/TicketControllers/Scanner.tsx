@@ -31,7 +31,7 @@ declare global {
 }
 
 export default function TicketControllerScanner({ controllerEmail, events }: Props) {
-    const page = usePage<{ flash?: { ticketScan?: TicketScan; success?: string } }>();
+    const page = usePage<{ flash?: { ticketScan?: TicketScan; success?: string; error?: string } }>();
     const [payload, setPayload] = useState('');
     const [bookingCodeInput, setBookingCodeInput] = useState('');
     const [isScanning, setIsScanning] = useState(false);
@@ -42,6 +42,7 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
 
     const ticketScan = page.props?.flash?.ticketScan;
     const flashSuccess = page.props?.flash?.success;
+    const flashError = page.props?.flash?.error;
 
     useEffect(() => {
         return () => {
@@ -213,6 +214,12 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
                 {flashSuccess ? (
                     <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
                         {flashSuccess}
+                    </div>
+                ) : null}
+
+                {flashError ? (
+                    <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {flashError}
                     </div>
                 ) : null}
 

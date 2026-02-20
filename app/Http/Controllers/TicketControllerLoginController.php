@@ -74,11 +74,13 @@ class TicketControllerLoginController extends Controller
 
         $scan = $this->extractScanData($data['payload']);
         if (! $scan) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'QR payload could not be validated.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'QR payload could not be validated.',
+                ]);
         }
 
         $eventIds = \App\Models\EventTicketController::query()
@@ -87,11 +89,13 @@ class TicketControllerLoginController extends Controller
             ->all();
 
         if (count($eventIds) === 0) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'No assigned events found for this login.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'No assigned events found for this login.',
+                ]);
         }
 
         $order = Order::query()
@@ -105,19 +109,23 @@ class TicketControllerLoginController extends Controller
             ->first();
 
         if (! $order) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'No matching ticket found for your assigned events.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'No matching ticket found for your assigned events.',
+                ]);
         }
 
         if (strtolower((string) $order->status) !== 'paid') {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'Invalid ticket.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'Invalid ticket.',
+                ]);
         }
 
         $itemToCheckIn = $order->items->first(function (OrderItem $item): bool {
@@ -128,11 +136,13 @@ class TicketControllerLoginController extends Controller
         });
 
         if (! $itemToCheckIn) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'Invalid ticket.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'Invalid ticket.',
+                ]);
         }
 
         $quantity = max(1, (int) $itemToCheckIn->quantity);
