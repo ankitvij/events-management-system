@@ -400,6 +400,9 @@ Route::put('orders/{order}/payment-received', [OrderController::class, 'markPaym
 Route::put('orders/{order}/payment-status', [OrderController::class, 'updatePaymentStatus'])
     ->middleware(['auth'])
     ->name('orders.payment-status');
+Route::post('orders/{order}/payment-reminder', [OrderController::class, 'sendPaymentReminder'])
+    ->middleware(['auth'])
+    ->name('orders.payment-reminder');
 Route::put('orders/{order}/check-in', [OrderController::class, 'checkIn'])
     ->middleware(['auth'])
     ->name('orders.check-in');

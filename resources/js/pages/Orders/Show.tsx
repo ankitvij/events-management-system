@@ -71,6 +71,7 @@ type Order = {
 type PageProps = {
     order?: Order | null;
     payment_details?: PaymentDetails | null;
+    can_send_payment_reminder?: boolean;
     flash?: {
         success?: string;
     };
@@ -101,6 +102,7 @@ export default function OrdersShow() {
     const order = page.props.order ?? null;
     const items: OrderItem[] = Array.isArray(order?.items) ? order.items : [];
     const authUser = (page.props as { auth?: { user?: { id: number; is_super_admin?: boolean } } }).auth?.user;
+    const canSendPaymentReminder = Boolean(page.props.can_send_payment_reminder);
 
     const baseDownloadParams = (() => {
         if (!order?.booking_code) return '';
@@ -255,6 +257,12 @@ export default function OrdersShow() {
                                 </select>
                                 <button type="submit" className="btn-primary">Update payment status</button>
                             </form>
+                            {canSendPaymentReminder && (
+                                <form method="post" action={`/orders/${order.id}/payment-reminder`}>
+                                    <input type="hidden" name="_token" value={csrfToken} />
+                                    <button type="submit" className="btn-primary">Send payment reminder</button>
+                                </form>
+                            )}
                             {order.checked_in ? (
                                 <span className="text-xs rounded bg-yellow-100 text-yellow-800 px-2 py-1">Checked in — tickets invalid</span>
                             ) : null}

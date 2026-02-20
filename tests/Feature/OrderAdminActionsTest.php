@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OrderPaymentReminder;
 use App\Mail\OrderStatusChanged;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Organiser;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -209,6 +211,133 @@ class OrderAdminActionsTest extends TestCase
         Mail::assertSent(OrderStatusChanged::class, function (OrderStatusChanged $mail): bool {
             return $mail->hasTo('guest.one@example.test');
         });
+    }
+
+    public function test_admin_can_send_payment_reminder(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Reminder Ticket',
+            'price' => 40.00,
+            'quantity_total' => 10,
+            'quantity_available' => 9,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'pending',
+            'paid' => false,
+            'contact_email' => 'payer@example.test',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 40.00,
+        ]);
+
+        $this->actingAs($admin)->post(route('orders.payment-reminder', $order))->assertRedirect();
+
+        Mail::assertSent(OrderPaymentReminder::class, function (OrderPaymentReminder $mail): bool {
+            return $mail->hasTo('payer@example.test');
+        });
+    }
+
+    public function test_organiser_can_send_payment_reminder_for_managed_order(): void
+    {
+        Mail::fake();
+
+        $organiserUser = User::factory()->create([
+            'role' => 'user',
+            'is_super_admin' => false,
+            'email' => 'organiser@example.test',
+        ]);
+
+        $organiser = Organiser::create([
+            'name' => 'Reminder Organiser',
+            'email' => 'organiser@example.test',
+            'active' => true,
+        ]);
+
+        $event = Event::factory()->create([
+            'organiser_id' => $organiser->id,
+        ]);
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Reminder Ticket',
+            'price' => 30.00,
+            'quantity_total' => 10,
+            'quantity_available' => 8,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'pending',
+            'paid' => false,
+            'contact_email' => 'managed@example.test',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 30.00,
+        ]);
+
+        $this->actingAs($organiserUser)->post(route('orders.payment-reminder', $order))->assertRedirect();
+
+        Mail::assertSent(OrderPaymentReminder::class, function (OrderPaymentReminder $mail): bool {
+            return $mail->hasTo('managed@example.test');
+        });
+    }
+
+    public function test_order_owner_without_admin_or_organiser_role_cannot_send_payment_reminder(): void
+    {
+        Mail::fake();
+
+        $owner = User::factory()->create([
+            'role' => 'user',
+            'is_super_admin' => false,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Reminder Ticket',
+            'price' => 12.00,
+            'quantity_total' => 10,
+            'quantity_available' => 10,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'user_id' => $owner->id,
+            'payment_status' => 'pending',
+            'paid' => false,
+            'contact_email' => 'owner@example.test',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 12.00,
+        ]);
+
+        $this->actingAs($owner)->post(route('orders.payment-reminder', $order))->assertForbidden();
+
+        Mail::assertNothingSent();
     }
 
     public function test_checked_in_order_tickets_are_not_downloadable_anymore(): void

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\OrderConfirmed;
+use App\Mail\OrderPaymentReminder;
 use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -279,6 +280,7 @@ class OrderController extends Controller
             $hasValidBookingCode = $providedBookingCode && $providedBookingCode === $order->booking_code;
             $isAgencyManager = $this->userCanManageOrderByAgency($current, $order);
             $isOrganiserManager = $this->userCanManageOrderByOrganiser($current, $order);
+            $canSendPaymentReminder = $current->hasRole(['admin', 'super_admin']) || $isOrganiserManager;
 
             // Authenticated users can view if they are super admin, owners, or provide the matching booking code
             if (! ($isSuper || $isOwner || $isAgencyManager || $isOrganiserManager || $hasValidBookingCode)) {
@@ -308,7 +310,31 @@ class OrderController extends Controller
         return inertia('Orders/Show', [
             'order' => $order,
             'payment_details' => $paymentDetails,
+            'can_send_payment_reminder' => $canSendPaymentReminder ?? false,
         ]);
+    }
+
+    public function sendPaymentReminder(Request $request, Order $order)
+    {
+        $this->authorizeOrderPaymentReminderAction($order, $request);
+
+        $recipients = $this->collectOrderEmailRecipients($order);
+        if ($recipients->isEmpty()) {
+            return redirect()->back()->with('success', 'No email recipients available for payment reminder.');
+        }
+
+        foreach ($recipients as $recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new OrderPaymentReminder($order));
+            } catch (\Throwable $e) {
+                logger()->error('Order payment reminder mail failed: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'recipient_email' => $recipientEmail,
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Payment reminder sent.');
     }
 
     protected function resolvePaymentDetailsFromOrder(Order $order, string $method): ?array
@@ -655,31 +681,7 @@ class OrderController extends Controller
             return;
         }
 
-        $order->loadMissing('items', 'customer', 'user');
-
-        $recipients = collect([
-            $order->contact_email,
-            $order->customer?->email,
-            $order->user?->email,
-        ])
-            ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
-            ->map(fn (string $email) => trim($email))
-            ->filter()
-            ->map(fn (string $email) => strtolower($email))
-            ->unique()
-            ->values();
-
-        foreach ($order->items as $item) {
-            $guestEmails = collect(is_array($item->guest_details) ? $item->guest_details : [])
-                ->pluck('email')
-                ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
-                ->map(fn (string $email) => trim($email))
-                ->filter()
-                ->map(fn (string $email) => strtolower($email))
-                ->unique();
-
-            $recipients = $recipients->merge($guestEmails)->unique()->values();
-        }
+        $recipients = $this->collectOrderEmailRecipients($order);
 
         foreach ($recipients as $recipientEmail) {
             try {
@@ -762,6 +764,49 @@ class OrderController extends Controller
         if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id) || $this->userCanManageOrderByAgency($current, $order) || $this->userCanManageOrderByOrganiser($current, $order))) {
             abort(403);
         }
+    }
+
+    protected function authorizeOrderPaymentReminderAction(Order $order, Request $request): void
+    {
+        $current = $request->user();
+        if (! $current) {
+            abort(403);
+        }
+
+        if (! ($current->hasRole(['admin', 'super_admin']) || $this->userCanManageOrderByOrganiser($current, $order))) {
+            abort(403);
+        }
+    }
+
+    protected function collectOrderEmailRecipients(Order $order): \Illuminate\Support\Collection
+    {
+        $order->loadMissing('items', 'customer', 'user');
+
+        $recipients = collect([
+            $order->contact_email,
+            $order->customer?->email,
+            $order->user?->email,
+        ])
+            ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->map(fn (string $email) => trim($email))
+            ->filter()
+            ->map(fn (string $email) => strtolower($email))
+            ->unique()
+            ->values();
+
+        foreach ($order->items as $item) {
+            $guestEmails = collect(is_array($item->guest_details) ? $item->guest_details : [])
+                ->pluck('email')
+                ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
+                ->map(fn (string $email) => trim($email))
+                ->filter()
+                ->map(fn (string $email) => strtolower($email))
+                ->unique();
+
+            $recipients = $recipients->merge($guestEmails)->unique()->values();
+        }
+
+        return $recipients;
     }
 
     protected function organiserIdsForUser($current)
