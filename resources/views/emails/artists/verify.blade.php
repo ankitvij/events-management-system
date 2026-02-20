@@ -1,6 +1,4 @@
-<div style="margin-bottom:12px;text-align:left;">
-    <img src="{{ config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')) }}" alt="{{ config('app.brand.logo_alt') }}" style="height:42px;width:auto;" />
-</div>
+@include('emails.partials.event_header')
 
 <h1 style="margin:0 0 12px; font-size:20px;">Verify your artist account</h1>
 
@@ -29,3 +27,5 @@
     Thanks,<br />
     {{ config('app.name') }}
 </p>
+
+@include('emails.partials.chancepass_footer')

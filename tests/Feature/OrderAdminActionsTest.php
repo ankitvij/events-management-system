@@ -248,7 +248,14 @@ class OrderAdminActionsTest extends TestCase
         $this->actingAs($admin)->post(route('orders.payment-reminder', $order))->assertRedirect();
 
         Mail::assertSent(OrderPaymentReminder::class, function (OrderPaymentReminder $mail): bool {
-            return $mail->hasTo('payer@example.test');
+            $mail->build();
+            $methods = $mail->viewData['paymentMethods'] ?? [];
+
+            return $mail->hasTo('payer@example.test')
+                && is_array($methods)
+                && isset($methods['bank_transfer'])
+                && isset($methods['paypal_transfer'])
+                && isset($methods['revolut_transfer']);
         });
     }
 

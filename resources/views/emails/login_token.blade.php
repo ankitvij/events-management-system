@@ -1,7 +1,5 @@
 <div style="font-family: system-ui, -apple-system, 'Segoe UI', Arial, sans-serif; line-height:1.5;">
-    <div style="margin-bottom:12px;text-align:left">
-        <img src="{{ config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')) }}" alt="{{ config('app.brand.logo_alt') }}" style="height:42px;width:auto" />
-    </div>
+    @include('emails.partials.event_header')
     @if($intro)
         <p>{{ $intro }}</p>
     @else
@@ -13,4 +11,6 @@
     </p>
 
     <p>If you did not request this link, you can ignore this email.</p>
+
+    @include('emails.partials.chancepass_footer')
 </div>

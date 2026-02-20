@@ -1,4 +1,6 @@
 <div style="font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
+    @include('emails.partials.event_header')
+
     <h2>Order status updated</h2>
     <p>Your order status has changed.</p>
 
@@ -16,4 +18,6 @@
     </ul>
 
     <p>If you have any questions, reply to this email and include booking code {{ $order->booking_code }}.</p>
+
+    @include('emails.partials.chancepass_footer')
 </div>
