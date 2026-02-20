@@ -112,6 +112,14 @@ class TicketControllerLoginController extends Controller
             ]);
         }
 
+        if (strtolower((string) $order->status) !== 'paid') {
+            return back()->with('ticketScan', [
+                'status' => 'invalid',
+                'label' => 'Invalid ticket',
+                'detail' => 'Invalid ticket.',
+            ]);
+        }
+
         $itemToCheckIn = $order->items->first(function (OrderItem $item): bool {
             $quantity = max(1, (int) $item->quantity);
             $checkedIn = max(0, (int) ($item->checked_in_quantity ?? 0));
@@ -121,9 +129,9 @@ class TicketControllerLoginController extends Controller
 
         if (! $itemToCheckIn) {
             return back()->with('ticketScan', [
-                'status' => 'already_checked_in',
-                'label' => 'Already checked in',
-                'detail' => 'All tickets for booking code '.$order->booking_code.' are already checked in.',
+                'status' => 'invalid',
+                'label' => 'Invalid ticket',
+                'detail' => 'Invalid ticket.',
             ]);
         }
 

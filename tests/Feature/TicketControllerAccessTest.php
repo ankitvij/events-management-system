@@ -157,8 +157,32 @@ class TicketControllerAccessTest extends TestCase
 
         $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
             ->post(route('ticket-controllers.check-in'), ['payload' => $payload])
-            ->assertSessionHas('ticketScan.status', 'already_checked_in')
-            ->assertSessionHas('ticketScan.label', 'Already checked in');
+            ->assertSessionHas('ticketScan.status', 'invalid')
+            ->assertSessionHas('ticketScan.label', 'Invalid ticket');
+
+        $pendingOrder = Order::query()->create([
+            'status' => 'pending',
+            'total' => 10,
+            'contact_name' => 'Pending Guest',
+            'contact_email' => 'pending@example.com',
+            'booking_code' => 'BOOKPEND',
+            'paid' => false,
+            'checked_in' => false,
+        ]);
+
+        OrderItem::query()->create([
+            'order_id' => $pendingOrder->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'checked_in_quantity' => 0,
+            'price' => 10,
+        ]);
+
+        $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
+            ->post(route('ticket-controllers.check-in'), ['payload' => '{"booking_code":"BOOKPEND"}'])
+            ->assertSessionHas('ticketScan.status', 'invalid')
+            ->assertSessionHas('ticketScan.label', 'Invalid ticket');
 
         $this->withSession(['ticket_controller_email' => 'scanner@example.com'])
             ->post(route('ticket-controllers.check-in'), ['payload' => '{"booking_code":"MISSING"}'])
