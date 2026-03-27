@@ -557,6 +557,20 @@ class EventController extends Controller
         $this->assertValidEditToken($event, $token);
 
         $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
+
+        $activeOrganiser = null;
+        if ($event->organiser && $event->organiser->active) {
+            $activeOrganiser = $event->organiser;
+        } else {
+            $activeOrganiser = $event->organisers->first(function ($organiser) {
+                return (bool) $organiser->active;
+            });
+        }
+
+        if ($activeOrganiser) {
+            $request->session()->put('organiser_id', $activeOrganiser->id);
+        }
+
         $organisers = Organiser::orderBy('name')->get(['id', 'name']);
         $promoters = User::query()
             ->where('is_super_admin', false)

@@ -1,6 +1,7 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import ActionButton from '@/components/ActionButton';
+import TextLink from '@/components/text-link';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -14,6 +15,7 @@ export default function OrganisersLogin() {
 
     const form = useForm({
         email: '',
+        password: '',
     });
 
     function submit(e: FormEvent) {
@@ -56,7 +58,50 @@ export default function OrganisersLogin() {
                     </div>
 
                     <div>
-                        <ActionButton type="submit" disabled={form.processing}>{form.processing ? 'Sending...' : 'Send login link'}</ActionButton>
+                        <label htmlFor="password" className="block text-sm font-medium">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            value={form.data.password}
+                            onChange={e => form.setData('password', e.target.value)}
+                            className="input"
+                            placeholder="Leave blank to receive a sign-in link"
+                        />
+                        {form.errors.password && <div className="mt-1 text-sm text-red-600">{form.errors.password}</div>}
+                    </div>
+
+                    <div>
+                        <ActionButton type="submit" disabled={form.processing}>
+                            {form.processing ? 'Signing in...' : 'Sign in or send login link'}
+                        </ActionButton>
+                    </div>
+
+                    <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+                        <div>
+                            Admin?{' '}
+                            <TextLink href="/login">Log in here</TextLink>
+                        </div>
+                        <div>
+                            Customer?{' '}
+                            <TextLink href="/customer/login">Customer login</TextLink>
+                        </div>
+                        <div>
+                            Agency?{' '}
+                            <TextLink href="/login">Agency login</TextLink>
+                        </div>
+                        <div>
+                            Artist?{' '}
+                            <TextLink href="/login">Artist login</TextLink>
+                        </div>
+                        <div>
+                            Promoter?{' '}
+                            <TextLink href="/login">Promoter login</TextLink>
+                        </div>
+                        <div>
+                            Vendor?{' '}
+                            <TextLink href="/login">Vendor login</TextLink>
+                        </div>
                     </div>
                 </form>
             </div>

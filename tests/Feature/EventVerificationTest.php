@@ -48,6 +48,10 @@ class EventVerificationTest extends TestCase
         $edit = $this->get($editUrl);
         $edit->assertStatus(200);
 
+        $event->refresh();
+        $this->assertNotNull($event->organiser_id);
+        $this->assertSame($event->organiser_id, session('organiser_id'));
+
         Mail::assertSent(EventOrganiserCreated::class, function (EventOrganiserCreated $mail) {
             return $mail->build()->subject === 'ChancePass:"Guest Verification Event" manage.';
         });

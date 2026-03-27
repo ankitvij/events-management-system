@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\LoginTokenMail;
 use App\Models\Organiser;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -72,6 +73,32 @@ class OrganiserAuthTest extends TestCase
 
         $response->assertRedirect('/organisers/login');
         $response->assertSessionHasErrors('email');
+        Mail::assertNothingSent();
+    }
+
+    public function test_organiser_can_login_with_password(): void
+    {
+        Mail::fake();
+
+        $organiser = Organiser::query()->create([
+            'name' => 'Org Password',
+            'email' => 'organiser-password@example.test',
+            'active' => true,
+        ]);
+
+        User::factory()->create([
+            'email' => $organiser->email,
+            'password' => bcrypt('super-secret-password'),
+        ]);
+
+        $response = $this->from('/organisers/login')->post('/organisers/login/token', [
+            'email' => $organiser->email,
+            'password' => 'super-secret-password',
+        ]);
+
+        $response->assertRedirect('/organisers');
+        $response->assertSessionHas('success', 'You are signed in as organiser.');
+        $this->assertSame($organiser->id, session('organiser_id'));
         Mail::assertNothingSent();
     }
 }

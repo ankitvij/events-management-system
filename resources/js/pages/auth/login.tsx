@@ -137,6 +137,45 @@ export default function Login({
                         </TextLink>
                     </div>
                 )}
+
+                <div className="text-center text-sm text-muted-foreground space-y-2">
+                    <div>
+                        Customer?{' '}
+                        <TextLink href="/customer/login" tabIndex={6}>
+                            Customer login
+                        </TextLink>
+                    </div>
+                    <div>
+                        Organiser?{' '}
+                        <TextLink href="/organisers/login" tabIndex={7}>
+                            Organiser login
+                        </TextLink>
+                    </div>
+                    <div>
+                        Agency?{' '}
+                        <TextLink href="/login" tabIndex={8}>
+                            Agency login
+                        </TextLink>
+                    </div>
+                    <div>
+                        Artist?{' '}
+                        <TextLink href="/login" tabIndex={9}>
+                            Artist login
+                        </TextLink>
+                    </div>
+                    <div>
+                        Promoter?{' '}
+                        <TextLink href="/login" tabIndex={10}>
+                            Promoter login
+                        </TextLink>
+                    </div>
+                    <div>
+                        Vendor?{' '}
+                        <TextLink href="/login" tabIndex={11}>
+                            Vendor login
+                        </TextLink>
+                    </div>
+                </div>
             </form>
 
             {status && (

@@ -240,11 +240,7 @@ export default function Show({ event }: Props) {
 
                     const thumbnailPath = event.image_thumbnail_url ?? event.image_thumbnail ?? '';
                     const fullImagePath = event.image_url ?? event.image ?? '';
-                    const publicPath = event.image_url ?? event.image ?? event.image_thumbnail_url ?? event.image_thumbnail ?? '';
-
-                    const selectedPath = page.props?.canEdit
-                        ? (thumbnailPath || fullImagePath)
-                        : publicPath;
+                    const selectedPath = fullImagePath || thumbnailPath;
 
                     let url = '/images/default-event.svg';
                     if (selectedPath) {
@@ -253,15 +249,22 @@ export default function Show({ event }: Props) {
 
                     const ts = (event.updated_at ?? event.created_at) as string | undefined;
                     const addCacheBust = (u: string, t?: string) => {
-                        if (!t) return u;
+                        if (!t || /[?&]v=/.test(u)) return u;
                         const sep = u.includes('?') ? '&' : '?';
                         return `${u}${sep}v=${encodeURIComponent(t)}`;
                     };
                     const finalUrl = addCacheBust(url, ts);
                     const fullImageUrl = fullImagePath ? addCacheBust(toStorageUrl(fullImagePath), ts) : null;
+                    const thumbnailUrl = thumbnailPath ? addCacheBust(toStorageUrl(thumbnailPath), ts) : null;
 
                     const imageElement = (
-                        <img src={finalUrl} alt={event.title} className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto" />
+                        <img
+                            src={finalUrl}
+                            srcSet={thumbnailUrl && fullImageUrl ? `${thumbnailUrl} 640w, ${fullImageUrl} 1600w` : undefined}
+                            sizes="(max-width: 768px) 100vw, 900px"
+                            alt={event.title}
+                            className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto"
+                        />
                     );
 
                     return (
@@ -286,18 +289,18 @@ export default function Show({ event }: Props) {
                                     {page.props?.canEdit ? (
                                                 <TicketItem eventSlug={event.slug} ticket={t} />
                                             ) : (
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                     <div>
                                                         <div className="font-medium">{t.name}</div>
                                                     </div>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex w-full flex-col items-start gap-3 sm:w-auto sm:flex-row sm:items-center">
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
                                                         {t.active && t.quantity_available > 0 ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <ActionButton onClick={() => addToCart(t)}>
+                                                            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                                                                <ActionButton className="w-full justify-center sm:w-auto" onClick={() => addToCart(t)}>
                                                                     Add to cart
                                                                 </ActionButton>
-                                                                <ActionButton onClick={async () => { const ok = await addToCart(t); if (ok) { window.location.href = '/cart'; } else { alert('Could not add ticket to cart. Please try again.'); } }}>
+                                                                <ActionButton className="w-full justify-center sm:w-auto" onClick={async () => { const ok = await addToCart(t); if (ok) { window.location.href = '/cart'; } else { alert('Could not add ticket to cart. Please try again.'); } }}>
                                                                     Buy Now
                                                                 </ActionButton>
                                                             </div>

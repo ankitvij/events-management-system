@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Mail\LoginTokenMail;
 use App\Models\LoginToken;
 use App\Models\Organiser;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -23,6 +25,7 @@ class OrganiserAuthController extends Controller
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
+            'password' => ['nullable', 'string'],
         ]);
 
         $organiser = Organiser::query()->where('email', $data['email'])->first();
@@ -32,6 +35,19 @@ class OrganiserAuthController extends Controller
 
         if (! $organiser->active) {
             return back()->withErrors(['email' => 'This organiser account is not active yet.'])->withInput();
+        }
+
+        $password = trim((string) ($data['password'] ?? ''));
+        if ($password !== '') {
+            $user = User::query()->where('email', $organiser->email)->first();
+
+            if (! $user || ! Hash::check($password, (string) $user->password)) {
+                return back()->withErrors(['password' => 'The provided password is incorrect.'])->withInput();
+            }
+
+            session()->put('organiser_id', $organiser->id);
+
+            return redirect()->route('organisers.index')->with('success', 'You are signed in as organiser.');
         }
 
         $plain = Str::random(64);
