@@ -26,9 +26,7 @@ export default function GuestSidebar() {
     const [isMobile, setIsMobile] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
-    const [isMobileOpen, setIsMobileOpen] = useState(() =>
-        typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
-    );
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const wasMobileRef = useRef(isMobile);
 
@@ -38,7 +36,7 @@ export default function GuestSidebar() {
             setIsMobile(mobile);
 
             if (mobile !== wasMobileRef.current) {
-                setIsMobileOpen(mobile);
+                setIsMobileOpen(false);
                 setCollapsed(false);
                 wasMobileRef.current = mobile;
             }
