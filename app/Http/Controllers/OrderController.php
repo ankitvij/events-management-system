@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Mail\OrderConfirmed;
+use App\Mail\OrderPaymentReminder;
+use App\Mail\OrderStatusChanged;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Organiser;
 use App\Models\PaymentSetting;
+use App\Models\Ticket;
 use App\Services\OrderTicketPdfBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
@@ -22,15 +26,20 @@ class OrderController extends Controller
         'not_paid',
         'failed',
         'refunded',
+        'cancelled',
     ];
 
     public function markPaymentReceived(Order $order)
     {
         $this->authorizeOrderAdminAction($order, request());
 
+        $previousPaymentStatus = (string) ($order->payment_status ?? 'pending');
+
         $order->payment_status = 'paid';
         $order->paid = true;
         $order->save();
+
+        $this->sendOrderStatusChangedEmails($order, $previousPaymentStatus, 'paid');
 
         return redirect()->back()->with('success', 'Payment marked as received.');
     }
@@ -43,9 +52,20 @@ class OrderController extends Controller
             'payment_status' => ['required', 'string', 'in:'.implode(',', self::PAYMENT_STATUSES)],
         ]);
 
-        $order->payment_status = $data['payment_status'];
-        $order->paid = $data['payment_status'] === 'paid';
-        $order->save();
+        $previousPaymentStatus = (string) ($order->payment_status ?? 'pending');
+        $newPaymentStatus = (string) $data['payment_status'];
+
+        DB::transaction(function () use ($order, $previousPaymentStatus, $newPaymentStatus): void {
+            $order->payment_status = $newPaymentStatus;
+            $order->paid = $newPaymentStatus === 'paid';
+            $order->save();
+
+            if ($previousPaymentStatus !== 'cancelled' && $newPaymentStatus === 'cancelled') {
+                $this->restoreTicketAvailabilityForOrder($order);
+            }
+        });
+
+        $this->sendOrderStatusChangedEmails($order, $previousPaymentStatus, $newPaymentStatus);
 
         return redirect()->back()->with('success', 'Payment status updated.');
     }
@@ -213,6 +233,14 @@ class OrderController extends Controller
                     'desc'
                 );
                 break;
+            case 'status_asc':
+                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN checked_in = 1 THEN 2 WHEN payment_status = 'paid' THEN 3 ELSE 4 END ASC")
+                    ->orderBy('created_at', 'desc');
+                break;
+            case 'status_desc':
+                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN checked_in = 1 THEN 2 WHEN payment_status = 'paid' THEN 3 ELSE 4 END DESC")
+                    ->orderBy('created_at', 'desc');
+                break;
             case 'date_asc':
                 $query->orderBy('created_at', 'asc');
                 break;
@@ -252,6 +280,7 @@ class OrderController extends Controller
             $hasValidBookingCode = $providedBookingCode && $providedBookingCode === $order->booking_code;
             $isAgencyManager = $this->userCanManageOrderByAgency($current, $order);
             $isOrganiserManager = $this->userCanManageOrderByOrganiser($current, $order);
+            $canSendPaymentReminder = $current->hasRole(['admin', 'super_admin']) || $isOrganiserManager;
 
             // Authenticated users can view if they are super admin, owners, or provide the matching booking code
             if (! ($isSuper || $isOwner || $isAgencyManager || $isOrganiserManager || $hasValidBookingCode)) {
@@ -281,7 +310,31 @@ class OrderController extends Controller
         return inertia('Orders/Show', [
             'order' => $order,
             'payment_details' => $paymentDetails,
+            'can_send_payment_reminder' => $canSendPaymentReminder ?? false,
         ]);
+    }
+
+    public function sendPaymentReminder(Request $request, Order $order)
+    {
+        $this->authorizeOrderPaymentReminderAction($order, $request);
+
+        $recipients = $this->collectOrderEmailRecipients($order);
+        if ($recipients->isEmpty()) {
+            return redirect()->back()->with('success', 'No email recipients available for payment reminder.');
+        }
+
+        foreach ($recipients as $recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new OrderPaymentReminder($order));
+            } catch (\Throwable $e) {
+                logger()->error('Order payment reminder mail failed: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'recipient_email' => $recipientEmail,
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Payment reminder sent.');
     }
 
     protected function resolvePaymentDetailsFromOrder(Order $order, string $method): ?array
@@ -597,6 +650,55 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Tickets emailed successfully.');
     }
 
+    protected function restoreTicketAvailabilityForOrder(Order $order): void
+    {
+        $order->loadMissing('items');
+
+        foreach ($order->items as $item) {
+            if (! $item->ticket_id) {
+                continue;
+            }
+
+            $ticket = Ticket::query()->lockForUpdate()->find($item->ticket_id);
+            if (! $ticket) {
+                continue;
+            }
+
+            $quantityToRestore = max(1, (int) $item->quantity);
+            $nextAvailableQuantity = (int) $ticket->quantity_available + $quantityToRestore;
+            if ($ticket->quantity_total !== null) {
+                $nextAvailableQuantity = min((int) $ticket->quantity_total, $nextAvailableQuantity);
+            }
+
+            $ticket->quantity_available = $nextAvailableQuantity;
+            $ticket->save();
+        }
+    }
+
+    protected function sendOrderStatusChangedEmails(Order $order, string $previousPaymentStatus, string $newPaymentStatus): void
+    {
+        if ($previousPaymentStatus === $newPaymentStatus) {
+            return;
+        }
+
+        $recipients = $this->collectOrderEmailRecipients($order);
+
+        foreach ($recipients as $recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new OrderStatusChanged(
+                    order: $order,
+                    previousPaymentStatus: $previousPaymentStatus,
+                    newPaymentStatus: $newPaymentStatus,
+                ));
+            } catch (\Throwable $e) {
+                logger()->error('Order status change mail failed: '.$e->getMessage(), [
+                    'order_id' => $order->id,
+                    'recipient_email' => $recipientEmail,
+                ]);
+            }
+        }
+    }
+
     protected function authorizeOrderDownload(Order $order, Request $request): void
     {
         if (! $this->orderHasAnyValidTickets($order)) {
@@ -662,6 +764,49 @@ class OrderController extends Controller
         if (! ($current->is_super_admin || ($order->user_id && $current->id === $order->user_id) || $this->userCanManageOrderByAgency($current, $order) || $this->userCanManageOrderByOrganiser($current, $order))) {
             abort(403);
         }
+    }
+
+    protected function authorizeOrderPaymentReminderAction(Order $order, Request $request): void
+    {
+        $current = $request->user();
+        if (! $current) {
+            abort(403);
+        }
+
+        if (! ($current->hasRole(['admin', 'super_admin']) || $this->userCanManageOrderByOrganiser($current, $order))) {
+            abort(403);
+        }
+    }
+
+    protected function collectOrderEmailRecipients(Order $order): \Illuminate\Support\Collection
+    {
+        $order->loadMissing('items', 'customer', 'user');
+
+        $recipients = collect([
+            $order->contact_email,
+            $order->customer?->email,
+            $order->user?->email,
+        ])
+            ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
+            ->map(fn (string $email) => trim($email))
+            ->filter()
+            ->map(fn (string $email) => strtolower($email))
+            ->unique()
+            ->values();
+
+        foreach ($order->items as $item) {
+            $guestEmails = collect(is_array($item->guest_details) ? $item->guest_details : [])
+                ->pluck('email')
+                ->filter(fn ($email) => is_string($email) && filter_var($email, FILTER_VALIDATE_EMAIL))
+                ->map(fn (string $email) => trim($email))
+                ->filter()
+                ->map(fn (string $email) => strtolower($email))
+                ->unique();
+
+            $recipients = $recipients->merge($guestEmails)->unique()->values();
+        }
+
+        return $recipients;
     }
 
     protected function organiserIdsForUser($current)

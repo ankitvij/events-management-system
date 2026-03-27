@@ -17,7 +17,6 @@ class TicketControllerLoginController extends Controller
     {
         $hash = hash('sha256', $token);
         $record = LoginToken::query()
-            ->valid()
             ->where('type', 'ticket_controller')
             ->where('token_hash', $hash)
             ->firstOrFail();
@@ -27,13 +26,6 @@ class TicketControllerLoginController extends Controller
         if (! $hasAssignments) {
             abort(403);
         }
-
-        $record->update(['used_at' => now()]);
-        LoginToken::query()
-            ->where('type', 'ticket_controller')
-            ->where('email', $email)
-            ->whereNull('used_at')
-            ->delete();
 
         session()->put('ticket_controller_email', $email);
 
@@ -82,11 +74,13 @@ class TicketControllerLoginController extends Controller
 
         $scan = $this->extractScanData($data['payload']);
         if (! $scan) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'QR payload could not be validated.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'QR payload could not be validated.',
+                ]);
         }
 
         $eventIds = \App\Models\EventTicketController::query()
@@ -95,11 +89,13 @@ class TicketControllerLoginController extends Controller
             ->all();
 
         if (count($eventIds) === 0) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'No assigned events found for this login.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'No assigned events found for this login.',
+                ]);
         }
 
         $order = Order::query()
@@ -113,11 +109,23 @@ class TicketControllerLoginController extends Controller
             ->first();
 
         if (! $order) {
-            return back()->with('ticketScan', [
-                'status' => 'invalid',
-                'label' => 'Invalid ticket',
-                'detail' => 'No matching ticket found for your assigned events.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'No matching ticket found for your assigned events.',
+                ]);
+        }
+
+        if (strtolower((string) $order->status) !== 'paid') {
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'Invalid ticket.',
+                ]);
         }
 
         $itemToCheckIn = $order->items->first(function (OrderItem $item): bool {
@@ -128,11 +136,13 @@ class TicketControllerLoginController extends Controller
         });
 
         if (! $itemToCheckIn) {
-            return back()->with('ticketScan', [
-                'status' => 'already_checked_in',
-                'label' => 'Already checked in',
-                'detail' => 'All tickets for booking code '.$order->booking_code.' are already checked in.',
-            ]);
+            return back()
+                ->with('error', 'Invalid ticket')
+                ->with('ticketScan', [
+                    'status' => 'invalid',
+                    'label' => 'Invalid ticket',
+                    'detail' => 'Invalid ticket.',
+                ]);
         }
 
         $quantity = max(1, (int) $itemToCheckIn->quantity);
@@ -151,11 +161,13 @@ class TicketControllerLoginController extends Controller
 
         $ticketName = $itemToCheckIn->ticket?->name ?? 'Ticket';
 
-        return back()->with('ticketScan', [
-            'status' => 'ready_to_check_in',
-            'label' => 'Ready to check in',
-            'detail' => $ticketName.' checked in for booking code '.$order->booking_code.'. Remaining tickets: '.$remainingForBooking.'.',
-        ]);
+        return back()
+            ->with('success', 'Ticket checked in successfully.')
+            ->with('ticketScan', [
+                'status' => 'ready_to_check_in',
+                'label' => 'Ready to check in',
+                'detail' => $ticketName.' checked in for booking code '.$order->booking_code.'. Remaining tickets: '.$remainingForBooking.'.',
+            ]);
     }
 
     public function logout(Request $request): RedirectResponse

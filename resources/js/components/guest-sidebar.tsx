@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { Calendar, Megaphone, Menu, Mic2, Moon, PlusCircle, ShoppingCart, Store, Sun, Ticket, Users, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppearance } from '@/hooks/use-appearance';
 
 type GuestMenuItem = {
@@ -26,16 +26,21 @@ export default function GuestSidebar() {
     const [isMobile, setIsMobile] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
-    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(() =>
+        typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
+    );
     const [collapsed, setCollapsed] = useState(false);
+    const wasMobileRef = useRef(isMobile);
 
     useEffect(() => {
         const handleResize = () => {
             const mobile = window.innerWidth < 1000;
             setIsMobile(mobile);
 
-            if (mobile) {
-                setIsMobileOpen(false);
+            if (mobile !== wasMobileRef.current) {
+                setIsMobileOpen(mobile);
+                setCollapsed(false);
+                wasMobileRef.current = mobile;
             }
         };
 
@@ -47,13 +52,14 @@ export default function GuestSidebar() {
         };
     }, []);
 
+    const sidebarWidthClass = isMobile ? 'w-64' : (collapsed ? 'w-24' : 'w-64');
+
     return (
         <>
             <button
                 type="button"
                 className="btn-primary fixed left-2 top-20 z-[70] min-[1000px]:hidden"
                 onClick={() => setIsMobileOpen((value) => !value)}
-                aria-expanded={isMobileOpen}
                 aria-label={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
                 title={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
             >
@@ -70,7 +76,7 @@ export default function GuestSidebar() {
             )}
 
             <aside
-                className={`box z-[70] self-start transition-all duration-200 ${collapsed ? 'w-24' : 'w-64'} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`box z-[70] self-start transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
                 <div className="flex items-center justify-between gap-2">
                     <h2 className="flex items-center">
@@ -79,7 +85,7 @@ export default function GuestSidebar() {
                     </h2>
                     <button
                         type="button"
-                        className="btn-secondary px-2 py-1"
+                        className="btn-secondary hidden px-2 py-1 min-[1000px]:inline-flex"
                         onClick={() => setCollapsed((value) => !value)}
                         aria-label={collapsed ? 'Expand guest menu' : 'Collapse guest menu'}
                     >
@@ -102,7 +108,7 @@ export default function GuestSidebar() {
                                 }}
                             >
                                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                                {!collapsed && <span>{item.label}</span>}
+                                {(!collapsed || isMobile) && <span>{item.label}</span>}
                             </Link>
                         );
                     })}
@@ -119,7 +125,7 @@ export default function GuestSidebar() {
                         ) : (
                             <Sun className="h-5 w-5 shrink-0" aria-hidden="true" />
                         )}
-                        {!collapsed && <span>Theme</span>}
+                        {(!collapsed || isMobile) && <span>Theme</span>}
                     </button>
                 </nav>
             </aside>

@@ -1,16 +1,9 @@
 @component('mail::message')
 @php
-	$eventImage = $event->image_thumbnail_url ?: $event->image_url;
-	if (is_string($eventImage) && str_starts_with($eventImage, '/')) {
-		$eventImage = url($eventImage);
-	}
+	$eventImageUrl = $event->image_thumbnail_url ?: $event->image_url;
 @endphp
 
-@if(!empty($eventImage))
-<div style="margin-bottom:16px;text-align:center;">
-<img src="{{ $eventImage }}" alt="{{ $event->title }}" style="max-width:100%;height:auto;border-radius:8px;" />
-</div>
-@endif
+@include('emails.partials.event_header')
 
 # Your event is ready to manage
 
@@ -34,9 +27,7 @@ Manage Event
 
 If the button does not work, copy and paste this link: {{ $editUrl }}
 
-<div style="margin-top:18px;text-align:left;">
-<img src="{{ config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')) }}" alt="{{ config('app.brand.logo_alt') }}" style="height:42px;width:auto;" />
-</div>
+@include('emails.partials.chancepass_footer')
 
 Thanks,
 {{ config('app.name') }}

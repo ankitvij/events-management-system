@@ -31,8 +31,9 @@ declare global {
 }
 
 export default function TicketControllerScanner({ controllerEmail, events }: Props) {
-    const page = usePage<{ flash?: { ticketScan?: TicketScan; success?: string } }>();
+    const page = usePage<{ flash?: { ticketScan?: TicketScan; success?: string; error?: string } }>();
     const [payload, setPayload] = useState('');
+    const [bookingCodeInput, setBookingCodeInput] = useState('');
     const [isScanning, setIsScanning] = useState(false);
     const [scanError, setScanError] = useState<string | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -40,6 +41,8 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
     const rafRef = useRef<number | null>(null);
 
     const ticketScan = page.props?.flash?.ticketScan;
+    const flashSuccess = page.props?.flash?.success;
+    const flashError = page.props?.flash?.error;
 
     useEffect(() => {
         return () => {
@@ -85,8 +88,8 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
                     const value = codes.find((code) => typeof code.rawValue === 'string' && code.rawValue.trim() !== '')?.rawValue;
                     if (value) {
                         setPayload(value);
+                        setBookingCodeInput(detectedBookingCode(value));
                         stopScanning();
-                        submitPayload(value);
                         return;
                     }
                 } catch {
@@ -127,6 +130,54 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
         router.post('/ticket-controllers/check-in', { payload: value }, { preserveScroll: true, preserveState: true });
     }
 
+    function payloadRows(value: string): Array<{ key: string; value: string }> {
+        const trimmed = value.trim();
+        if (trimmed === '') {
+            return [];
+        }
+
+        let parsed: Record<string, unknown> | null = null;
+        try {
+            const candidate = JSON.parse(trimmed) as unknown;
+            if (candidate && typeof candidate === 'object' && !Array.isArray(candidate)) {
+                parsed = candidate as Record<string, unknown>;
+            }
+        } catch (error) {
+            parsed = null;
+        }
+
+        if (parsed) {
+            return Object.entries(parsed)
+                .filter(([, entryValue]) => entryValue !== null && entryValue !== undefined)
+                .map(([entryKey, entryValue]) => ({
+                    key: entryKey,
+                    value: typeof entryValue === 'string' ? entryValue : String(entryValue),
+                }));
+        }
+
+        let maybeUrl: URL | null = null;
+        try {
+            maybeUrl = new URL(trimmed);
+        } catch (error) {
+            maybeUrl = null;
+        }
+
+        if (maybeUrl) {
+            const bookingCode = maybeUrl.searchParams.get('booking_code');
+            if (bookingCode) {
+                return [{ key: 'booking_code', value: bookingCode }];
+            }
+        }
+
+        return [{ key: 'booking_code', value: trimmed }];
+    }
+
+    function detectedBookingCode(value: string): string {
+        const row = payloadRows(value).find((entry) => entry.key.toLowerCase() === 'booking_code');
+
+        return row?.value ?? '';
+    }
+
     function statusClasses(status: TicketScan['status']): string {
         if (status === 'ready_to_check_in') {
             return 'border-blue-200 bg-blue-50 text-blue-800';
@@ -160,6 +211,18 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
                     </div>
                 </div>
 
+                {flashSuccess ? (
+                    <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                        {flashSuccess}
+                    </div>
+                ) : null}
+
+                {flashError ? (
+                    <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {flashError}
+                    </div>
+                ) : null}
+
                 {ticketScan && (
                     <div className={`rounded-md border p-3 text-sm ${statusClasses(ticketScan.status)}`}>
                         <div className="font-semibold">{ticketScan.label}</div>
@@ -188,20 +251,35 @@ export default function TicketControllerScanner({ controllerEmail, events }: Pro
                     {scanError ? <div className="text-sm text-red-600">{scanError}</div> : null}
 
                     <div className="grid gap-2">
-                        <label htmlFor="payload" className="text-sm font-medium">Manual payload input</label>
-                        <textarea
-                            id="payload"
-                            className="input min-h-24"
-                            value={payload}
-                            onChange={(e) => setPayload(e.target.value)}
-                            placeholder='Paste QR payload JSON (for example: {"booking_code":"ABC123"})'
+                        <label htmlFor="booking-code" className="text-sm font-medium">Booking code</label>
+                        <input
+                            id="booking-code"
+                            className="input"
+                            value={bookingCodeInput}
+                            onChange={(e) => setBookingCodeInput(e.target.value)}
+                            placeholder="Scanned booking code appears here"
                         />
+
+                        {payload.trim() !== '' && (
+                            <div className="overflow-x-auto rounded border border-border">
+                                <table className="w-full text-sm">
+                                    <tbody>
+                                        {payloadRows(payload).map((entry) => (
+                                            <tr key={entry.key} className="border-b border-border last:border-b-0">
+                                                <td className="px-3 py-2 font-medium text-muted">{entry.key}</td>
+                                                <td className="px-3 py-2">{entry.value}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                         <div>
                             <button
                                 type="button"
                                 className="btn-primary"
-                                onClick={() => submitPayload(payload)}
-                                disabled={payload.trim() === ''}
+                                onClick={() => submitPayload(bookingCodeInput.trim())}
+                                disabled={bookingCodeInput.trim() === ''}
                             >
                                 Check in scanned ticket
                             </button>

@@ -4,16 +4,11 @@
         $firstItem = $items->first();
         $topEmbed = $firstItem ? ($event_embeds[$firstItem->id] ?? null) : null;
         $topImg = $firstItem ? ($event_images[$firstItem->id] ?? null) : null;
-        $logoUrl = $logo_url ?? (config('app.brand.logo_url') ?: asset(config('app.brand.logo_path')));
+        $eventImageUrl = $topEmbed
+            ? $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime'])
+            : $topImg;
     @endphp
-    <div style="margin-bottom:12px;text-align:left">
-        <img src="{{ $logoUrl }}" alt="{{ config('app.name') }} logo" style="height:42px;width:auto" />
-    </div>
-    @if($topEmbed)
-        <img src="{{ $message->embedData($topEmbed['data'], $topEmbed['name'], $topEmbed['mime']) }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
-    @elseif($topImg)
-        <img src="{{ $topImg }}" alt="Event image" style="max-width:100%;height:auto;border-radius:6px;display:block;margin-bottom:12px" />
-    @endif
+    @include('emails.partials.event_header')
 
     <h2>Booking code: {{ $order->booking_code }}</h2>
     <p>Thank you for your order.</p>
@@ -115,4 +110,6 @@
             <a href="{{ $view_url }}" style="display:inline-block;padding:12px 18px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">View your order</a>
         </div>
     @endif
+
+    @include('emails.partials.chancepass_footer')
 </div>

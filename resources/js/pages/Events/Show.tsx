@@ -19,6 +19,7 @@ type ArtistShort = { id: number; name: string; city?: string | null; photo_url?:
 type VendorShort = { id: number; name: string; city?: string | null; type?: string | null };
 type PromoterShort = { id: number; name: string; email?: string | null };
 type TicketControllerEmail = { id: number; email: string };
+type TicketSummary = { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean };
 
 type Event = {
     id: number;
@@ -45,6 +46,21 @@ type Event = {
     updated_at?: string | null;
 };
 
+type PageProps = {
+    auth?: { user?: { id: number; name?: string | null; email?: string | null; role?: string; is_super_admin?: boolean } | null };
+    showHomeHeader?: boolean;
+    canEdit?: boolean;
+    organisers?: Organiser[];
+    artists?: ArtistShort[];
+    vendors?: VendorShort[];
+    promoters?: PromoterShort[];
+    ticketControllers?: TicketControllerEmail[];
+    availableArtists?: ArtistShort[];
+    availableVendors?: VendorShort[];
+    availablePromoters?: PromoterShort[];
+    tickets?: TicketSummary[];
+};
+
 type Props = { event: Event };
 
 export default function Show({ event }: Props) {
@@ -52,17 +68,18 @@ export default function Show({ event }: Props) {
         { title: 'Events', href: '/events' },
         { title: event.title, href: `/${event.slug}` },
     ];
-    const page = usePage();
+    const page = usePage<PageProps>();
     const current = page.props?.auth?.user;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
-    const organisers = page.props?.organisers ?? [] as Organiser[];
-    const artists = (page.props?.artists ?? []) as ArtistShort[];
-    const vendors = (page.props?.vendors ?? []) as VendorShort[];
-    const promoters = (page.props?.promoters ?? []) as PromoterShort[];
-    const ticketControllers = (page.props?.ticketControllers ?? []) as TicketControllerEmail[];
-    const availableArtists = (page.props?.availableArtists ?? []) as ArtistShort[];
-    const availableVendors = (page.props?.availableVendors ?? []) as VendorShort[];
-    const availablePromoters = (page.props?.availablePromoters ?? []) as PromoterShort[];
+    const organisers = page.props?.organisers ?? [];
+    const artists = page.props?.artists ?? [];
+    const vendors = page.props?.vendors ?? [];
+    const promoters = page.props?.promoters ?? [];
+    const ticketControllers = page.props?.ticketControllers ?? [];
+    const availableArtists = page.props?.availableArtists ?? [];
+    const availableVendors = page.props?.availableVendors ?? [];
+    const availablePromoters = page.props?.availablePromoters ?? [];
+    const tickets = page.props?.tickets ?? [];
     const [artistSearch, setArtistSearch] = useState('');
     const [vendorSearch, setVendorSearch] = useState('');
     const [promoterSearch, setPromoterSearch] = useState('');
@@ -258,10 +275,10 @@ export default function Show({ event }: Props) {
                     );
                 })()}
 
-                {page.props?.tickets && page.props.tickets.length > 0 && (
+                {tickets.length > 0 && (
                     <div id="tickets" className="mt-3 mb-4">
                         <div className="mt-2 space-y-2">
-                            {page.props.tickets.map((t: { id: number; name: string; price: number; quantity_total: number; quantity_available: number; active: boolean }) => (
+                            {tickets.map((t) => (
                                 <div
                                     key={t.id}
                                     className="box cursor-default hover:bg-[#eef2f7] hover:shadow-[0_14px_32px_rgba(7,8,10,0.18)]"
@@ -272,7 +289,6 @@ export default function Show({ event }: Props) {
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <div className="font-medium">{t.name}</div>
-                                                        <div className="text-sm text-muted">{t.quantity_available} / {t.quantity_total} available · Sold: {t.quantity_total - t.quantity_available}</div>
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <div className="font-medium">€{t.price.toFixed(2)}</div>
@@ -294,7 +310,7 @@ export default function Show({ event }: Props) {
                                 </div>
                             ))}
                         </div>
-                        {!page.props.canEdit && page.props.tickets.every((t: { active: boolean; quantity_available: number; quantity_total: number }) => !t.active || t.quantity_available < 1) && (
+                        {!page.props.canEdit && tickets.every((t) => !t.active || t.quantity_available < 1) && (
                             <div className="mt-3 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
                                 No tickets are currently available for this event.
                             </div>
@@ -302,7 +318,7 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
-                {(!page.props?.tickets || page.props.tickets.length === 0) && !page.props?.canEdit && (
+                {tickets.length === 0 && !page.props?.canEdit && (
                     <div className="mt-3 mb-4 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
                         No tickets are currently available for this event.
                     </div>
@@ -570,8 +586,9 @@ export default function Show({ event }: Props) {
                     {page.props?.canEdit && (
                         <form onSubmit={saveLinks} className="mt-4 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium">Main organiser</label>
+                                <label htmlFor="main-organiser" className="block text-sm font-medium">Main organiser</label>
                                 <select
+                                    id="main-organiser"
                                     className="input"
                                     required
                                     value={linksForm.data.organiser_id ?? ''}

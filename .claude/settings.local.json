@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"btn-secondary\\\\|\\\\.box\" /c/Users/ankit/Herd/events/resources --include=*.blade.php --include=*.vue --include=*.jsx --include=*.tsx)",
+      "Bash(grep -r \"\\\\.box\\\\|class=box\" /c/Users/ankit/Herd/events/resources --include=*.blade.php --include=*.vue --include=*.jsx --include=*.tsx)",
+      "Bash(grep -r \"\"box /c/Users/ankit/Herd/events/resources --include=*.blade.php --include=*.vue --include=*.jsx --include=*.tsx)"
+    ]
+  }
+}
