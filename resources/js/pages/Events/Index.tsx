@@ -116,14 +116,35 @@ export default function EventsIndex({ events }: Props) {
                     </div>
                 ) : null}
 
-                <CompactPagination links={events.links} />
+                <div className="mb-3 rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 shadow-sm">
+                    <div className="flex flex-col gap-2 md:hidden">
+                        <input
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search events..."
+                            className="input w-full !bg-white"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => applySort('title')} className="btn-primary w-full justify-center" aria-label="Sort by title">
+                                Title
+                                <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                            </button>
+                            <button onClick={() => applySort('start')} className="btn-primary w-full justify-center" aria-label="Sort by start date">
+                                Date
+                                <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <CompactPagination links={events.links} className="mt-1 justify-center md:justify-start" />
+                </div>
 
                 <div>
-                    <div className="hidden md:grid md:grid-cols-12 gap-4 p-3 text-sm text-muted">
+                    <div className="hidden rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 text-sm text-muted md:grid md:grid-cols-12 md:gap-4">
                         <div className="md:col-span-6 flex items-center gap-3">
                             <button
                                 onClick={() => applySort('title')}
-                                className="text-left text-white bg-black px-3 py-2 rounded cursor-pointer"
+                                className="btn-primary text-left"
                                 aria-sort={params?.get('sort') === 'title_asc' ? 'ascending' : params?.get('sort') === 'title_desc' ? 'descending' : 'none'}
                                 aria-label="Sort by title"
                             >
@@ -135,13 +156,13 @@ export default function EventsIndex({ events }: Props) {
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     placeholder="Search events..."
-                                    className="w-full max-w-[60rem] border-2 border-gray-800 px-3 py-1"
+                                    className="input w-full max-w-[60rem] !bg-white"
                                 />
                             </div>
                         </div>
                         <button
                             onClick={() => applySort('country')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
+                            className="btn-primary md:col-span-1 text-center min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'country_asc' ? 'ascending' : params?.get('sort') === 'country_desc' ? 'descending' : 'none'}
                         >
                             Country
@@ -149,7 +170,7 @@ export default function EventsIndex({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('city')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
+                            className="btn-primary md:col-span-1 text-center min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'city_asc' ? 'ascending' : params?.get('sort') === 'city_desc' ? 'descending' : 'none'}
                         >
                             City
@@ -157,7 +178,7 @@ export default function EventsIndex({ events }: Props) {
                         </button>
                         <button
                             onClick={() => applySort('start')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
+                            className="btn-primary md:col-span-1 text-center min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'start_asc' ? 'ascending' : params?.get('sort') === 'start_desc' ? 'descending' : 'none'}
                         >
                             Start
@@ -166,7 +187,7 @@ export default function EventsIndex({ events }: Props) {
 
                         <button
                             onClick={() => applySort('active')}
-                            className="md:col-span-1 text-center cursor-pointer bg-black text-white px-3 py-2 rounded min-w-max whitespace-nowrap"
+                            className="btn-primary md:col-span-1 text-center min-w-max whitespace-nowrap"
                             aria-sort={params?.get('sort') === 'active_asc' ? 'ascending' : params?.get('sort') === 'active_desc' ? 'descending' : 'none'}
                         >
                             Active
@@ -175,11 +196,11 @@ export default function EventsIndex({ events }: Props) {
                         <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">Actions</div>
                     </div>
 
-                    <div className="space-y-3">
-                    {events.data?.map((event: Event) => (
+                    <div className="mt-3 space-y-3">
+                    {events.data?.length ? events.data.map((event: Event) => (
                         <div
                             key={event.id}
-                            className="box"
+                            className="box border-[#c0cbd9] bg-[#eef2f7]"
                             role="button"
                             tabIndex={0}
                             onClick={() => router.get(`/${event.slug}`)}
@@ -216,12 +237,12 @@ export default function EventsIndex({ events }: Props) {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <Link href={`/${event.slug}`} className="text-lg font-medium" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
+                                            <Link href={`/${event.slug}`} className="text-lg font-semibold" onClick={(e) => e.stopPropagation()}>{event.title}</Link>
                                             {!event.active && (
                                                 <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
-                                        <div className="text-sm text-muted md:hidden">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
+                                        <div className="mt-1 text-sm text-muted md:hidden">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                         {event.organisers && event.organisers.length > 0 && (
                                             current ? (
                                                 <div className="text-sm text-muted mt-1">
@@ -277,11 +298,15 @@ export default function EventsIndex({ events }: Props) {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="rounded-xl border border-dashed border-[#c0cbd9] bg-[#eef2f7] p-4 text-sm text-muted">
+                            No events found.
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-4">
-                    <CompactPagination links={events.links} />
+                    <CompactPagination links={events.links} className="justify-center md:justify-start" />
                 </div>
                 </div>
             </div>

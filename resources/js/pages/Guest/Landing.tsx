@@ -16,7 +16,7 @@ export default function GuestLanding({ events }: Props) {
     const [selectedCountry, setSelectedCountry] = useState(initialCountry);
     const timeoutRef = useRef<number | null>(null);
     const firstRender = useRef(true);
-    const ticketButtonClass = 'btn-primary';
+    const ticketButtonClass = 'guest-ticket-btn';
     const page = usePage<{ flash?: { success?: string; error?: string; newsletter_success?: string }; cities?: string[]; countries?: string[] }>();
     const cityOptions = page.props?.cities ?? [];
     const countryOptions = page.props?.countries ?? [];
@@ -157,89 +157,80 @@ export default function GuestLanding({ events }: Props) {
 
             <main className="w-full">
                 <div className="min-w-0 flex-1">
-                <section className="mt-6">
-                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-                        <select
-                            value={selectedCountry}
-                            onChange={(e) => setSelectedCountry(e.target.value)}
-                            className="input w-full sm:w-56"
-                            aria-label="Filter by country"
-                        >
-                            <option value="">All countries</option>
-                            {countryOptions.map((country) => (
-                                <option key={country} value={country}>{country}</option>
-                            ))}
-                        </select>
+                <section className="mt-4 min-[800px]:mt-6">
+                    <div className="guest-surface mt-3 p-3 shadow-sm min-[800px]:p-4">
+                        <div className="grid grid-cols-2 gap-2 min-[800px]:grid-cols-[minmax(0,1fr)_14rem_14rem_auto]">
+                            <input
+                                name="q"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Search events..."
+                                className="input h-10 w-full !bg-white col-span-2 min-[800px]:col-span-1"
+                            />
 
-                        <select
-                            value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
-                            className="input w-full sm:w-56"
-                            aria-label="Filter by city"
-                        >
-                            <option value="">All cities</option>
-                            {cityOptions.map((city) => (
-                                <option key={city} value={city}>{city}</option>
-                            ))}
-                        </select>
+                            <select
+                                value={selectedCity}
+                                onChange={(e) => setSelectedCity(e.target.value)}
+                                className="input h-10 w-full !bg-white"
+                                aria-label="Filter by city"
+                            >
+                                <option value="">All cities</option>
+                                {cityOptions.map((city) => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
 
-                        {(search || selectedCity || selectedCountry || params?.get('sort')) ? (
-                            <button type="button" className="btn-secondary" onClick={resetFilters}>
-                                Reset filters
-                            </button>
-                        ) : null}
-                    </div>
+                            <select
+                                value={selectedCountry}
+                                onChange={(e) => setSelectedCountry(e.target.value)}
+                                className="input h-10 w-full !bg-white"
+                                aria-label="Filter by country"
+                            >
+                                <option value="">All countries</option>
+                                {countryOptions.map((country) => (
+                                    <option key={country} value={country}>{country}</option>
+                                ))}
+                            </select>
 
-                    <div className="hidden max-[799px]:block mt-3">
-                        <input
-                            name="q"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            placeholder="Search events..."
-                            className="w-full border-2 border-gray-800 px-3 py-2"
-                        />
+                            {(search || selectedCity || selectedCountry || params?.get('sort')) ? (
+                                <button type="button" className="guest-accent-btn col-span-2 w-full min-[800px]:col-span-1 min-[800px]:justify-self-end min-[800px]:w-auto" onClick={resetFilters}>
+                                    Reset filters
+                                </button>
+                            ) : null}
+                        </div>
                     </div>
 
                     {events?.links && (
-                        <CompactPagination links={events.links} className="justify-start" />
+                        <CompactPagination links={events.links} className="mt-3 justify-center min-[800px]:justify-start" />
                     )}
 
-                    <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_100px] gap-4 p-3 text-sm">
+                    <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 p-3 text-sm">
                         <div className="flex items-center gap-3 min-w-0">
                             <button
                                 onClick={() => applySort('title')}
-                                className="btn-primary text-left shrink-0"
+                                className="!bg-transparent !text-[#6b7280] p-0 text-left text-sm font-semibold transition-colors hover:!text-[#111827]"
                             >
                                 Event
                                 <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('title_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                             </button>
-                            <div className="flex-1">
-                                    <input
-                                        name="q"
-                                        value={search}
-                                        onChange={e => setSearch(e.target.value)}
-                                        placeholder="Search events..."
-                                        className="w-full border-2 border-gray-800 px-3 py-1"
-                                    />
-                            </div>
                         </div>
                         <button
                             onClick={() => applySort('country')}
-                            className="text-center cursor-pointer btn-primary px-2 py-1 whitespace-normal break-words"
+                            className="!bg-transparent !text-[#6b7280] p-0 text-center text-sm font-semibold transition-colors hover:!text-[#111827]"
                         >
                             Country
                             <span className="ml-1">{params?.get('sort')?.startsWith('country_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
                         <button
                             onClick={() => applySort('city')}
-                            className="text-center cursor-pointer btn-primary px-2 py-1 whitespace-normal break-words"
+                            className="!bg-transparent !text-[#6b7280] p-0 text-center text-sm font-semibold transition-colors hover:!text-[#111827]"
                         >
                             City
                             <span className="ml-1">{params?.get('sort')?.startsWith('city_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                         </button>
                         <button
                             onClick={() => applySort('start')}
-                            className="text-center cursor-pointer btn-primary whitespace-nowrap"
+                            className="!bg-transparent !text-[#6b7280] p-0 text-center text-sm font-semibold transition-colors hover:!text-[#111827]"
                         >
                             Date
                             <span className="ml-1">{params?.get('sort')?.startsWith('start_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -255,7 +246,7 @@ export default function GuestLanding({ events }: Props) {
                                 return (
                                     <div
                                         key={event.id}
-                                        className="box max-[799px]:relative"
+                                        className="box border-[#d1d5db] bg-white shadow-none hover:bg-[#f9fafb] max-[799px]:border-0 max-[799px]:bg-transparent max-[799px]:p-0 max-[799px]:shadow-none max-[799px]:hover:bg-transparent"
                                         role="link"
                                         tabIndex={0}
                                         onClick={() => visitEvent(event.slug)}
@@ -266,7 +257,39 @@ export default function GuestLanding({ events }: Props) {
                                             }
                                         }}
                                     >
-                                        <div className="grid grid-cols-1 min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_100px] gap-4 items-start min-[800px]:items-center">
+                                        <div className="min-[800px]:hidden overflow-hidden rounded-xl border border-[#d1d5db] bg-white">
+                                            <div className="grid grid-cols-[6.25rem_minmax(0,1fr)]">
+                                                <div className="h-full min-h-[7.25rem] overflow-hidden bg-[#cfd4dd]">
+                                                    <img
+                                                        src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
+                                                        alt={event.title}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="flex min-w-0 flex-col p-3">
+                                                    <div className="text-[1.1rem] font-semibold leading-tight break-words whitespace-normal text-foreground">{event.title}</div>
+                                                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+                                                        <span>{event.city ?? 'City TBD'}</span>
+                                                        <span className="text-[#f97316]">•</span>
+                                                        <span>{formatEventDate(event.start_at)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-[#e5e7eb] px-3 py-2">
+                                                <div className="text-[1.9rem] font-semibold text-[#111827] leading-none">
+                                                    {(priceRange ? priceRange.replace('-', ' - ') : '€0.00')}
+                                                </div>
+                                                <Link
+                                                    href={`/${event.slug}#tickets`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className={`${ticketButtonClass} h-10 px-4`}
+                                                >
+                                                    Buy Tickets
+                                                </Link>
+                                            </div>
+                                        </div>
+
+                                        <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 items-center">
                                             <div className="flex flex-col sm:flex-row sm:items-start gap-3 min-w-0">
                                                 <div className="w-20 h-12 flex-shrink-0 self-start">
                                                     <img
@@ -277,27 +300,22 @@ export default function GuestLanding({ events }: Props) {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="text-lg font-medium break-words whitespace-normal">{event.title}</div>
-                                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted min-[800px]:hidden">
-                                                        <span>{formatEventDate(event.start_at)}</span>
-                                                        <span>•</span>
-                                                        <span>{event.city ?? 'City TBD'}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</span>
-                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="text-sm text-muted text-center max-[799px]:hidden">{event.country ?? '—'}</div>
-                                            <div className="text-sm text-muted text-center max-[799px]:hidden">{event.city ?? '—'}</div>
-                                            <div className="text-sm text-muted text-center whitespace-nowrap max-[799px]:hidden">{formatEventDate(event.start_at)}</div>
-                                            <div className="flex flex-col items-end text-right max-[799px]:absolute max-[799px]:top-3 max-[799px]:right-3">
+                                            <div className="text-sm text-muted text-center">{event.country ?? '—'}</div>
+                                            <div className="text-sm text-muted text-center">{event.city ?? '—'}</div>
+                                            <div className="text-sm text-muted text-center whitespace-nowrap">{formatEventDate(event.start_at)}</div>
+                                            <div className="flex flex-col items-end text-right">
                                                 <Link
                                                     href={`/${event.slug}#tickets`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={ticketButtonClass}
+                                                    className={`${ticketButtonClass} h-10 px-5`}
                                                 >
                                                     Buy Tickets
                                                 </Link>
                                                 {priceRange ? (
-                                                    <div className="mt-1 w-full text-center text-sm text-base">
+                                                    <div className="mt-1 w-full text-center text-sm font-medium text-[#9ca3af]">
                                                         {priceRange}
                                                     </div>
                                                 ) : null}
@@ -307,7 +325,7 @@ export default function GuestLanding({ events }: Props) {
                                 );
                             })
                         ) : (
-                            <div className="text-sm text-muted">
+                            <div className="rounded-xl border border-dashed border-[#d1d5db] bg-white p-4 text-sm text-muted">
                                 {(search || selectedCity || selectedCountry)
                                     ? 'No events match your current filters. Try resetting filters.'
                                     : 'No public events available.'}
@@ -315,12 +333,12 @@ export default function GuestLanding({ events }: Props) {
                         )}
                     </div>
                     {events?.links && (
-                        <CompactPagination links={events.links} className="justify-start" />
+                        <CompactPagination links={events.links} className="mt-3 justify-center min-[800px]:justify-start" />
                     )}
                 </section>
 
                 <section className="mt-6 mb-10">
-                    <div className="box">
+                    <div className="box border-[#d1d5db] bg-white shadow-none hover:bg-white">
                         <h2 className="text-xl font-semibold">Newsletter</h2>
                         <p className="mt-2 text-sm text-muted">Get updates about new events.</p>
 
@@ -354,7 +372,7 @@ export default function GuestLanding({ events }: Props) {
                                 {newsletterForm.errors.email && <div className="mt-1 text-sm text-red-600">{newsletterForm.errors.email}</div>}
                             </div>
                             <div className="flex items-end">
-                                <button type="submit" className="btn-primary" disabled={newsletterForm.processing}>
+                                <button type="submit" className="guest-accent-btn" disabled={newsletterForm.processing}>
                                     Subscribe
                                 </button>
                             </div>

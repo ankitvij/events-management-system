@@ -76,9 +76,19 @@ export default function VendorsIndex({ vendors }: Props) {
                     </div>
                 </div>
 
-                <CompactPagination links={vendors.links} />
+                <div className="mb-3 rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 shadow-sm">
+                    <div className="md:hidden">
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search vendors..."
+                            className="input w-full !bg-white"
+                        />
+                    </div>
+                    <CompactPagination links={vendors.links} className="mt-2 justify-center md:justify-start" />
+                </div>
 
-                <div className="mb-2 hidden md:grid md:grid-cols-12 gap-4 text-sm text-muted">
+                <div className="mb-2 hidden rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 text-sm text-muted md:grid md:grid-cols-12 md:gap-4">
                     <div className="md:col-span-6 flex items-center gap-3">
                         <button onClick={() => applySort('name')} className="btn-primary shrink-0">
                             Name
@@ -88,7 +98,7 @@ export default function VendorsIndex({ vendors }: Props) {
                             value={params?.get('q') ?? ''}
                             onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
                             placeholder="Search vendors..."
-                            className="input w-full"
+                            className="input w-full !bg-white"
                         />
                     </div>
                     <button onClick={() => applySort('email')} className="btn-primary md:col-span-4 w-full justify-start min-w-max whitespace-nowrap">
@@ -99,12 +109,12 @@ export default function VendorsIndex({ vendors }: Props) {
                 </div>
 
                 <div className="grid gap-3">
-                    {vendors.data?.map((v: Vendor) => (
-                        <div key={v.id} className="box">
+                    {vendors.data?.length ? vendors.data?.map((v: Vendor) => (
+                        <div key={v.id} className="box border-[#c0cbd9] bg-[#eef2f7]">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
                                 <div className="min-w-0 md:col-span-6">
                                     <div className="flex items-center gap-2">
-                                        <Link href={`/vendors/${v.id}`} className="text-lg font-medium break-words">
+                                        <Link href={`/vendors/${v.id}`} className="text-lg font-semibold break-words">
                                             {v.name}
                                         </Link>
                                         {!v.active && (
@@ -139,11 +149,15 @@ export default function VendorsIndex({ vendors }: Props) {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="rounded-xl border border-dashed border-[#c0cbd9] bg-[#eef2f7] p-4 text-sm text-muted">
+                            No vendors found.
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-4">
-                    <CompactPagination links={vendors.links} />
+                    <CompactPagination links={vendors.links} className="justify-center md:justify-start" />
                 </div>
             </div>
         </AppLayout>

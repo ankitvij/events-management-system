@@ -85,11 +85,19 @@ export default function OrdersIndex() {
             <div className="p-4">
                 <h1 className="text-xl font-semibold">Orders</h1>
 
-                <div className="mt-4">
-                    <CompactPagination links={orders.links} />
+                <div className="mt-4 rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 shadow-sm">
+                    <div className="md:hidden">
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search orders..."
+                            className="input w-full !bg-white"
+                        />
+                    </div>
+                    <CompactPagination links={orders.links} className="mt-2 justify-center md:justify-start" />
                 </div>
 
-                <div className="mt-4 hidden md:grid md:grid-cols-12 gap-3 mb-2 text-sm text-muted">
+                <div className="mt-4 mb-2 hidden rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 text-sm text-muted md:grid md:grid-cols-12 md:gap-3">
                     <div className="md:col-span-3 flex items-center gap-3">
                         <button onClick={() => applySort('booking_code')} className="btn-primary shrink-0">
                             Booking code
@@ -99,7 +107,7 @@ export default function OrdersIndex() {
                             value={params?.get('q') ?? ''}
                             onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
                             placeholder="Search orders..."
-                            className="input w-full"
+                            className="input w-full !bg-white"
                         />
                     </div>
                     <button onClick={() => applySort('name')} className="btn-primary md:col-span-2 w-full justify-start">
@@ -126,13 +134,13 @@ export default function OrdersIndex() {
 
                 <div className="space-y-3">
                     {orders.data?.length === 0 ? (
-                        <div className="text-sm text-muted">No orders yet.</div>
+                        <div className="rounded-xl border border-dashed border-[#c0cbd9] bg-[#eef2f7] p-4 text-sm text-muted">No orders yet.</div>
                     ) : (
                         orders.data?.map((order: any) => (
-                            <Link key={order.id} href={`/orders/${order.id}`} className="box block !px-2 transition hover:opacity-90">
+                            <Link key={order.id} href={`/orders/${order.id}`} className="box block border-[#c0cbd9] bg-[#eef2f7] !px-2 transition hover:opacity-90">
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center">
                                     <div className="md:col-span-3 px-3">
-                                        <span className="font-medium">{order.booking_code || '—'}</span>
+                                        <span className="font-semibold">{order.booking_code || '—'}</span>
                                     </div>
                                     <div className="md:col-span-2 px-3 text-sm">{customerName(order)}</div>
                                     <div className="md:col-span-2 px-3 text-sm">{eventName(order)}</div>
@@ -146,7 +154,7 @@ export default function OrdersIndex() {
                 </div>
 
                 <div className="mt-4">
-                    <CompactPagination links={orders.links} />
+                    <CompactPagination links={orders.links} className="justify-center md:justify-start" />
                 </div>
             </div>
         </AppLayout>

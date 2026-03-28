@@ -93,20 +93,14 @@ export default function CartButton() {
         <div className="relative" ref={ref}>
             <button
                 type="button"
-                aria-expanded={open}
                 title={`${summary.count} items — €${Number(summary.total).toFixed(2)}`}
                 onClick={() => setOpen((v) => !v)}
-                className="btn-ghost border border-border px-3 py-1 text-sm text-white"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c] min-[1000px]:bg-[#18181b] min-[1000px]:hover:bg-[#09090b]"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
-                    <circle cx="10" cy="20" r="1" />
-                    <circle cx="18" cy="20" r="1" />
-                </svg>
-                <span className="text-xs text-white/70">€{Number(summary.total).toFixed(2)}</span>
+                <span>€{Number(summary.total).toFixed(2)}</span>
 
                 {summary.count > 0 && (
-                    <span className="ml-2 inline-flex items-center justify-center px-2 py-0.5 rounded-full bg-red-600 text-white text-xs">{summary.count}</span>
+                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-[11px] text-white">{summary.count}</span>
                 )}
             </button>
 

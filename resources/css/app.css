@@ -180,6 +180,82 @@
 }
 
 @layer components {
+    .guest-accent-btn {
+        background-color: #f97316;
+        color: #fff;
+        border-radius: 0.625rem;
+        @apply inline-flex items-center justify-center font-semibold transition-colors cursor-pointer px-4 py-2 text-[0.95rem] whitespace-nowrap shrink-0 min-w-max;
+    }
+
+    .guest-accent-btn:hover {
+        background-color: #ea580c;
+        color: #fff;
+    }
+
+    .guest-ticket-btn {
+        background-color: #18181b;
+        color: #fff;
+        border-radius: 0.625rem;
+        @apply inline-flex items-center justify-center font-semibold transition-colors cursor-pointer px-5 py-2 text-[0.95rem] whitespace-nowrap shrink-0 min-w-max;
+    }
+
+    .guest-ticket-btn:hover {
+        background-color: #09090b;
+        color: #fff;
+    }
+
+    .guest-icon-btn {
+        background-color: #e5e7eb;
+        color: #374151;
+        border-radius: 0.625rem;
+        @apply inline-flex items-center justify-center h-11 w-11 p-0 transition-colors cursor-pointer;
+    }
+
+    .guest-icon-btn:hover {
+        background-color: #d1d5db;
+        color: #111827;
+    }
+
+    .guest-surface {
+        background-color: #f3f4f6;
+        border: 1px solid #d1d5db;
+        border-radius: 0.75rem;
+    }
+
+    .guest-sidebar-shell {
+        background-color: #18181b;
+        border: 1px solid #27272a;
+        color: #e4e4e7;
+        border-radius: 1rem 0 0 0;
+        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .guest-sidebar-link {
+        @apply inline-flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors;
+        color: #a1a1aa;
+    }
+
+    .guest-sidebar-link:hover {
+        background-color: #27272a;
+        color: #fff;
+    }
+
+    .guest-sidebar-link-active {
+        background-color: #f97316;
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+    }
+
+    .guest-sidebar-link-warm {
+        background-color: rgba(249, 115, 22, 0.14);
+        color: #fb923c;
+    }
+
+    .guest-sidebar-link-warm:hover {
+        background-color: rgba(249, 115, 22, 0.2);
+        color: #fdba74;
+    }
+
     /* Legacy utility class used across many pages */
     .input {
         display: block;

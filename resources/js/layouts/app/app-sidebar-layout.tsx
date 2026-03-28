@@ -15,19 +15,21 @@ export default function AppSidebarLayout({
     const showSidebar = !!page.props?.auth?.user;
     return (
         <>
-            {!showSidebar && <PublicHeader />}
             <AppShell variant="sidebar">
                 {showSidebar && <AppSidebar />}
                 <AppContent
                     variant="sidebar"
-                    className={showSidebar ? 'overflow-x-hidden' : 'overflow-x-hidden pt-0'}
+                    className={showSidebar ? 'overflow-x-hidden' : 'overflow-visible pt-0 min-[1000px]:!py-0'}
                 >
                     {showSidebar && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
                     {showSidebar ? children : (
                         <div className="mx-auto w-full max-w-screen-2xl px-[5px] sm:px-4 lg:px-6">
-                            <div className="mt-6 flex items-start gap-4">
+                            <div className="mt-0 flex items-start gap-0">
                                 <GuestSidebar />
-                                <div className="min-w-0 flex-1 max-[999px]:[&_.pagination]:ml-14">{children}</div>
+                                <div className="min-w-0 flex-1 rounded-r-2xl bg-[#f3f4f6] max-[999px]:[&_.pagination]:ml-14">
+                                    <PublicHeader />
+                                    <div className="p-3 min-[1000px]:p-4">{children}</div>
+                                </div>
                             </div>
                         </div>
                     )}

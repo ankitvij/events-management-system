@@ -1,6 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Calendar, Megaphone, Menu, Mic2, Moon, PlusCircle, ShoppingCart, Store, Sun, Ticket, Users, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { useAppearance } from '@/hooks/use-appearance';
 
 type GuestMenuItem = {
@@ -23,6 +24,7 @@ const guestMenuItems: GuestMenuItem[] = [
 
 export default function GuestSidebar() {
     const { resolvedAppearance, updateAppearance } = useAppearance();
+    const page = usePage();
     const [isMobile, setIsMobile] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
@@ -56,7 +58,7 @@ export default function GuestSidebar() {
         <>
             <button
                 type="button"
-                className="btn-primary fixed left-2 top-20 z-[70] min-[1000px]:hidden"
+                className="fixed left-3 top-3 z-[80] inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#2a2d36] text-white shadow-sm transition-colors hover:bg-[#3a3f4b] min-[1000px]:hidden"
                 onClick={() => setIsMobileOpen((value) => !value)}
                 aria-label={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
                 title={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
@@ -67,45 +69,45 @@ export default function GuestSidebar() {
             {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="fixed inset-0 z-[65] bg-black/40 min-[1000px]:hidden"
+                    className="fixed inset-0 z-[70] bg-black/45 min-[1000px]:hidden"
                     aria-label="Close guest menu overlay"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             <aside
-                className={`box z-[70] self-start transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed top-32 left-2' : 'sticky top-4 shrink-0'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed inset-y-0 left-0 z-[75] w-[82vw] max-w-[20rem] rounded-r-3xl rounded-l-none border-r border-zinc-800' : 'sticky top-0 z-40 shrink-0 min-h-[100svh]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
-                <div className="flex items-center justify-between gap-2">
-                    <h2 className="flex items-center">
-                        <Menu className="h-5 w-5" aria-hidden="true" />
-                        <span className="sr-only">Menu</span>
-                    </h2>
-                    <button
-                        type="button"
-                        className="btn-secondary hidden px-2 py-1 min-[1000px]:inline-flex"
-                        onClick={() => setCollapsed((value) => !value)}
-                        aria-label={collapsed ? 'Expand guest menu' : 'Collapse guest menu'}
-                    >
-                        {collapsed ? '»' : '«'}
-                    </button>
-                </div>
+                <Link href="/" className="block rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2">
+                    <AppLogoIcon alt="ChancePass" className="h-8 w-auto" />
+                    {(!collapsed || isMobile) && <p className="mt-1 text-xs text-zinc-400">Supercharge your events</p>}
+                </Link>
+
+                {isMobile && (
+                    <div className="mt-3 border-b border-zinc-800 pb-3">
+                        <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">Menu</p>
+                        <p className="mt-1 text-2xl font-semibold text-zinc-100">My account</p>
+                    </div>
+                )}
 
                 <nav className="mt-3 flex flex-col gap-2">
                     {guestMenuItems.map((item) => {
                         const Icon = item.icon;
+                        const isActive = page.url === item.href || page.url.startsWith(`${item.href}/`);
+                        const isCreateEvent = item.href === '/events/create';
+
                         return (
                             <Link
                                 key={`${item.href}:${item.label}`}
                                 href={item.href}
-                                className="btn-secondary flex items-center justify-start gap-3 text-left"
+                                className={`guest-sidebar-link ${isActive ? 'guest-sidebar-link-active' : ''} ${!isActive && isCreateEvent ? 'guest-sidebar-link-warm' : ''}`}
                                 onClick={() => {
                                     if (isMobile) {
                                         setIsMobileOpen(false);
                                     }
                                 }}
                             >
-                                <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                                 {(!collapsed || isMobile) && <span>{item.label}</span>}
                             </Link>
                         );
@@ -113,15 +115,15 @@ export default function GuestSidebar() {
 
                     <button
                         type="button"
-                        className="btn-secondary flex items-center justify-start gap-3 text-left"
+                        className="guest-sidebar-link"
                         onClick={() => updateAppearance(resolvedAppearance === 'light' ? 'dark' : 'light')}
                         aria-label="Toggle theme"
                         title="Toggle theme"
                     >
                         {resolvedAppearance === 'light' ? (
-                            <Moon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                            <Moon className="h-4 w-4 shrink-0" aria-hidden="true" />
                         ) : (
-                            <Sun className="h-5 w-5 shrink-0" aria-hidden="true" />
+                            <Sun className="h-4 w-4 shrink-0" aria-hidden="true" />
                         )}
                         {(!collapsed || isMobile) && <span>Theme</span>}
                     </button>

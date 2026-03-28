@@ -64,18 +64,26 @@ export default function UsersIndex({ users }: Props) {
             <Head title="Users" />
 
             <div className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
+                <div className="mb-4 rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 shadow-sm">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
+                        <input
+                            value={params?.get('q') ?? ''}
+                            onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
+                            placeholder="Search users..."
+                            className="input w-full !bg-white md:min-w-[20rem]"
+                        />
                         <ListControls path="/users" links={paginationLinks} showSearch={false} showActive />
                     </div>
                     <div className="flex gap-2">
                         <ActionButton href="/users/create">New User</ActionButton>
                     </div>
                 </div>
+                </div>
 
-                <CompactPagination links={users.links} />
+                <CompactPagination links={users.links} className="justify-center md:justify-start" />
 
-                <div className="hidden md:grid md:grid-cols-12 gap-4 mb-2 text-sm text-muted">
+                <div className="mb-2 hidden rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 text-sm text-muted md:grid md:grid-cols-12 md:gap-4">
                     <div className="md:col-span-6 flex items-center gap-3">
                         <button
                             onClick={() => applySort('name')}
@@ -88,7 +96,7 @@ export default function UsersIndex({ users }: Props) {
                             value={params?.get('q') ?? ''}
                             onChange={(e) => applyFilters({ q: e.target.value || null, page: null })}
                             placeholder="Search users..."
-                            className="input w-full"
+                            className="input w-full !bg-white"
                         />
                     </div>
                     <button
@@ -104,12 +112,12 @@ export default function UsersIndex({ users }: Props) {
 
                 <div>
                     <div className="grid gap-3">
-                    {users.data?.map((user: UserRow) => (
-                        <div key={user.id} className="box">
+                    {users.data?.length ? users.data?.map((user: UserRow) => (
+                        <div key={user.id} className="box border-[#c0cbd9] bg-[#eef2f7]">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:items-center">
                                 <div className="md:col-span-6">
                                     <div className="flex items-center gap-2">
-                                        <Link href={`/users/${user.id}`} className="text-lg font-medium">{user.name}</Link>
+                                        <Link href={`/users/${user.id}`} className="text-lg font-semibold">{user.name}</Link>
                                         {!user.active && (
                                             <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                         )}
@@ -141,11 +149,15 @@ export default function UsersIndex({ users }: Props) {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="rounded-xl border border-dashed border-[#c0cbd9] bg-[#eef2f7] p-4 text-sm text-muted">
+                            No users found.
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-4">
-                    <CompactPagination links={users.links} />
+                    <CompactPagination links={users.links} className="justify-center md:justify-start" />
                 </div>
                 </div>
             </div>
