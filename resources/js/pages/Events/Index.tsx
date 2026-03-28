@@ -221,7 +221,7 @@ export default function EventsIndex({ events }: Props) {
                                                 <span className="text-xs text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Inactive</span>
                                             )}
                                         </div>
-                                        <div className="text-sm text-muted">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
+                                        <div className="text-sm text-muted md:hidden">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
                                         {event.organisers && event.organisers.length > 0 && (
                                             current ? (
                                                 <div className="text-sm text-muted mt-1">

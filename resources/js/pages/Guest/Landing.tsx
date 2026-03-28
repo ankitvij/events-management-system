@@ -277,16 +277,10 @@ export default function GuestLanding({ events }: Props) {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="text-lg font-medium break-words whitespace-normal">{event.title}</div>
-                                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+                                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted min-[800px]:hidden">
                                                         <span>{formatEventDate(event.start_at)}</span>
                                                         <span>•</span>
                                                         <span>{event.city ?? 'City TBD'}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</span>
-                                                    </div>
-                                                    <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm min-[800px]:hidden">
-                                                        <span className="text-muted">{event.country ?? '—'}</span>
-                                                        <span className="text-muted">{event.city ?? '—'}</span>
-                                                        <span className="text-muted">{formatEventDate(event.start_at)}</span>
-                                                        <span />
                                                     </div>
                                                 </div>
                                             </div>

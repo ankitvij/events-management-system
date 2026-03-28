@@ -12,7 +12,7 @@ type SharedProps = {
 
 export default function AppLogoIcon({ className, alt, ...props }: Props) {
     const page = usePage<SharedProps>();
-    const logoSrc = page.props.brand?.logo_url ?? '/images/logo.png';
+    const logoSrc = page.props.brand?.logo_url ?? '/images/logo.webp';
     const logoAlt = page.props.brand?.logo_alt ?? 'Events logo';
 
     return (

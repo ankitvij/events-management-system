@@ -124,7 +124,7 @@ return [
     ],
 
     'brand' => [
-        'logo_path' => env('APP_LOGO_PATH', 'images/logo.png'),
+        'logo_path' => env('APP_LOGO_PATH', 'images/logo.webp'),
         'logo_url' => env('APP_LOGO_URL', ''),
         'logo_alt' => env('APP_LOGO_ALT', env('APP_NAME', 'Event Management System').' logo'),
         'favicon_ico' => env('APP_FAVICON_ICO', '/favicon.ico'),
