@@ -238,7 +238,7 @@ export default function GuestLanding({ events }: Props) {
 
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2 px-2 min-[800px]:space-y-3 min-[800px]:px-0">
                         {events?.data?.length ? (
                             events.data.map((event: Event) => {
                                 const priceRange = formatTicketRange(event);
@@ -258,8 +258,8 @@ export default function GuestLanding({ events }: Props) {
                                         }}
                                     >
                                         <div className="min-[800px]:hidden overflow-hidden rounded-xl border border-[#d1d5db] bg-white">
-                                            <div className="grid grid-cols-[6.25rem_minmax(0,1fr)]">
-                                                <div className="h-full min-h-[7.25rem] overflow-hidden bg-[#cfd4dd]">
+                                            <div className="grid grid-cols-[6.9rem_minmax(0,1fr)]">
+                                                <div className="h-full min-h-[6.75rem] overflow-hidden bg-[#cfd4dd]">
                                                     <img
                                                         src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
                                                         alt={event.title}
@@ -275,17 +275,19 @@ export default function GuestLanding({ events }: Props) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center justify-between border-t border-[#e5e7eb] px-3 py-2">
-                                                <div className="text-[1.9rem] font-semibold text-[#111827] leading-none">
-                                                    {(priceRange ? priceRange.replace('-', ' - ') : '€0.00')}
+                                            <div className="flex items-center justify-end border-t border-[#e5e7eb] px-3 py-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="text-[1.1rem] font-semibold leading-none text-[#6b7280]">
+                                                        {(priceRange ? priceRange.replace('-', ' - ') : '€0.00')}
+                                                    </div>
+                                                    <Link
+                                                        href={`/${event.slug}#tickets`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className={`${ticketButtonClass} h-10 px-4`}
+                                                    >
+                                                        Buy Tickets
+                                                    </Link>
                                                 </div>
-                                                <Link
-                                                    href={`/${event.slug}#tickets`}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    className={`${ticketButtonClass} h-10 px-4`}
-                                                >
-                                                    Buy Tickets
-                                                </Link>
                                             </div>
                                         </div>
 

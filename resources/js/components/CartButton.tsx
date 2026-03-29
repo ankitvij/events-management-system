@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { Trash } from 'lucide-react';
+import { ShoppingCart, Trash } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import ActionIcon from '@/components/action-icon';
 
 export default function CartButton() {
     const [summary, setSummary] = useState<{ count: number; total: number; items?: any[] }>({ count: 0, total: 0, items: [] });
@@ -97,6 +96,7 @@ export default function CartButton() {
                 onClick={() => setOpen((v) => !v)}
                 className="inline-flex h-11 items-center justify-center rounded-xl bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c] min-[1000px]:bg-[#18181b] min-[1000px]:hover:bg-[#09090b]"
             >
+                <ShoppingCart className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 <span>€{Number(summary.total).toFixed(2)}</span>
 
                 {summary.count > 0 && (
@@ -105,44 +105,82 @@ export default function CartButton() {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-80 box z-50">
-                    <div className="text-sm font-medium">Cart</div>
-                    <div className="mt-2 max-h-56 overflow-auto">
+                <div className="absolute right-0 z-50 mt-2 w-[21rem] max-w-[92vw] overflow-hidden rounded-b-2xl rounded-t-none border border-[#d7dbe2] bg-[#f3f4f6] shadow-[0_16px_40px_rgba(0,0,0,0.2)]">
+                    <div className="flex items-center justify-between border-b border-[#d6d9df] px-4 py-3">
+                        <div className="text-base font-medium text-[#232733]">Your cart</div>
+                        <div className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#1b1d22] px-2 text-xs font-semibold text-white">
+                            {summary.count} {summary.count === 1 ? 'item' : 'items'}
+                        </div>
+                    </div>
+
+                    <div className="max-h-[19rem] overflow-auto px-2 py-2">
                         {summary.items && summary.items.length > 0 ? (
                             summary.items.slice(0, 6).map((it: any) => (
-                                <div key={it.id} className="flex items-center justify-between py-2 border-b last:border-b-0">
-                                    <div className="text-sm">
-                                        <div className="font-medium">{(it.ticket && it.ticket.name) || `Item ${it.id}`}</div>
-                                        <div className="text-xs text-muted">{(it.event && it.event.title) ? `Event: ${it.event.title}` : ''}</div>
-                                        <div className="text-xs text-muted">€{Number(it.price).toFixed(2)} · Line: €{Number(it.quantity * it.price).toFixed(2)}</div>
-                                    </div>
-                                    <div className="flex flex-col items-end">
-                                        <div className="flex items-center">
-                                            <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}>-</button>
-                                            <div className="px-3 text-sm">{it.quantity}</div>
-                                            <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItem(it.id, it.quantity + 1)}>+</button>
+                                <div key={it.id} className="mb-2 rounded-xl border border-[#dde0e6] bg-white p-3 last:mb-0">
+                                    <div className="flex items-start gap-3">
+                                        <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-[#234578]">
+                                            {it.event?.image_thumbnail || it.event?.image ? (
+                                                <img
+                                                    src={it.event?.image_thumbnail ? `/storage/${it.event.image_thumbnail}` : `/storage/${it.event.image}`}
+                                                    alt={(it.event && it.event.title) || 'Event'}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : null}
                                         </div>
-                                        <ActionIcon
-                                            aria-label="Delete item"
-                                            className="mt-2"
-                                            onClick={() => removeItem(it.id)}
-                                            danger
-                                        >
-                                            <Trash className="h-4 w-4" />
-                                        </ActionIcon>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0 text-sm leading-tight">
+                                                    <div className="line-clamp-2 text-base font-medium text-[#2a2f38]">{(it.ticket && it.ticket.name) || `Item ${it.id}`}</div>
+                                                    <div className="mt-1 truncate text-xs text-[#98a0ae]">{(it.event && it.event.title) || ''}</div>
+                                                </div>
+                                                <div className="text-base font-semibold leading-tight text-[#232733]">€{Number(it.price).toFixed(0)}</div>
+                                            </div>
+
+                                            <div className="mt-2 flex items-center justify-end gap-2">
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#f1f2f5] text-sm font-semibold text-[#4b5260]"
+                                                    onClick={() => updateItem(it.id, Math.max(1, it.quantity - 1))}
+                                                >
+                                                    −
+                                                </button>
+                                                <div className="text-sm text-[#2a2f38]">{it.quantity}</div>
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-[#f1f2f5] text-sm font-semibold text-[#4b5260]"
+                                                    onClick={() => updateItem(it.id, it.quantity + 1)}
+                                                >
+                                                    +
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-transparent text-[#e5b4b4] transition-colors hover:bg-transparent hover:text-[#d17979]"
+                                                    onClick={() => removeItem(it.id)}
+                                                    aria-label="Delete item"
+                                                >
+                                                    <Trash className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="text-sm text-muted">Cart is empty</div>
+                            <div className="rounded-xl border border-dashed border-[#d3d6de] bg-white p-4 text-sm text-[#7b8391]">Cart is empty</div>
                         )}
                     </div>
-                    <div className="mt-3 space-y-3">
-                        <div className="text-sm text-muted text-right">Total: €{Number(summary.total).toFixed(2)}</div>
-                        <div className="flex items-center justify-between gap-2">
-                            <Link href="/cart" className="btn-ghost border border-border px-3 py-1 text-sm" onClick={() => setOpen(false)}>View cart</Link>
+
+                    <div className="border-t border-[#d6d9df] bg-white px-4 py-3">
+                        <div className="mb-3 flex items-center justify-between">
+                            <div className="text-lg text-[#99a1af]">Total</div>
+                            <div className="text-lg font-semibold leading-none text-[#232733]">€{Number(summary.total).toFixed(2)}</div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Link href="/cart" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#2e3440] text-[1.05rem] font-medium text-[#2a2f38]" onClick={() => setOpen(false)}>View cart</Link>
                             {summary.count > 0 && (
-                                <Link href="/cart/checkout" className="btn-confirm" onClick={() => setOpen(false)}>Checkout</Link>
+                                <Link href="/cart/checkout" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#f97316] text-[1.05rem] font-medium text-white" onClick={() => setOpen(false)}>Checkout →</Link>
                             )}
                         </div>
                     </div>

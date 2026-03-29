@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Menu, User } from 'lucide-react';
 import * as React from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import CartButton from '@/components/CartButton';
@@ -7,22 +7,61 @@ import SignInPrompt from '@/components/SignInPrompt';
 
 export default function PublicHeader() {
     const page = usePage();
+    const isEventShowPage = page.component === 'Events/Show';
+
+    const toggleGuestMenu = () => {
+        window.dispatchEvent(new CustomEvent('guest-menu:toggle'));
+    };
+
     return (
         <>
-            <header className="sticky top-0 z-50 border-b border-sidebar-border/80">
-                <div className="w-full px-2 py-1 sm:px-3 min-[1000px]:px-4 min-[1000px]:py-2">
+            <header className="sticky top-0 z-50 border-b-0 max-[999px]:-mx-[5px] min-[1000px]:border-b min-[1000px]:border-sidebar-border/80">
+                <div className="w-full px-0 py-0 min-[1000px]:px-4 min-[1000px]:py-2">
                     <div className="flex flex-col gap-1 min-[1000px]:flex-row min-[1000px]:items-center min-[1000px]:justify-end min-[1000px]:gap-0">
-                    <div className="flex w-full items-center justify-between rounded-xl bg-[#18181b] px-3 py-2 min-[1000px]:hidden">
-                        <Link href="/" className="flex items-center pl-12">
-                            <AppLogoIcon alt="ChancePass" className="h-7 w-auto" />
+                    <div className="w-full bg-[#18181b] px-0 py-0 min-[1000px]:hidden">
+                        <Link href="/" className="flex flex-col items-center justify-center pt-3 pb-2">
+                            <AppLogoIcon alt="ChancePass" className="h-[70px] w-auto" />
                         </Link>
-                        <div className="flex items-center gap-2">
-                            <SignInPrompt
-                                buttonClassName="guest-icon-btn"
-                                buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
-                                ariaLabel="Sign in"
-                            />
-                            <CartButton />
+
+                        <div className="bg-[#242631] px-0 py-2">
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#2f3340] text-white transition-colors hover:bg-[#3b4050]"
+                                        aria-label="Open menu"
+                                        title="Open menu"
+                                        onClick={toggleGuestMenu}
+                                    >
+                                        <Menu className="h-4 w-4" aria-hidden="true" />
+                                    </button>
+
+                                    {isEventShowPage && (
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#2f3340] px-3 text-white transition-colors hover:bg-[#3b4050]"
+                                            onClick={() => window.history.back()}
+                                            aria-label="Go back"
+                                            title="Go back"
+                                        >
+                                            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                                            <span className="text-sm">Back</span>
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <Link href="/events/create" className="guest-icon-btn" aria-label="Create event" title="Create event">
+                                        <Calendar className="h-4 w-4" aria-hidden="true" />
+                                    </Link>
+                                    <SignInPrompt
+                                        buttonClassName="guest-icon-btn"
+                                        buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
+                                        ariaLabel="Sign in"
+                                    />
+                                    <CartButton />
+                                </div>
+                            </div>
                         </div>
                     </div>
 

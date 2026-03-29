@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Calendar, Megaphone, Menu, Mic2, Moon, PlusCircle, ShoppingCart, Store, Sun, Ticket, Users, X } from 'lucide-react';
+import { Calendar, Megaphone, Mic2, Moon, PlusCircle, ShoppingCart, Store, Sun, Ticket, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -52,36 +52,39 @@ export default function GuestSidebar() {
         };
     }, []);
 
+    useEffect(() => {
+        const onToggle = () => {
+            setIsMobileOpen((value) => !value);
+        };
+
+        window.addEventListener('guest-menu:toggle', onToggle);
+
+        return () => {
+            window.removeEventListener('guest-menu:toggle', onToggle);
+        };
+    }, []);
+
     const sidebarWidthClass = isMobile ? 'w-64' : (collapsed ? 'w-24' : 'w-64');
 
     return (
         <>
-            <button
-                type="button"
-                className="fixed left-3 top-3 z-[80] inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#2a2d36] text-white shadow-sm transition-colors hover:bg-[#3a3f4b] min-[1000px]:hidden"
-                onClick={() => setIsMobileOpen((value) => !value)}
-                aria-label={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
-                title={isMobileOpen ? 'Close guest menu' : 'Open guest menu'}
-            >
-                {isMobileOpen ? <X className="h-4 w-4" aria-hidden="true" /> : <Menu className="h-4 w-4" aria-hidden="true" />}
-            </button>
-
             {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="fixed inset-0 z-[70] bg-black/45 min-[1000px]:hidden"
+                    className="fixed inset-x-0 bottom-0 top-[10rem] z-40 bg-black/45 min-[1000px]:hidden"
                     aria-label="Close guest menu overlay"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             <aside
-                className={`guest-sidebar-shell self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed inset-y-0 left-0 z-[75] w-[82vw] max-w-[20rem] rounded-r-3xl rounded-l-none border-r border-zinc-800' : 'sticky top-0 z-40 shrink-0 min-h-[100svh]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[10rem] z-40 min-h-[calc(100svh-10rem)] w-[82vw] max-w-[20rem] rounded-r-3xl rounded-l-none border-r border-zinc-800' : 'sticky top-0 z-40 shrink-0 min-h-[100svh]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
-                <Link href="/" className="block rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2">
-                    <AppLogoIcon alt="ChancePass" className="h-8 w-auto" />
-                    {(!collapsed || isMobile) && <p className="mt-1 text-xs text-zinc-400">Supercharge your events</p>}
-                </Link>
+                {!isMobile && (
+                    <Link href="/" className="block rounded-xl border border-zinc-800 bg-zinc-900/60 px-3 py-2">
+                        <AppLogoIcon alt="ChancePass" className="h-12 w-auto" />
+                    </Link>
+                )}
 
                 {isMobile && (
                     <div className="mt-3 border-b border-zinc-800 pb-3">

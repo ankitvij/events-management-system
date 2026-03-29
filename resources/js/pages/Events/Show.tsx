@@ -6,7 +6,6 @@ import { useMemo, useState } from 'react';
 import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
-import OrganiserPlaceholder from '@/components/organiser-placeholder';
 import TicketCreateForm from '@/components/TicketCreateForm';
 import TicketItem from '@/components/TicketItem';
 import AppLayout from '@/layouts/app-layout';
@@ -224,8 +223,8 @@ export default function Show({ event }: Props) {
                 ]}
             </Head>
 
-            <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8' : 'p-4'}>
-                <div className="mb-3">
+            <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-0 min-[1000px]:px-6 lg:px-8' : 'p-4'}>
+                <div className="mb-3 hidden min-[1000px]:block">
                     <button type="button" className="btn-secondary" onClick={() => window.history.back()} aria-label="Go back" title="Go back">
                         <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -263,12 +262,12 @@ export default function Show({ event }: Props) {
                             srcSet={thumbnailUrl && fullImageUrl ? `${thumbnailUrl} 640w, ${fullImageUrl} 1600w` : undefined}
                             sizes="(max-width: 768px) 100vw, 900px"
                             alt={event.title}
-                            className="max-h-[500px] max-w-full h-auto w-auto rounded mx-auto"
+                            className={page.props?.canEdit ? 'max-h-[500px] max-w-full h-auto w-auto rounded mx-auto' : 'h-[210px] w-full object-cover'}
                         />
                     );
 
                     return (
-                        <div className="mb-4">
+                        <div className="mb-4 overflow-hidden rounded-2xl max-[999px]:-mx-[5px] max-[999px]:rounded-none">
                             {page.props?.canEdit && fullImageUrl ? (
                                 <a href={fullImageUrl} target="_blank" rel="noreferrer" title="Open full image">
                                     {imageElement}
@@ -278,7 +277,72 @@ export default function Show({ event }: Props) {
                     );
                 })()}
 
-                {tickets.length > 0 && (
+                {!page.props?.canEdit && tickets.length > 0 && (
+                    <section id="tickets" className="mb-5 space-y-2.5">
+                        {tickets.map((t) => {
+                            const available = t.active && t.quantity_available > 0;
+
+                            return (
+                                <div key={t.id} className={`overflow-hidden rounded-2xl border ${available ? 'border-[#d4d7de] bg-white' : 'border-[#dfe2e8] bg-[#eff1f4]'}`}>
+                                    <div className="flex">
+                                        <div className={`relative w-[82px] shrink-0 ${available ? 'bg-[#171923] text-white' : 'bg-[#cfd4dc] text-[#f9fafb]'}`}>
+                                            <div className="flex h-full min-h-[92px] flex-col items-center justify-center px-2 text-center">
+                                                <div className="text-[1.35rem] font-semibold leading-none">€{Number(t.price).toFixed(0)}</div>
+                                                <div className={`mt-1 text-xs ${available ? 'text-[#9aa3b2]' : 'text-[#eef1f5]'}`}>per person</div>
+                                            </div>
+                                            <div className="absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-[#e9ebef]" />
+                                        </div>
+
+                                        <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 p-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className={`truncate text-[1.1rem] font-medium leading-tight ${available ? 'text-[#2b313b]' : 'text-[#9aa3b2]'}`}>{t.name}</div>
+                                                <div className={`text-sm ${available ? 'text-[#16a34a]' : 'text-[#9ca3af]'}`}>{available ? 'Available' : 'Sold out'}</div>
+                                            </div>
+
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    type="button"
+                                                    className={`h-9 rounded-xl border bg-[#f8fafc] px-3 text-sm ${available ? 'border-[#8b909a] text-[#2b313b]' : 'cursor-not-allowed border-[#c8ccd4] bg-[#eef1f4] text-[#b2b8c2]'}`}
+                                                    onClick={() => addToCart(t)}
+                                                    disabled={!available}
+                                                >
+                                                    Add to cart
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={`h-9 rounded-xl px-4 text-sm font-semibold ${available ? 'bg-[#f97316] text-white' : 'cursor-not-allowed bg-[#ecd4c3] text-[#fff7f0]'}`}
+                                                    onClick={async () => {
+                                                        const ok = await addToCart(t);
+                                                        if (ok) {
+                                                            window.location.href = '/cart';
+                                                        } else {
+                                                            alert('Could not add ticket to cart. Please try again.');
+                                                        }
+                                                    }}
+                                                    disabled={!available}
+                                                >
+                                                    Buy now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {tickets.length > 2 && (
+                            <div className="pt-1 text-center text-[1.05rem] text-[#f97316]">+ View all ticket types</div>
+                        )}
+
+                        {tickets.every((t) => !t.active || t.quantity_available < 1) && (
+                            <div className="mt-3 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
+                                No tickets are currently available for this event.
+                            </div>
+                        )}
+                    </section>
+                )}
+
+                {page.props?.canEdit && tickets.length > 0 && (
                     <div id="tickets" className="mt-3 mb-4">
                         <div className="mt-2 space-y-2">
                             {tickets.map((t) => (
@@ -313,11 +377,6 @@ export default function Show({ event }: Props) {
                                 </div>
                             ))}
                         </div>
-                        {!page.props.canEdit && tickets.every((t) => !t.active || t.quantity_available < 1) && (
-                            <div className="mt-3 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">
-                                No tickets are currently available for this event.
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -327,36 +386,39 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
-                <h1 className="text-2xl font-semibold">{event.title}</h1>
+                <section className="mt-4 rounded-2xl border border-[#d7dae0] bg-white p-4">
+                    <h2 className="text-lg font-semibold text-foreground">Event details</h2>
 
-                <div className="text-sm text-muted">
-                    {event.city ? event.city : ''}{event.city && event.country ? ', ' : ''}{event.country ? event.country : ''}
-                </div>
+                    <div className="mt-3 space-y-2 text-sm text-muted">
+                        <div><span className="font-medium text-foreground">Name:</span> {event.title || '—'}</div>
+                        <div><span className="font-medium text-foreground">City:</span> {event.city || '—'}</div>
+                        <div><span className="font-medium text-foreground">Country:</span> {event.country || '—'}</div>
+                        <div><span className="font-medium text-foreground">Address:</span> {event.address || '—'}</div>
+                        <div><span className="font-medium text-foreground">Starts:</span> {event.start_at ? new Date(event.start_at).toLocaleDateString() : '—'}</div>
+                        <div><span className="font-medium text-foreground">Ends:</span> {event.end_at ? new Date(event.end_at).toLocaleDateString() : '—'}</div>
+                        <div><span className="font-medium text-foreground">Status:</span> {event.active ? 'Active' : 'Inactive'}</div>
+                        <div><span className="font-medium text-foreground">Organisers:</span> {event.organisers && event.organisers.length > 0 ? event.organisers.map((o: Organiser) => o.name).join(', ') : '—'}</div>
+                        <div>
+                            <span className="font-medium text-foreground">Facebook:</span>{' '}
+                            {event.facebook_url ? <a href={event.facebook_url} target="_blank" rel="noreferrer" className="text-[#2563eb] underline">{event.facebook_url}</a> : '—'}
+                        </div>
+                        <div>
+                            <span className="font-medium text-foreground">Instagram:</span>{' '}
+                            {event.instagram_url ? <a href={event.instagram_url} target="_blank" rel="noreferrer" className="text-[#2563eb] underline">{event.instagram_url}</a> : '—'}
+                        </div>
+                        <div>
+                            <span className="font-medium text-foreground">WhatsApp:</span>{' '}
+                            {event.whatsapp_url ? <a href={event.whatsapp_url} target="_blank" rel="noreferrer" className="text-[#2563eb] underline">{event.whatsapp_url}</a> : '—'}
+                        </div>
+                        <div><span className="font-medium text-foreground">Created by:</span> {event.user ? (event.user.name ?? event.user.email) : '—'}</div>
+                        <div><span className="font-medium text-foreground">Created:</span> {event.created_at ? new Date(event.created_at).toLocaleString() : '—'}</div>
+                        <div><span className="font-medium text-foreground">Updated:</span> {event.updated_at ? new Date(event.updated_at).toLocaleString() : '—'}</div>
+                    </div>
 
-                {/* address intentionally not displayed in public pages */}
-
-                <div className="text-sm text-muted mt-2">
-                    {event.start_at ? `Starts: ${new Date(event.start_at).toLocaleDateString()}` : 'Starts: —'}
-                    {event.end_at ? ` · Ends: ${new Date(event.end_at).toLocaleDateString()}` : ''}
-                </div>
-
-                {current && (
-                    <div className="text-sm text-muted mt-2">Status: {event.active ? 'Active' : 'Inactive'}</div>
-                )}
-
-                {event.organisers && event.organisers.length > 0 && (
-                    current ? (
-                        <div className="text-sm text-muted mt-2">Organisers: {event.organisers.map((o: Organiser) => o.name).join(', ')}</div>
-                    ) : (
-                        <OrganiserPlaceholder />
-                    )
-                )}
-
-                {(artists.length > 0 || page.props?.canEdit) && (
-                    <div className="mt-2">
-                        <div className="text-sm text-muted">Artists:</div>
+                    <div className="mt-4">
+                        <div className="text-sm font-medium text-foreground">Artists</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {artists.map((a) => (
+                            {artists.length > 0 ? artists.map((a) => (
                                 <div key={a.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
                                     {a.photo_url ? (
                                         <img src={a.photo_url} alt={a.name} className="h-6 w-6 rounded-full object-cover" />
@@ -364,42 +426,43 @@ export default function Show({ event }: Props) {
                                     <span className="font-medium">{a.name}</span>
                                     {a.city ? <span className="text-muted">· {a.city}</span> : null}
                                 </div>
-                            ))}
-                            {artists.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No artists linked yet.</div> : null}
+                            )) : <div className="text-sm text-muted">—</div>}
                         </div>
                     </div>
-                )}
 
-                {(vendors.length > 0 || page.props?.canEdit) && (
-                    <div className="mt-2">
-                        <div className="text-sm text-muted">Vendors:</div>
+                    <div className="mt-4">
+                        <div className="text-sm font-medium text-foreground">Vendors</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {vendors.map((v) => (
+                            {vendors.length > 0 ? vendors.map((v) => (
                                 <div key={v.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
                                     <span className="font-medium">{v.name}</span>
                                     {v.type ? <span className="text-muted">· {v.type}</span> : null}
                                     {v.city ? <span className="text-muted">· {v.city}</span> : null}
                                 </div>
-                            ))}
-                            {vendors.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No vendors linked yet.</div> : null}
+                            )) : <div className="text-sm text-muted">—</div>}
                         </div>
                     </div>
-                )}
 
-                {(promoters.length > 0 || page.props?.canEdit) && (
-                    <div className="mt-2">
-                        <div className="text-sm text-muted">Promoters:</div>
+                    <div className="mt-4">
+                        <div className="text-sm font-medium text-foreground">Promoters</div>
                         <div className="mt-2 flex flex-wrap gap-2">
-                            {promoters.map((promoter) => (
+                            {promoters.length > 0 ? promoters.map((promoter) => (
                                 <div key={promoter.id} className="flex items-center gap-2 rounded border px-2 py-1 text-sm">
                                     <span className="font-medium">{promoter.name}</span>
                                     {promoter.email ? <span className="text-muted">· {promoter.email}</span> : null}
                                 </div>
-                            ))}
-                            {promoters.length === 0 && page.props?.canEdit ? <div className="text-sm text-muted">No promoters linked yet.</div> : null}
+                            )) : <div className="text-sm text-muted">—</div>}
                         </div>
                     </div>
-                )}
+
+                    <div className="mt-4">
+                        <div className="text-sm font-medium text-foreground">Description</div>
+                        <div
+                            className="mt-2 rounded border border-border bg-muted/20 p-3"
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
+                        />
+                    </div>
+                </section>
 
                 {page.props?.canEdit && (
                     <div className="mt-2">
@@ -557,23 +620,10 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
-                <div
-                    className="mt-4"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description ?? '') }}
-                />
-
                 {page.props?.canEdit && (
                     <div className="mt-4 border-t pt-4">
                         <h3 className="text-sm font-medium">Create ticket type</h3>
                         <TicketCreateForm eventSlug={event.slug} />
-                    </div>
-                )}
-
-                {current && (
-                    <div className="mt-4 text-xs text-muted">
-                        <div>Created by: {event.user ? (event.user.name ?? event.user.email) : '—'}</div>
-                        <div>Created: {event.created_at ? new Date(event.created_at).toLocaleString() : '—'}</div>
-                        <div>Updated: {event.updated_at ? new Date(event.updated_at).toLocaleString() : '—'}</div>
                     </div>
                 )}
 
