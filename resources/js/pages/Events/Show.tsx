@@ -1,6 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 import ActionIcon from '@/components/action-icon';
@@ -224,11 +224,6 @@ export default function Show({ event }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-0 min-[1000px]:px-6 lg:px-8' : 'p-4'}>
-                <div className="mb-3 hidden min-[1000px]:block">
-                    <button type="button" className="btn-secondary" onClick={() => window.history.back()} aria-label="Go back" title="Go back">
-                        <ArrowLeft className="h-4 w-4" />
-                    </button>
-                </div>
                 {(() => {
                     const toStorageUrl = (path: string) => {
                         if (path.startsWith('http')) return path;
@@ -260,14 +255,14 @@ export default function Show({ event }: Props) {
                         <img
                             src={finalUrl}
                             srcSet={thumbnailUrl && fullImageUrl ? `${thumbnailUrl} 640w, ${fullImageUrl} 1600w` : undefined}
-                            sizes="(max-width: 768px) 100vw, 900px"
+                            sizes="(max-width: 999px) 100vw, 1120px"
                             alt={event.title}
-                            className={page.props?.canEdit ? 'max-h-[500px] max-w-full h-auto w-auto rounded mx-auto' : 'h-[210px] w-full object-cover'}
+                            className={page.props?.canEdit ? 'max-h-[500px] max-w-full h-auto w-auto mx-auto' : 'h-[210px] w-full object-cover object-center min-[1000px]:h-auto min-[1000px]:max-h-[560px] min-[1000px]:object-contain min-[1000px]:bg-[#eef2f7]'}
                         />
                     );
 
                     return (
-                        <div className="mb-4 overflow-hidden rounded-2xl max-[999px]:-mx-[5px] max-[999px]:rounded-none">
+                        <div className="mb-4 overflow-hidden max-[999px]:-mx-[5px]">
                             {page.props?.canEdit && fullImageUrl ? (
                                 <a href={fullImageUrl} target="_blank" rel="noreferrer" title="Open full image">
                                     {imageElement}

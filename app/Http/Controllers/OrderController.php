@@ -211,6 +211,12 @@ class OrderController extends Controller
             case 'email_desc':
                 $query->orderBy('contact_email', 'desc');
                 break;
+            case 'value_asc':
+                $query->orderBy('total', 'asc');
+                break;
+            case 'value_desc':
+                $query->orderBy('total', 'desc');
+                break;
             case 'event_asc':
                 $query->orderBy(
                     OrderItem::query()

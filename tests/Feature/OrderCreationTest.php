@@ -59,6 +59,9 @@ class OrderCreationTest extends TestCase
         // Order should exist
         $this->assertDatabaseHas('orders', ['total' => 25.00]);
         $this->assertDatabaseHas('order_items', ['quantity' => 2, 'price' => 12.50]);
+        $createdOrder = Order::query()->latest('id')->first();
+        $this->assertNotNull($createdOrder);
+        $this->assertMatchesRegularExpression('/^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{10}$/', (string) $createdOrder->booking_code);
         $orderItem = \App\Models\OrderItem::first();
         $this->assertNotNull($orderItem);
         $this->assertSame([

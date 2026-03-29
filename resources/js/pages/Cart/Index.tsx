@@ -1,7 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Trash } from 'lucide-react';
 import React from 'react';
-import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 
 function getCsrf() {
@@ -68,60 +67,95 @@ export default function CartIndex() {
         <AppLayout>
             <Head title="Your Cart" />
 
-            <div className="px-4 pt-4 pb-6 space-y-4">
-                <div className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
-                    <h1 className="text-xl font-semibold">Shopping Cart</h1>
-                    <div className="text-sm text-muted">Items in cart: {summary.count}</div>
-                    <div className="text-sm text-muted">Current total: €{Number(summary.total).toFixed(2)}</div>
+            <div className="space-y-4 px-4 pb-6 pt-4">
+                <div className="rounded-2xl border border-[#d8dbe1] bg-[#f3f4f6] p-4">
+                    <h1 className="text-xl font-semibold leading-none text-[#2a2f38]">Shopping cart</h1>
+                    <div className="mt-2 text-sm text-[#9aa1af]">{summary.count} items · €{Number(summary.total).toFixed(2)}</div>
                 </div>
+
                 {summary.items && summary.items.length > 0 ? (
                     <div className="space-y-3">
                         {summary.items.map((i: any) => (
                             <div
                                 key={i.id ?? `${i.ticket_id}_${i.event_id}` }
-                                className="box flex items-center justify-between cursor-auto hover:bg-[#eef2f7] hover:shadow-[0_14px_32px_rgba(7,8,10,0.18)]"
+                                className="overflow-hidden rounded-2xl border border-[#d8dbe1] bg-[#f3f4f6]"
                             >
-                                <div className="flex items-center gap-3">
-                                    {(i.event?.image_thumbnail_url || i.event?.image_url || i.event?.image_thumbnail || i.event?.image) && (
-                                        <img
-                                            src={i.event?.image_url ?? i.event?.image_thumbnail_url ?? (i.event?.image_thumbnail ? `/storage/${i.event.image_thumbnail}` : (i.event?.image ? `/storage/${i.event.image}` : ''))}
-                                            alt={i.event?.title}
-                                            className="w-20 h-12 object-cover rounded"
-                                        />
-                                    )}
-                                    <div>
-                                        <div className="font-medium">{i.ticket ? i.ticket.name : (i.ticket_id ? `Ticket type #${i.ticket_id}` : 'Item')}</div>
-                                        <div className="text-sm text-muted">{i.event ? `Event: ${i.event.title}` : ''}</div>
-                                        <div className="text-sm text-muted">Qty: {i.quantity}</div>
+                                <div className="flex items-start gap-3 p-4">
+                                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#234578]">
+                                        {(i.event?.image_thumbnail_url || i.event?.image_url || i.event?.image_thumbnail || i.event?.image) && (
+                                            <img
+                                                src={i.event?.image_url ?? i.event?.image_thumbnail_url ?? (i.event?.image_thumbnail ? `/storage/${i.event.image_thumbnail}` : (i.event?.image ? `/storage/${i.event.image}` : ''))}
+                                                alt={i.event?.title}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="min-w-0 flex-1">
+                                        <div className="line-clamp-2 text-base font-medium leading-tight text-[#2a2f38]">{i.ticket ? i.ticket.name : (i.ticket_id ? `Ticket type #${i.ticket_id}` : 'Item')}</div>
+                                        <div className="mt-1 truncate text-xs text-[#9aa1af]">{i.event ? i.event.title : ''}</div>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="font-medium">€{Number(i.price).toFixed(2)}</div>
-                                    <div className="mt-2 flex items-center justify-end gap-2">
-                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}>-</button>
-                                        <div className="px-2">{i.quantity}</div>
-                                        <button type="button" className="btn-ghost border border-border px-2 py-1 text-sm" onClick={() => updateItemLocal(i.id, i.quantity + 1)}>+</button>
-                                        <ActionIcon
-                                            aria-label="Delete item"
-                                            className="ml-3"
+
+                                <div className="flex items-center justify-between border-t border-[#dde0e6] px-4 py-3">
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#ebedf1] text-sm font-semibold leading-none text-[#4b5260]"
+                                            onClick={() => updateItemLocal(i.id, Math.max(1, i.quantity - 1))}
+                                        >
+                                            −
+                                        </button>
+                                        <div className="w-6 text-center text-sm text-[#2a2f38]">{i.quantity}</div>
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#ebedf1] text-sm font-semibold leading-none text-[#4b5260]"
+                                            onClick={() => updateItemLocal(i.id, i.quantity + 1)}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-base font-semibold leading-none text-[#2a2f38]">€{Number(i.price).toFixed(0)}</div>
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-[#e8b8b8]"
                                             onClick={() => removeItemLocal(i.id)}
-                                            danger
+                                            aria-label="Delete item"
                                         >
                                             <Trash className="h-4 w-4" />
-                                        </ActionIcon>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-sm text-muted">Your cart is empty.</div>
+                    <div className="rounded-2xl border border-dashed border-[#d8dbe1] bg-white p-4 text-sm text-[#9aa1af]">Your cart is empty.</div>
                 )}
 
-                <div className="text-right px-4 py-3">
-                    <div className="text-lg font-medium">Total: €{Number(summary.total).toFixed(2)}</div>
+                <div className="rounded-2xl border border-[#d8dbe1] bg-[#f3f4f6] p-4">
+                    <div className="space-y-1 text-sm text-[#9aa1af]">
+                        <div className="flex items-center justify-between">
+                            <span>Items</span>
+                            <span>{summary.count}</span>
+                        </div>
+                        <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2">
+                            <span>Subtotal</span>
+                            <span>€{Number(summary.total).toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between">
+                        <span className="text-lg font-semibold text-[#2a2f38]">Total</span>
+                        <span className="text-lg font-semibold text-[#2a2f38]">€{Number(summary.total).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <div>
                     <div className="mt-2">
-                        <Link href="/cart/checkout" className="btn-confirm">Checkout</Link>
+                        <Link href="/cart/checkout" className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#f97316] text-sm font-semibold text-white">Checkout →</Link>
                     </div>
                 </div>
             </div>

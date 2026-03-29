@@ -37,6 +37,7 @@ class DashboardTest extends TestCase
                 ->has('stats.topEvents')
                 ->has('stats.lowInventory')
                 ->has('stats.pendingOrders')
+                ->has('stats.lastOrders')
             );
     }
 }

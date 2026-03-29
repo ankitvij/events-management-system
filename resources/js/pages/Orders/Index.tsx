@@ -98,7 +98,7 @@ export default function OrdersIndex() {
                 </div>
 
                 <div className="mt-4 mb-2 hidden rounded-xl border border-[#c0cbd9] bg-[#eef2f7] p-3 text-sm text-muted md:grid md:grid-cols-12 md:gap-3">
-                    <div className="md:col-span-3 flex items-center gap-3">
+                    <div className="md:col-span-4 flex items-center gap-3">
                         <button onClick={() => applySort('booking_code')} className="btn-primary shrink-0">
                             Booking code
                             <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('booking_code_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -110,10 +110,6 @@ export default function OrdersIndex() {
                             className="input w-full !bg-white"
                         />
                     </div>
-                    <button onClick={() => applySort('name')} className="btn-primary md:col-span-2 w-full justify-start">
-                        Customer name
-                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('name_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
-                    </button>
                     <button onClick={() => applySort('event')} className="btn-primary md:col-span-2 w-full justify-start">
                         Event name
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('event_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
@@ -121,6 +117,10 @@ export default function OrdersIndex() {
                     <button onClick={() => applySort('email')} className="btn-primary md:col-span-2 w-full justify-start">
                         Customer email
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
+                    </button>
+                    <button onClick={() => applySort('value')} className="btn-primary md:col-span-1 w-full justify-start">
+                        Value
+                        <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('value_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
                     <button onClick={() => applySort('status')} className="btn-primary md:col-span-2 w-full justify-start">
                         Order status
@@ -139,12 +139,13 @@ export default function OrdersIndex() {
                         orders.data?.map((order: any) => (
                             <Link key={order.id} href={`/orders/${order.id}`} className="box block border-[#c0cbd9] bg-[#eef2f7] !px-2 transition hover:opacity-90">
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center">
-                                    <div className="md:col-span-3 px-3">
+                                    <div className="md:col-span-4 px-3">
                                         <span className="font-semibold">{order.booking_code || '—'}</span>
+                                        <div className="text-sm text-muted">{customerName(order)}</div>
                                     </div>
-                                    <div className="md:col-span-2 px-3 text-sm">{customerName(order)}</div>
                                     <div className="md:col-span-2 px-3 text-sm">{eventName(order)}</div>
                                     <div className="md:col-span-2 px-3 text-sm text-muted break-all">{customerEmail(order)}</div>
+                                    <div className="md:col-span-1 px-3 text-sm">€{Number(order.total ?? 0).toFixed(2)}</div>
                                     <div className="md:col-span-2 px-3 text-sm">{ticketStatus(order)}</div>
                                     <div className="md:col-span-1 px-3 text-sm text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                                 </div>

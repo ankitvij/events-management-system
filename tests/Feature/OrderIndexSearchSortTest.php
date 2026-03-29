@@ -104,4 +104,24 @@ class OrderIndexSearchSortTest extends TestCase
         $response->assertStatus(200);
         $response->assertSeeInOrder(['AAA-111', 'ZZZ-999']);
     }
+
+    public function test_orders_index_can_sort_by_total_value(): void
+    {
+        $admin = User::factory()->create();
+
+        Order::factory()->create([
+            'booking_code' => 'VAL-900',
+            'total' => 90.00,
+        ]);
+
+        Order::factory()->create([
+            'booking_code' => 'VAL-100',
+            'total' => 10.00,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/orders?sort=value_asc');
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder(['VAL-100', 'VAL-900']);
+    }
 }

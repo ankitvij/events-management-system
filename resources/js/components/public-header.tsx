@@ -28,7 +28,7 @@ export default function PublicHeader() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
-                                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#2f3340] text-white transition-colors hover:bg-[#3b4050]"
+                                        className="inline-flex h-10 w-10 items-center justify-center text-white transition-colors hover:text-[#d1d5db]"
                                         aria-label="Open menu"
                                         title="Open menu"
                                         onClick={toggleGuestMenu}
@@ -39,7 +39,7 @@ export default function PublicHeader() {
                                     {isEventShowPage && (
                                         <button
                                             type="button"
-                                            className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#2f3340] px-3 text-white transition-colors hover:bg-[#3b4050]"
+                                            className="inline-flex h-10 items-center gap-1.5 px-1 text-white transition-colors hover:text-[#d1d5db]"
                                             onClick={() => window.history.back()}
                                             aria-label="Go back"
                                             title="Go back"
@@ -51,11 +51,11 @@ export default function PublicHeader() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Link href="/events/create" className="guest-icon-btn" aria-label="Create event" title="Create event">
+                                    <Link href="/events/create" className="inline-flex h-10 w-10 items-center justify-center text-white transition-colors hover:text-[#d1d5db]" aria-label="Create event" title="Create event">
                                         <Calendar className="h-4 w-4" aria-hidden="true" />
                                     </Link>
                                     <SignInPrompt
-                                        buttonClassName="guest-icon-btn"
+                                        buttonClassName="inline-flex h-10 w-10 items-center justify-center text-white transition-colors hover:text-[#d1d5db]"
                                         buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
                                         ariaLabel="Sign in"
                                     />
@@ -69,6 +69,17 @@ export default function PublicHeader() {
                         <div className="flex items-center gap-1 min-[800px]:gap-2">
                             {page.props?.customer ? (
                                 <>
+                                    {isEventShowPage && (
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-10 w-10 items-center justify-center text-foreground transition-colors hover:text-[#6b7280]"
+                                            onClick={() => window.history.back()}
+                                            aria-label="Go back"
+                                            title="Go back"
+                                        >
+                                            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                                        </button>
+                                    )}
                                     <Link href="/customer/orders" className="btn-primary text-sm">My orders</Link>
                                     <a
                                         href="#"
@@ -85,11 +96,22 @@ export default function PublicHeader() {
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/events/create" className="guest-icon-btn" aria-label="Create event" title="Create event">
+                                    {isEventShowPage && (
+                                        <button
+                                            type="button"
+                                            className="inline-flex h-10 w-10 items-center justify-center text-foreground transition-colors hover:text-[#6b7280]"
+                                            onClick={() => window.history.back()}
+                                            aria-label="Go back"
+                                            title="Go back"
+                                        >
+                                            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                                        </button>
+                                    )}
+                                    <Link href="/events/create" className="inline-flex h-10 w-10 items-center justify-center text-foreground transition-colors hover:text-[#6b7280]" aria-label="Create event" title="Create event">
                                         <Calendar className="h-4 w-4" aria-hidden="true" />
                                     </Link>
                                     <SignInPrompt
-                                        buttonClassName="guest-icon-btn"
+                                        buttonClassName="inline-flex h-10 w-10 items-center justify-center text-foreground transition-colors hover:text-[#6b7280]"
                                         buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
                                         ariaLabel="Sign in"
                                     />

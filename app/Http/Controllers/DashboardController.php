@@ -118,6 +118,31 @@ class DashboardController extends Controller
         $pendingOrdersOverdueTotal = (float) $pendingOrdersOverdueQuery->sum('total');
         $pendingOrdersOldest = Order::query()->where('paid', false)->orderBy('created_at')->first();
 
+        $lastOrders = Order::query()
+            ->with([
+                'items.event:id,title',
+                'user:id,name,email',
+                'customer:id,name,email',
+            ])
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn (Order $order) => [
+                'id' => $order->id,
+                'bookingCode' => $order->booking_code,
+                'eventTitle' => $order->items
+                    ->pluck('event.title')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->first() ?? '—',
+                'customerName' => $order->contact_name ?: ($order->customer?->name ?: ($order->user?->name ?: '—')),
+                'customerEmail' => $order->contact_email ?: ($order->customer?->email ?: ($order->user?->email ?: '—')),
+                'total' => (float) $order->total,
+                'createdAt' => $order->created_at?->toDateTimeString(),
+            ])
+            ->values();
+
         $stats = [
             'events' => [
                 'total' => $eventsTotal,
@@ -164,6 +189,7 @@ class DashboardController extends Controller
                 'overdueTotal' => $pendingOrdersOverdueTotal,
                 'oldestCreatedAt' => $pendingOrdersOldest?->created_at?->toDateTimeString(),
             ],
+            'lastOrders' => $lastOrders,
         ];
 
         return Inertia::render('dashboard', [

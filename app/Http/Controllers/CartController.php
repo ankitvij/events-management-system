@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -183,14 +184,9 @@ class CartController extends Controller
                 }
 
                 // create an order and order items to represent this reservation
-                // generate a unique 10-digit booking code for this order
+                // generate a unique 10-char booking code with letters + numbers
                 do {
-                    try {
-                        $code = (string) random_int(1000000000, 9999999999);
-                    } catch (\Throwable $e) {
-                        // fallback if random_int is not available
-                        $code = substr((string) time().(string) rand(1000, 9999), 0, 10);
-                    }
+                    $code = $this->generateBookingCode();
                 } while (\App\Models\Order::where('booking_code', $code)->exists());
                 $total = $cart->items->sum(function ($i) {
                     return $i->quantity * $i->price;
@@ -445,5 +441,18 @@ class CartController extends Controller
         }
 
         return $cart;
+    }
+
+    protected function generateBookingCode(): string
+    {
+        try {
+            $numbers = (string) random_int(1000, 9999);
+        } catch (\Throwable $e) {
+            $numbers = (string) mt_rand(1000, 9999);
+        }
+
+        $letters = preg_replace('/[^A-Z]/', 'A', Str::upper(Str::random(6)) ?? 'AAAAAA');
+
+        return Str::upper(str_shuffle($letters.$numbers));
     }
 }

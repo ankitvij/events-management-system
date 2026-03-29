@@ -94,13 +94,13 @@ export default function CartButton() {
                 type="button"
                 title={`${summary.count} items — €${Number(summary.total).toFixed(2)}`}
                 onClick={() => setOpen((v) => !v)}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c] min-[1000px]:bg-[#18181b] min-[1000px]:hover:bg-[#09090b]"
+                className="inline-flex h-11 items-center justify-center px-1 text-sm font-semibold text-white transition-colors hover:text-[#d1d5db] min-[1000px]:text-foreground min-[1000px]:hover:text-[#6b7280]"
             >
                 <ShoppingCart className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 <span>€{Number(summary.total).toFixed(2)}</span>
 
                 {summary.count > 0 && (
-                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-[11px] text-white">{summary.count}</span>
+                    <span className="ml-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#f97316] px-1.5 text-xs text-white">{summary.count}</span>
                 )}
             </button>
 
@@ -173,14 +173,14 @@ export default function CartButton() {
 
                     <div className="border-t border-[#d6d9df] bg-white px-4 py-3">
                         <div className="mb-3 flex items-center justify-between">
-                            <div className="text-lg text-[#99a1af]">Total</div>
+                            <div className="text-lg font-semibold text-[#2a2f38]">Total</div>
                             <div className="text-lg font-semibold leading-none text-[#232733]">€{Number(summary.total).toFixed(2)}</div>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Link href="/cart" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#2e3440] text-[1.05rem] font-medium text-[#2a2f38]" onClick={() => setOpen(false)}>View cart</Link>
+                            <Link href="/cart" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#2e3440] text-sm font-semibold text-[#2a2f38]" onClick={() => setOpen(false)}>View cart</Link>
                             {summary.count > 0 && (
-                                <Link href="/cart/checkout" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#f97316] text-[1.05rem] font-medium text-white" onClick={() => setOpen(false)}>Checkout →</Link>
+                                <Link href="/cart/checkout" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#f97316] text-sm font-semibold text-white" onClick={() => setOpen(false)}>Checkout →</Link>
                             )}
                         </div>
                     </div>

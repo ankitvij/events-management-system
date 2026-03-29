@@ -79,6 +79,15 @@ type Props = {
             overdueTotal: number;
             oldestCreatedAt?: string | null;
         };
+        lastOrders: Array<{
+            id: number;
+            bookingCode: string;
+            eventTitle: string;
+            customerName: string;
+            customerEmail: string;
+            total: number;
+            createdAt?: string | null;
+        }>;
     };
 };
 
@@ -271,6 +280,30 @@ export default function Dashboard({ events = [], stats }: Props) {
                             {stats.pendingOrders.oldestCreatedAt ? (
                                 <div className="text-amber-800">Oldest pending: {new Date(stats.pendingOrders.oldestCreatedAt).toLocaleString()}</div>
                             ) : null}
+                        </div>
+
+                        <div className="mt-4">
+                            <h3 className="text-base font-semibold">Last 10 Orders</h3>
+                            <div className="mt-2 space-y-2">
+                                {stats.lastOrders.length === 0 ? (
+                                    <div className="text-sm text-muted">No orders yet.</div>
+                                ) : (
+                                    stats.lastOrders.map((order) => (
+                                        <Link key={order.id} href={`/orders/${order.id}`} className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <div className="truncate text-sm font-semibold text-slate-900">{order.bookingCode}</div>
+                                                    <div className="truncate text-xs text-slate-500">{order.eventTitle} • {order.customerEmail}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-sm font-semibold text-slate-900">{currencyFormatter.format(order.total)}</div>
+                                                    <div className="text-xs text-slate-500">{order.createdAt ? new Date(order.createdAt).toLocaleDateString() : '—'}</div>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ))
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
