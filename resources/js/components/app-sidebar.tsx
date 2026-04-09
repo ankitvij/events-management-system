@@ -16,6 +16,7 @@ import {
     Mic2,
     Megaphone,
     BadgePercent,
+    MapPin,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -60,6 +61,7 @@ export function AppSidebar() {
     if (isManager) {
         items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
         items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
+        items.push({ title: 'Venues', href: '/venues', icon: MapPin });
         items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
         items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
         items.push({ title: 'Pages', href: '/pages', icon: FileText });

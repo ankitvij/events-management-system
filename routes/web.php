@@ -279,6 +279,7 @@ use App\Http\Controllers\VendorCalendarController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorPortalController;
 use App\Http\Controllers\VendorSignupController;
+use App\Http\Controllers\VenueController;
 
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
@@ -366,6 +367,11 @@ Route::resource('artists', ArtistController::class)->middleware(['auth'])->excep
 Route::resource('vendors', VendorController::class)->only(['index', 'show']);
 Route::put('vendors/{vendor}/active', [VendorController::class, 'toggleActive'])->middleware(['auth'])->name('vendors.active');
 Route::resource('vendors', VendorController::class)->middleware(['auth'])->except(['index', 'show']);
+
+// Admin venues management
+Route::resource('venues', VenueController::class)->only(['index', 'show']);
+Route::put('venues/{venue}/active', [VenueController::class, 'toggleActive'])->middleware(['auth'])->name('venues.active');
+Route::resource('venues', VenueController::class)->middleware(['auth'])->except(['index', 'show']);
 
 use App\Http\Controllers\Admin\LogController;
 

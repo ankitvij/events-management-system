@@ -50,7 +50,24 @@ export default function GuestLanding({ events }: Props) {
             return 'Date TBD';
         }
 
-        return new Date(value).toLocaleDateString();
+        return new Date(value).toLocaleDateString(undefined, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
+    const summarizeDescription = (value?: string | null): string | null => {
+        if (!value) {
+            return null;
+        }
+
+        const normalized = value.trim();
+        if (normalized === '') {
+            return null;
+        }
+
+        return normalized.length > 140 ? `${normalized.slice(0, 140)}...` : normalized;
     };
 
     useEffect(() => {
@@ -141,6 +158,34 @@ export default function GuestLanding({ events }: Props) {
         router.get(`${window.location.pathname}${sp.toString() ? `?${sp.toString()}` : ''}`);
     }
 
+    function runSearchNow() {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const qs = new URLSearchParams(window.location.search);
+        if (search) {
+            qs.set('q', search);
+        } else {
+            qs.delete('q');
+        }
+
+        if (selectedCity) {
+            qs.set('city', selectedCity);
+        } else {
+            qs.delete('city');
+        }
+
+        if (selectedCountry) {
+            qs.set('country', selectedCountry);
+        } else {
+            qs.delete('country');
+        }
+
+        qs.delete('page');
+        router.get(`${window.location.pathname}${qs.toString() ? `?${qs.toString()}` : ''}`);
+    }
+
     function visitEvent(slug?: string | null) {
         if (slug) {
             router.visit(`/${slug}`);
@@ -159,26 +204,24 @@ export default function GuestLanding({ events }: Props) {
                 <div className="min-w-0 flex-1">
                 <section className="mt-4 min-[800px]:mt-6">
                     <div className="guest-surface mt-3 p-3 shadow-sm min-[800px]:p-4">
-                        <div className="grid grid-cols-2 gap-2 min-[800px]:grid-cols-[minmax(0,1fr)_14rem_14rem_auto]">
-                            <input
-                                name="q"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                placeholder="Search events..."
-                                className="input h-10 w-full !bg-white col-span-2 min-[800px]:col-span-1"
-                            />
+                        <div className="grid grid-cols-2 gap-2 min-[800px]:grid-cols-[minmax(0,1fr)_12rem_12rem]">
+                            <div className="col-span-2 flex min-[800px]:col-span-1">
+                                <input
+                                    name="q"
+                                    value={search}
+                                    onChange={e => setSearch(e.target.value)}
+                                    placeholder="Search events, artists, venues..."
+                                    className="input h-10 w-full !rounded-r-none !bg-white"
+                                />
 
-                            <select
-                                value={selectedCity}
-                                onChange={(e) => setSelectedCity(e.target.value)}
-                                className="input h-10 w-full !bg-white"
-                                aria-label="Filter by city"
-                            >
-                                <option value="">All cities</option>
-                                {cityOptions.map((city) => (
-                                    <option key={city} value={city}>{city}</option>
-                                ))}
-                            </select>
+                                <button
+                                    type="button"
+                                    className="guest-accent-btn h-10 !rounded-l-none min-[800px]:px-6"
+                                    onClick={runSearchNow}
+                                >
+                                    Search
+                                </button>
+                            </div>
 
                             <select
                                 value={selectedCountry}
@@ -192,8 +235,20 @@ export default function GuestLanding({ events }: Props) {
                                 ))}
                             </select>
 
+                            <select
+                                value={selectedCity}
+                                onChange={(e) => setSelectedCity(e.target.value)}
+                                className="input h-10 w-full !bg-white"
+                                aria-label="Filter by city"
+                            >
+                                <option value="">All cities</option>
+                                {cityOptions.map((city) => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
+
                             {(search || selectedCity || selectedCountry || params?.get('sort')) ? (
-                                <button type="button" className="guest-accent-btn col-span-2 w-full min-[800px]:col-span-1 min-[800px]:justify-self-end min-[800px]:w-auto" onClick={resetFilters}>
+                                <button type="button" className="guest-accent-btn col-span-2 w-full min-[800px]:col-span-3 min-[800px]:justify-self-end min-[800px]:w-auto" onClick={resetFilters}>
                                     Reset filters
                                 </button>
                             ) : null}
@@ -201,10 +256,15 @@ export default function GuestLanding({ events }: Props) {
                     </div>
 
                     {events?.links && (
-                        <CompactPagination links={events.links} className="mt-3 justify-center min-[800px]:justify-start" />
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                            <CompactPagination links={events.links} className="justify-center min-[800px]:justify-start" />
+                            <Link href="/events/create" className="hidden min-[1000px]:inline-flex h-10 items-center rounded-md bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]">
+                                List your event
+                            </Link>
+                        </div>
                     )}
 
-                    <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 p-3 text-sm">
+                    <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 rounded-t-xl border border-b-0 border-[#d1d5db] bg-[#f3f4f6] px-4 py-3 text-sm">
                         <div className="flex items-center gap-3 min-w-0">
                             <button
                                 onClick={() => applySort('title')}
@@ -238,15 +298,15 @@ export default function GuestLanding({ events }: Props) {
 
                     </div>
 
-                    <div className="space-y-2 px-2 min-[800px]:space-y-3 min-[800px]:px-0">
+                    <div className="space-y-2 px-2 min-[800px]:space-y-0 min-[800px]:rounded-b-xl min-[800px]:border min-[800px]:border-[#d1d5db] min-[800px]:bg-white min-[800px]:px-0">
                         {events?.data?.length ? (
-                            events.data.map((event: Event) => {
+                            events.data.map((event: Event, index: number) => {
                                 const priceRange = formatTicketRange(event);
 
                                 return (
                                     <div
                                         key={event.id}
-                                        className="box border-[#d1d5db] bg-white shadow-none hover:bg-[#f9fafb] max-[799px]:border-0 max-[799px]:bg-transparent max-[799px]:p-0 max-[799px]:shadow-none max-[799px]:hover:bg-transparent"
+                                        className="box border-[#d1d5db] bg-white shadow-none hover:bg-[#f9fafb] max-[799px]:border-0 max-[799px]:bg-transparent max-[799px]:p-0 max-[799px]:shadow-none max-[799px]:hover:bg-transparent min-[800px]:rounded-none min-[800px]:border-0 min-[800px]:bg-transparent min-[800px]:p-0 min-[800px]:hover:bg-[#f9fafb]"
                                         role="link"
                                         tabIndex={0}
                                         onClick={() => visitEvent(event.slug)}
@@ -258,8 +318,8 @@ export default function GuestLanding({ events }: Props) {
                                         }}
                                     >
                                         <div className="min-[800px]:hidden overflow-hidden rounded-xl border border-[#d1d5db] bg-white">
-                                            <div className="grid grid-cols-[6.9rem_minmax(0,1fr)]">
-                                                <div className="h-full min-h-[6.75rem] overflow-hidden bg-[#cfd4dd]">
+                                            <div className="grid grid-cols-[8.25rem_minmax(0,1fr)]">
+                                                <div className="h-full min-h-[7.75rem] overflow-hidden bg-[#cfd4dd]">
                                                     <img
                                                         src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
                                                         alt={event.title}
@@ -268,6 +328,9 @@ export default function GuestLanding({ events }: Props) {
                                                 </div>
                                                 <div className="flex min-w-0 flex-col p-3">
                                                     <div className="text-[1.1rem] font-semibold leading-tight break-words whitespace-normal text-foreground">{event.title}</div>
+                                                    {summarizeDescription(event.description) ? (
+                                                        <div className="mt-1 text-sm text-muted break-words whitespace-normal">{summarizeDescription(event.description)}</div>
+                                                    ) : null}
                                                     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                                                         <span>{event.city ?? 'City TBD'}</span>
                                                         <span className="text-[#f97316]">•</span>
@@ -291,9 +354,9 @@ export default function GuestLanding({ events }: Props) {
                                             </div>
                                         </div>
 
-                                        <div className="hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 items-center">
+                                        <div className={`hidden min-[800px]:grid min-[800px]:grid-cols-[minmax(0,1fr)_80px_80px_100px_140px] gap-4 items-center px-4 py-3 ${index < (events.data.length - 1) ? 'border-b border-[#e5e7eb]' : ''}`}>
                                             <div className="flex flex-col sm:flex-row sm:items-start gap-3 min-w-0">
-                                                <div className="w-20 h-12 flex-shrink-0 self-start">
+                                                <div className="w-28 h-16 flex-shrink-0 self-start">
                                                     <img
                                                         src={event.image_thumbnail ? `/storage/${event.image_thumbnail}` : (event.image ? `/storage/${event.image}` : '/images/default-event.svg')}
                                                         alt={event.title}
@@ -302,6 +365,9 @@ export default function GuestLanding({ events }: Props) {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="text-lg font-medium break-words whitespace-normal">{event.title}</div>
+                                                    {summarizeDescription(event.description) ? (
+                                                        <div className="mt-1 text-sm text-muted break-words whitespace-normal">{summarizeDescription(event.description)}</div>
+                                                    ) : null}
                                                 </div>
                                             </div>
 
@@ -312,7 +378,7 @@ export default function GuestLanding({ events }: Props) {
                                                 <Link
                                                     href={`/${event.slug}#tickets`}
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className={`${ticketButtonClass} h-10 px-5`}
+                                                    className={`${ticketButtonClass} h-10 w-[7.7rem] justify-center px-0`}
                                                 >
                                                     Buy Tickets
                                                 </Link>

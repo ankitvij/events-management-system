@@ -488,7 +488,7 @@ export default function CartCheckout() {
                                     <Link href="/cart" className="inline-flex h-11 items-center justify-center rounded-xl border border-[#2e3440] px-4 text-sm font-semibold text-[#2a2f38]" onClick={() => window.dispatchEvent(new CustomEvent('cart:updated'))}>Back to cart</Link>
                                     <button
                                         type="button"
-                                        className="inline-flex h-11 items-center justify-center rounded-xl bg-[#f97316] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-[#ecd4c3]"
+                                        className="inline-flex h-11 items-center justify-center rounded-xl bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c] disabled:cursor-not-allowed disabled:bg-[#ecd4c3]"
                                         onClick={handleConfirm}
                                         disabled={loading || items.length === 0}
                                     >

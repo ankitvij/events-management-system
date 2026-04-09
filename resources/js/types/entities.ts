@@ -47,6 +47,17 @@ export type Vendor = {
     updated_at?: string | null;
 };
 
+export type Venue = {
+    id: number;
+    name: string;
+    email: string;
+    city?: string | null;
+    description?: string | null;
+    active?: boolean;
+    created_at?: string | null;
+    updated_at?: string | null;
+};
+
 export type Event = {
     id: number;
     slug?: string | null;
@@ -67,6 +78,7 @@ export type Event = {
     organiser?: Organiser | null;
     organisers?: Organiser[];
     vendors?: Vendor[];
+    venues?: Venue[];
     promoters?: Promoter[];
     user?: UserShort | null;
     start_at?: string | null;

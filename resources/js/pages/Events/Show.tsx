@@ -1,6 +1,6 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import DOMPurify from 'dompurify';
-import { Pencil } from 'lucide-react';
+import { ArrowLeft, CalendarDays, MapPin, Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
 import ActionIcon from '@/components/action-icon';
@@ -190,6 +190,157 @@ export default function Show({ event }: Props) {
         return false;
     }
 
+    const formatDateLabel = (value?: string | null): string => {
+        if (!value) {
+            return 'Date TBD';
+        }
+
+        return new Date(value).toLocaleDateString(undefined, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
+    const formatDateRangeLabel = (): string => {
+        if (event.start_at && event.end_at) {
+            return `${formatDateLabel(event.start_at)} -> ${formatDateLabel(event.end_at)}`;
+        }
+
+        return formatDateLabel(event.start_at ?? event.end_at);
+    };
+
+    if (!page.props?.canEdit) {
+        const toStorageUrl = (path: string) => {
+            if (path.startsWith('http')) {
+                return path;
+            }
+            if (path.startsWith('/storage/')) {
+                return path;
+            }
+            if (path.startsWith('storage/')) {
+                return `/${path}`;
+            }
+            return `/storage/${path}`;
+        };
+
+        const imagePath = event.image_url ?? event.image_thumbnail_url ?? event.image ?? event.image_thumbnail;
+        const imageUrl = imagePath ? toStorageUrl(imagePath) : null;
+
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title={event.title} />
+
+                <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-0 min-[1000px]:px-6 lg:px-8' : 'p-4'}>
+                    <div className="min-[1000px]:grid min-[1000px]:grid-cols-[minmax(0,1fr)_24rem] min-[1000px]:gap-4">
+                        <div className="min-w-0">
+                            <div className="relative w-full overflow-hidden bg-[#1f3f6d] max-[999px]:-mx-0 min-[1000px]:-mt-4 min-[1000px]:-ml-6 min-[1000px]:-mr-6 lg:-ml-8 lg:-mr-8">
+                                    <button
+                                        type="button"
+                                        className="absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-md bg-black/55 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-black/70"
+                                        onClick={() => window.history.back()}
+                                        aria-label="Back"
+                                        title="Back"
+                                    >
+                                        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+                                        <span>Back</span>
+                                    </button>
+                                    {imageUrl ? (
+                                        <img
+                                            src={imageUrl}
+                                            alt={event.title}
+                                            className="h-[16rem] w-full object-cover object-center min-[1000px]:h-[20rem]"
+                                        />
+                                    ) : (
+                                        <div className="h-[16rem] w-full bg-[#1f3f6d] min-[1000px]:h-[20rem]" />
+                                    )}
+                            </div>
+
+                            <h1 className="mt-3 text-[1.65rem] font-semibold leading-tight text-[#2a2f38]">{event.title}</h1>
+
+                            {event.description ? (
+                                <p className="mt-2 max-w-4xl text-[0.97rem] leading-relaxed text-[#616976]">
+                                    {event.description}
+                                </p>
+                            ) : null}
+
+                            <div className="mt-3 space-y-1.5 text-[1rem] text-[#707786]">
+                                <div className="flex items-center gap-2">
+                                    <CalendarDays className="h-4 w-4 text-[#f97316]" aria-hidden="true" />
+                                    <span>{formatDateRangeLabel()}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4 text-[#f97316]" aria-hidden="true" />
+                                    <span>
+                                        {event.address
+                                            ? event.address
+                                            : [event.city, event.country].filter(Boolean).join(', ') || 'Location TBD'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <aside id="tickets" className="mt-4 p-0 min-[1000px]:mt-0">
+                            <div className="space-y-2.5">
+                                {tickets.map((ticket) => {
+                                    const available = ticket.active && ticket.quantity_available > 0;
+
+                                    return (
+                                        <div key={ticket.id} className={`overflow-hidden rounded-xl border ${available ? 'border-[#d2d6dd] bg-white' : 'border-[#dfe2e8] bg-[#eff1f4]'}`}>
+                                            <div className="flex min-h-[4.4rem]">
+                                                <div className={`w-[4.9rem] shrink-0 ${available ? 'bg-[#171923] text-white' : 'bg-[#cfd4dc] text-[#f1f5f9]'}`}>
+                                                    <div className="flex h-full flex-col items-center justify-center px-2 text-center">
+                                                        <div className="text-lg font-semibold leading-none">€{Number(ticket.price).toFixed(0)}</div>
+                                                        <div className="mt-1 text-xs opacity-80">/ person</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 p-2">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className={`truncate text-sm font-medium ${available ? 'text-[#2b313b]' : 'text-[#9aa3b2]'}`}>{ticket.name}</div>
+                                                        <div className={`text-xs font-medium ${available ? 'text-[#16a34a]' : 'text-[#9ca3af]'}`}>{available ? 'Available' : 'Sold out'}</div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            type="button"
+                                                            className={`h-10 rounded-lg border px-4 text-sm font-medium ${available ? 'border-[#8b909a] bg-[#f8fafc] text-[#2b313b]' : 'cursor-not-allowed border-[#c8ccd4] bg-[#eef1f4] text-[#b2b8c2]'}`}
+                                                            onClick={() => addToCart(ticket)}
+                                                            disabled={!available}
+                                                        >
+                                                            Add to cart
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className={`h-10 rounded-lg px-4 text-sm font-semibold ${available ? 'bg-[#f97316] text-white transition-colors hover:bg-[#ea580c]' : 'cursor-not-allowed bg-[#ecd4c3] text-[#fff7f0]'}`}
+                                                            onClick={async () => {
+                                                                const ok = await addToCart(ticket);
+                                                                if (ok) {
+                                                                    window.location.href = '/cart';
+                                                                }
+                                                            }}
+                                                            disabled={!available}
+                                                        >
+                                                            Buy now
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {tickets.length > 2 && (
+                                <div className="pt-2 text-center text-[1.35rem] text-[#f97316]">+ View all ticket types</div>
+                            )}
+                        </aside>
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={event.title}>
@@ -261,8 +412,12 @@ export default function Show({ event }: Props) {
                         />
                     );
 
+                    const imageWrapClass = showHomeHeader
+                        ? 'mb-4 overflow-hidden max-[999px]:-mx-[5px] min-[1000px]:-mt-4 min-[1000px]:-mx-6 lg:-mx-8'
+                        : 'mb-4 overflow-hidden max-[999px]:-mx-[5px] min-[1000px]:-mt-4 min-[1000px]:-mx-4';
+
                     return (
-                        <div className="mb-4 overflow-hidden max-[999px]:-mx-[5px]">
+                        <div className={imageWrapClass}>
                             {page.props?.canEdit && fullImageUrl ? (
                                 <a href={fullImageUrl} target="_blank" rel="noreferrer" title="Open full image">
                                     {imageElement}
@@ -305,7 +460,7 @@ export default function Show({ event }: Props) {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className={`h-9 rounded-xl px-4 text-sm font-semibold ${available ? 'bg-[#f97316] text-white' : 'cursor-not-allowed bg-[#ecd4c3] text-[#fff7f0]'}`}
+                                                    className={`h-9 rounded-xl px-4 text-sm font-semibold ${available ? 'bg-[#f97316] text-white transition-colors hover:bg-[#ea580c]' : 'cursor-not-allowed bg-[#ecd4c3] text-[#fff7f0]'}`}
                                                     onClick={async () => {
                                                         const ok = await addToCart(t);
                                                         if (ok) {

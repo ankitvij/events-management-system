@@ -226,12 +226,18 @@
         background-color: #18181b;
         border: 1px solid #27272a;
         color: #e4e4e7;
-        border-radius: 1rem 0 0 0;
+        border-radius: 0;
         box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
     }
 
+    a:hover,
+    button:hover,
+    .btn:hover {
+        filter: brightness(0.9);
+    }
+
     .guest-sidebar-link {
-        @apply inline-flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors;
+        @apply flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium transition-colors;
         color: #a1a1aa;
     }
 
@@ -415,14 +421,14 @@
     }
 
     .btn-secondary {
-        background-color: #e39e21;
+        background-color: #f97316;
         color: #fff;
         border-radius: 5px;
         @apply inline-flex items-center justify-center font-semibold transition-colors cursor-pointer px-3 py-2 text-sm whitespace-nowrap shrink-0 min-w-max;
     }
 
     .btn-secondary:hover {
-        background-color: #c5851c;
+        background-color: #ea580c;
     }
 
     .box {

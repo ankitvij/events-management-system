@@ -94,7 +94,7 @@ export default function CartButton() {
                 type="button"
                 title={`${summary.count} items — €${Number(summary.total).toFixed(2)}`}
                 onClick={() => setOpen((v) => !v)}
-                className="inline-flex h-11 items-center justify-center px-1 text-sm font-semibold text-white transition-colors hover:text-[#d1d5db] min-[1000px]:text-foreground min-[1000px]:hover:text-[#6b7280]"
+                className="inline-flex h-11 items-center justify-center px-1 text-sm font-semibold text-white transition-colors hover:text-[#d1d5db]"
             >
                 <ShoppingCart className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 <span>€{Number(summary.total).toFixed(2)}</span>
@@ -180,7 +180,7 @@ export default function CartButton() {
                         <div className="flex items-center gap-2">
                             <Link href="/cart" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#2e3440] text-sm font-semibold text-[#2a2f38]" onClick={() => setOpen(false)}>View cart</Link>
                             {summary.count > 0 && (
-                                <Link href="/cart/checkout" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#f97316] text-sm font-semibold text-white" onClick={() => setOpen(false)}>Checkout →</Link>
+                                <Link href="/cart/checkout" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-[#f97316] text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]" onClick={() => setOpen(false)}>Checkout →</Link>
                             )}
                         </div>
                     </div>

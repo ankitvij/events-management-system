@@ -155,7 +155,7 @@ export default function CartIndex() {
 
                 <div>
                     <div className="mt-2">
-                        <Link href="/cart/checkout" className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#f97316] text-sm font-semibold text-white">Checkout →</Link>
+                        <Link href="/cart/checkout" className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#f97316] text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]">Checkout →</Link>
                     </div>
                 </div>
             </div>

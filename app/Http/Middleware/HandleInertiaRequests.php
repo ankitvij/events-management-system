@@ -67,6 +67,19 @@ class HandleInertiaRequests extends Middleware
 
                 return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email];
             })(),
+            'organiser' => (function () use ($request) {
+                $id = $request->session()->get('organiser_id');
+                if (! $id) {
+                    return null;
+                }
+
+                $organiser = \App\Models\Organiser::query()->find($id);
+                if (! $organiser) {
+                    return null;
+                }
+
+                return ['id' => $organiser->id, 'name' => $organiser->name, 'email' => $organiser->email];
+            })(),
             'artist' => (function () use ($request) {
                 $id = $request->session()->get('artist_id');
                 if (! $id) {
