@@ -22,6 +22,7 @@ class OrderController extends Controller
 {
     protected const PAYMENT_STATUSES = [
         'pending',
+        'partially_paid',
         'paid',
         'not_paid',
         'failed',
@@ -74,6 +75,10 @@ class OrderController extends Controller
     {
         $this->authorizeOrderAdminAction($order, request());
 
+        if (! $this->canCheckInOrder($order)) {
+            return redirect()->back()->with('error', 'Check-in is only allowed after payment is received.');
+        }
+
         $order->loadMissing('items');
         foreach ($order->items as $item) {
             $item->checked_in_quantity = max(1, (int) $item->quantity);
@@ -88,6 +93,10 @@ class OrderController extends Controller
     public function checkInItem(Order $order, OrderItem $item)
     {
         $this->authorizeOrderAdminAction($order, request());
+
+        if (! $this->canCheckInOrder($order)) {
+            return redirect()->back()->with('error', 'Check-in is only allowed after payment is received.');
+        }
 
         if ($item->order_id !== $order->id) {
             abort(404);
@@ -240,11 +249,11 @@ class OrderController extends Controller
                 );
                 break;
             case 'status_asc':
-                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN checked_in = 1 THEN 2 WHEN payment_status = 'paid' THEN 3 ELSE 4 END ASC")
+                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN payment_status = 'failed' THEN 2 WHEN payment_status = 'refunded' THEN 3 WHEN payment_status = 'not_paid' THEN 4 WHEN payment_status = 'pending' THEN 5 WHEN payment_status = 'partially_paid' THEN 6 WHEN payment_status = 'paid' THEN 7 ELSE 8 END ASC")
                     ->orderBy('created_at', 'desc');
                 break;
             case 'status_desc':
-                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN checked_in = 1 THEN 2 WHEN payment_status = 'paid' THEN 3 ELSE 4 END DESC")
+                $query->orderByRaw("CASE WHEN payment_status = 'cancelled' THEN 1 WHEN payment_status = 'failed' THEN 2 WHEN payment_status = 'refunded' THEN 3 WHEN payment_status = 'not_paid' THEN 4 WHEN payment_status = 'pending' THEN 5 WHEN payment_status = 'partially_paid' THEN 6 WHEN payment_status = 'paid' THEN 7 ELSE 8 END DESC")
                     ->orderBy('created_at', 'desc');
                 break;
             case 'date_asc':
@@ -949,5 +958,10 @@ class OrderController extends Controller
         $zip->close();
 
         return ['path' => $zipPath, 'name' => $zipName];
+    }
+
+    protected function canCheckInOrder(Order $order): bool
+    {
+        return (bool) $order->paid && (string) ($order->payment_status ?? '') === 'paid';
     }
 }

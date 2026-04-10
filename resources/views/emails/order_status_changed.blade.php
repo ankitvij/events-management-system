@@ -8,7 +8,7 @@
     <p><strong>Previous status:</strong> {{ $previousStatusLabel }}</p>
     <p><strong>New status:</strong> {{ $newStatusLabel }}</p>
     @if(($newPaymentStatus ?? '') === 'paid')
-        <p style="margin: 8px 0 0 0; color: #16a34a; font-weight: 700;">Payment Accepted</p>
+        <p style="margin: 12px 0 4px 0; color: #15803d; font-size: 20px; line-height: 1.25; font-weight: 800; letter-spacing: 0.2px;">Payment Accepted</p>
     @endif
 
     <h3>Tickets</h3>

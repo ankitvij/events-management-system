@@ -36,6 +36,7 @@ class OrderAdminActionsTest extends TestCase
 
         $order = Order::create([
             'status' => 'paid',
+            'payment_status' => 'paid',
             'total' => 20.00,
             'contact_name' => 'Guest Buyer',
             'contact_email' => 'guest@example.com',
@@ -73,6 +74,104 @@ class OrderAdminActionsTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
             'checked_in' => true,
+        ]);
+    }
+
+    public function test_admin_cannot_check_in_item_when_order_is_not_paid(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Unpaid Check In',
+            'price' => 10.00,
+            'quantity_total' => 10,
+            'quantity_available' => 10,
+            'active' => true,
+        ]);
+
+        $order = Order::create([
+            'status' => 'pending',
+            'payment_status' => 'pending',
+            'total' => 20.00,
+            'contact_name' => 'Guest Buyer',
+            'contact_email' => 'guest@example.com',
+            'booking_code' => 'UNPAID1',
+            'paid' => false,
+            'checked_in' => false,
+        ]);
+
+        $item = OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 2,
+            'checked_in_quantity' => 0,
+            'price' => 10.00,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('orders.items.checkIn', [$order, $item]))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Check-in is only allowed after payment is received.');
+
+        $this->assertDatabaseHas('order_items', [
+            'id' => $item->id,
+            'checked_in_quantity' => 0,
+        ]);
+    }
+
+    public function test_admin_cannot_check_in_full_order_when_order_is_not_paid(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Unpaid Full Check In',
+            'price' => 10.00,
+            'quantity_total' => 10,
+            'quantity_available' => 10,
+            'active' => true,
+        ]);
+
+        $order = Order::create([
+            'status' => 'pending',
+            'payment_status' => 'pending',
+            'total' => 20.00,
+            'contact_name' => 'Guest Buyer',
+            'contact_email' => 'guest@example.com',
+            'booking_code' => 'UNPAID2',
+            'paid' => false,
+            'checked_in' => false,
+        ]);
+
+        $item = OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 2,
+            'checked_in_quantity' => 0,
+            'price' => 10.00,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('orders.check-in', $order))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Check-in is only allowed after payment is received.');
+
+        $this->assertDatabaseHas('order_items', [
+            'id' => $item->id,
+            'checked_in_quantity' => 0,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'checked_in' => false,
         ]);
     }
 
@@ -116,6 +215,29 @@ class OrderAdminActionsTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
             'payment_status' => 'not_paid',
+            'paid' => false,
+        ]);
+    }
+
+    public function test_admin_can_update_payment_status_to_partially_paid(): void
+    {
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'pending',
+            'paid' => false,
+        ]);
+
+        $response = $this->actingAs($admin)->put(route('orders.payment-status', $order), [
+            'payment_status' => 'partially_paid',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'payment_status' => 'partially_paid',
             'paid' => false,
         ]);
     }
@@ -254,7 +376,8 @@ class OrderAdminActionsTest extends TestCase
 
             return $mail->hasTo('customer@example.test')
                 && str_contains($html, 'Payment Accepted')
-                && str_contains($html, 'color: #16a34a');
+                && str_contains($html, 'color: #15803d')
+                && str_contains($html, 'font-size: 20px');
         });
     }
 

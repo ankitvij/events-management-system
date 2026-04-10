@@ -3,9 +3,31 @@ import CompactPagination from '@/components/compact-pagination';
 import AppLayout from '@/layouts/app-layout';
 
 export default function OrdersIndex() {
-    const page = usePage<{ orders?: { data?: any[]; links?: any[] } }>();
+    const page = usePage<{
+        orders?: { data?: any[]; links?: any[] };
+        auth?: { user?: { role?: string; is_super_admin?: boolean } | null };
+        organiser?: { id: number } | null;
+    }>();
     const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const orders = page.props?.orders ?? { data: [], links: [] };
+    const role = page.props?.auth?.user?.role ?? '';
+    const canManageStatus = Boolean(
+        page.props?.auth?.user?.is_super_admin
+        || role === 'admin'
+        || role === 'agency'
+        || role === 'organiser'
+        || page.props?.organiser,
+    );
+
+    const orderStatusOptions = [
+        { value: 'pending', label: 'Pending' },
+        { value: 'partially_paid', label: 'Partially paid' },
+        { value: 'paid', label: 'Fully paid' },
+        { value: 'not_paid', label: 'Not paid' },
+        { value: 'failed', label: 'Failed' },
+        { value: 'refunded', label: 'Refunded' },
+        { value: 'cancelled', label: 'Cancelled' },
+    ] as const;
 
     function applySort(key: string) {
         const cur = params?.get('sort') ?? '';
@@ -62,20 +84,72 @@ export default function OrdersIndex() {
         return order.contact_email || order.customer?.email || order.user?.email || '—';
     }
 
-    function ticketStatus(order: any): string {
+    function orderStatusLabel(order: any): string {
         if (order?.payment_status === 'cancelled') {
             return 'Cancelled';
         }
 
-        if (order?.checked_in) {
-            return 'Checked in';
+        if (order?.payment_status === 'failed') {
+            return 'Failed';
+        }
+
+        if (order?.payment_status === 'refunded') {
+            return 'Refunded';
         }
 
         if (order?.payment_status === 'paid') {
-            return 'Valid';
+            return 'Fully paid';
+        }
+
+        if (order?.payment_status === 'partially_paid') {
+            return 'Partially paid';
+        }
+
+        if (order?.payment_status === 'not_paid') {
+            return 'Not paid';
         }
 
         return 'Pending';
+    }
+
+    function orderStatusClasses(order: any): string {
+        if (order?.payment_status === 'cancelled') {
+            return 'bg-[#fee2e2] text-[#991b1b]';
+        }
+
+        if (order?.payment_status === 'failed') {
+            return 'bg-[#ffedd5] text-[#9a3412]';
+        }
+
+        if (order?.payment_status === 'refunded') {
+            return 'bg-[#e0e7ff] text-[#3730a3]';
+        }
+
+        if (order?.payment_status === 'paid') {
+            return 'bg-[#dcfce7] text-[#166534]';
+        }
+
+        if (order?.payment_status === 'partially_paid') {
+            return 'bg-[#fde68a] text-[#92400e]';
+        }
+
+        if (order?.payment_status === 'not_paid') {
+            return 'bg-[#f3f4f6] text-[#374151]';
+        }
+
+        return 'bg-[#fef3c7] text-[#92400e]';
+    }
+
+    function updatePaymentStatus(orderId: number, paymentStatus: string) {
+        router.put(`/orders/${orderId}/payment-status`, {
+            payment_status: paymentStatus,
+        }, {
+            preserveScroll: true,
+        });
+    }
+
+    function selectedOrderStatusValue(order: any): string {
+        return order?.payment_status ?? 'pending';
     }
 
     return (
@@ -118,7 +192,7 @@ export default function OrdersIndex() {
                         Customer email
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('email_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <button onClick={() => applySort('value')} className="btn-primary md:col-span-1 w-full justify-start">
+                    <button onClick={() => applySort('value')} className="btn-primary md:col-span-1 w-full justify-end text-right">
                         Value
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('value_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
@@ -126,7 +200,7 @@ export default function OrdersIndex() {
                         Order status
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('status_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
-                    <button onClick={() => applySort('date')} className="btn-primary md:col-span-1 w-full justify-start">
+                    <button onClick={() => applySort('date')} className="btn-primary md:col-span-1 w-full justify-end text-right">
                         Order date
                         <span className="ml-1 text-xs">{params?.get('sort')?.startsWith('date_') ? (params.get('sort')?.endsWith('_asc') ? '▲' : '▼') : ''}</span>
                     </button>
@@ -145,9 +219,34 @@ export default function OrdersIndex() {
                                     </div>
                                     <div className="md:col-span-2 px-3 text-sm">{eventName(order)}</div>
                                     <div className="md:col-span-2 px-3 text-sm text-muted break-all">{customerEmail(order)}</div>
-                                    <div className="md:col-span-1 px-3 text-sm">€{Number(order.total ?? 0).toFixed(2)}</div>
-                                    <div className="md:col-span-2 px-3 text-sm">{ticketStatus(order)}</div>
-                                    <div className="md:col-span-1 px-3 text-sm text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
+                                    <div className="md:col-span-1 px-3 text-sm text-right">€{Number(order.total ?? 0).toFixed(2)}</div>
+                                    <div className={`md:col-span-2 px-3 py-2 text-sm font-semibold rounded-md ${orderStatusClasses(order)}`}>
+                                        {canManageStatus ? (
+                                            <select
+                                                value={selectedOrderStatusValue(order)}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                }}
+                                                onChange={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    updatePaymentStatus(order.id, e.target.value);
+                                                }}
+                                                className="input h-8 w-full !border-white/40 !bg-white/90 !px-2 !py-0 text-xs !text-[#111827]"
+                                                aria-label={`Change payment status for order ${order.booking_code || order.id}`}
+                                            >
+                                                {orderStatusOptions.map((statusOption) => (
+                                                    <option key={statusOption.value} value={statusOption.value}>
+                                                        {statusOption.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <span>{orderStatusLabel(order)}</span>
+                                        )}
+                                    </div>
+                                    <div className="md:col-span-1 px-3 text-sm text-right text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                                 </div>
                             </Link>
                         ))

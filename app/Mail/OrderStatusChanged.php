@@ -21,7 +21,8 @@ class OrderStatusChanged extends Mailable
     {
         $labels = [
             'pending' => 'Pending',
-            'paid' => 'Paid',
+            'partially_paid' => 'Partially paid',
+            'paid' => 'Fully paid',
             'not_paid' => 'Not paid',
             'failed' => 'Failed',
             'refunded' => 'Refunded',

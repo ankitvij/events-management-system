@@ -123,12 +123,13 @@ export default function OrdersShow() {
         ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
         : '';
 
-    const invalidPaymentStatuses = new Set(['not_paid', 'failed', 'refunded', 'cancelled']);
+    const invalidPaymentStatuses = new Set(['partially_paid', 'not_paid', 'failed', 'refunded', 'cancelled']);
     const isInvalidByPayment = invalidPaymentStatuses.has(order?.payment_status ?? '');
 
     const paymentStatusLabel: Record<string, string> = {
         pending: 'Pending',
-        paid: 'Paid',
+        partially_paid: 'Partially paid',
+        paid: 'Fully paid',
         not_paid: 'Not paid',
         failed: 'Failed',
         refunded: 'Refunded',
@@ -249,7 +250,8 @@ export default function OrdersShow() {
                                 <input type="hidden" name="_token" value={csrfToken} />
                                 <select name="payment_status" aria-label="Payment status" defaultValue={paymentStatus} className="input h-9 w-44">
                                     <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
+                                    <option value="partially_paid">Partially paid</option>
+                                    <option value="paid">Fully paid</option>
                                     <option value="not_paid">Not paid</option>
                                     <option value="failed">Failed</option>
                                     <option value="refunded">Refunded</option>
@@ -281,11 +283,11 @@ export default function OrdersShow() {
                 <div className="space-y-2">
                     {ticketRows.map((row) => {
                         const status = row.isCheckedIn
-                            ? { label: 'Checked in', classes: 'border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200' }
-                            : row.isExpired
-                                ? { label: 'Expired', classes: 'border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200' }
-                                : isInvalidByPayment
-                                    ? { label: 'Invalid', classes: 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200' }
+                            ? { label: 'Checked in', classes: 'border-[#166534] bg-[#166534] text-white' }
+                            : (order?.payment_status === 'cancelled')
+                                ? { label: 'Cancelled', classes: 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200' }
+                                : (row.isExpired || isInvalidByPayment)
+                                    ? { label: 'Invalid', classes: 'border-gray-300 bg-gray-100 text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-200' }
                                     : { label: 'Valid', classes: 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200' };
 
                         const params = new URLSearchParams(baseDownloadParams.replace(/^\?/, ''));

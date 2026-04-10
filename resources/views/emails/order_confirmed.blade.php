@@ -70,11 +70,22 @@
     @php
         $paymentMethod = $payment_method ?? null;
         $paymentLabel = $bank['display_name'] ?? ($paymentMethod ? ucfirst(str_replace('_', ' ', $paymentMethod)) : 'Transfer');
+        $paymentStatus = $payment_status ?? 'pending';
+        $paymentStatusLabels = [
+            'pending' => 'Pending payment',
+            'partially_paid' => 'Partially paid',
+            'paid' => 'Fully paid',
+            'not_paid' => 'Not paid',
+            'failed' => 'Failed',
+            'refunded' => 'Refunded',
+            'cancelled' => 'Cancelled',
+        ];
+        $paymentStatusText = $paymentStatusLabels[$paymentStatus] ?? ucfirst(str_replace('_', ' ', $paymentStatus));
     @endphp
     @if(in_array($paymentMethod, ['bank_transfer', 'paypal_transfer', 'revolut_transfer'], true))
         <div style="margin-top:12px;padding:12px;border:1px solid #e5e7eb;border-radius:6px;background:#f8fafc;">
             <p style="margin:0 0 6px 0;"><strong>Payment method:</strong> {{ $paymentLabel }}</p>
-            <p style="margin:0 0 6px 0;">Status: {{ ($payment_status ?? 'pending') === 'paid' ? 'Paid' : 'Pending payment' }}</p>
+            <p style="margin:0 0 6px 0;">Status: {{ $paymentStatusText }}</p>
             <p style="margin:0 0 6px 0;">Please transfer the total and include your booking code ({{ $order->booking_code }}) in the reference.</p>
             @if($paymentMethod === 'bank_transfer')
                 <ul style="margin:0 0 6px 18px;padding:0;">
