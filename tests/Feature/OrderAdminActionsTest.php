@@ -213,6 +213,51 @@ class OrderAdminActionsTest extends TestCase
         });
     }
 
+    public function test_paid_status_email_shows_green_payment_accepted_message(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create([
+            'is_super_admin' => true,
+        ]);
+
+        $event = Event::factory()->create();
+        $ticket = Ticket::create([
+            'event_id' => $event->id,
+            'name' => 'Paid Ticket',
+            'price' => 25.00,
+            'quantity_total' => 10,
+            'quantity_available' => 8,
+            'active' => true,
+        ]);
+
+        $order = Order::factory()->create([
+            'payment_status' => 'pending',
+            'paid' => false,
+            'contact_email' => 'customer@example.test',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'ticket_id' => $ticket->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 25.00,
+        ]);
+
+        $this->actingAs($admin)->put(route('orders.payment-status', $order), [
+            'payment_status' => 'paid',
+        ])->assertRedirect();
+
+        Mail::assertSent(OrderStatusChanged::class, function (OrderStatusChanged $mail): bool {
+            $html = $mail->render();
+
+            return $mail->hasTo('customer@example.test')
+                && str_contains($html, 'Payment Accepted')
+                && str_contains($html, 'color: #16a34a');
+        });
+    }
+
     public function test_admin_can_send_payment_reminder(): void
     {
         Mail::fake();

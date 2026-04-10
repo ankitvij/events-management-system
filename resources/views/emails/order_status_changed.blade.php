@@ -7,6 +7,9 @@
     <p><strong>Booking code:</strong> {{ $order->booking_code }}</p>
     <p><strong>Previous status:</strong> {{ $previousStatusLabel }}</p>
     <p><strong>New status:</strong> {{ $newStatusLabel }}</p>
+    @if(($newPaymentStatus ?? '') === 'paid')
+        <p style="margin: 8px 0 0 0; color: #16a34a; font-weight: 700;">Payment Accepted</p>
+    @endif
 
     <h3>Tickets</h3>
     <ul>

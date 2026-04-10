@@ -35,6 +35,7 @@ class OrderStatusChanged extends Mailable
             ->subject('Order status updated — Booking code: '.$this->order->booking_code)
             ->view('emails.order_status_changed', [
                 'order' => $this->order,
+                'newPaymentStatus' => $this->newPaymentStatus,
                 'previousStatusLabel' => $labels[$this->previousPaymentStatus] ?? $this->previousPaymentStatus,
                 'newStatusLabel' => $labels[$this->newPaymentStatus] ?? $this->newPaymentStatus,
             ]);
