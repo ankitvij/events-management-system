@@ -262,9 +262,10 @@ export default function Show({ event }: Props) {
                             <h1 className="mt-3 text-[1.65rem] font-semibold leading-tight text-[#2a2f38]">{event.title}</h1>
 
                             {event.description ? (
-                                <p className="mt-2 max-w-4xl text-[0.97rem] leading-relaxed text-[#616976]">
-                                    {event.description}
-                                </p>
+                                <div
+                                    className="prose prose-sm mt-2 max-w-4xl text-[#616976]"
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(event.description) }}
+                                />
                             ) : null}
 
                             <div className="mt-3 space-y-1.5 text-[1rem] text-[#707786]">
