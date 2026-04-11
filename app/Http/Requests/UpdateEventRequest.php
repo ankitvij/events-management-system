@@ -14,8 +14,21 @@ class UpdateEventRequest extends FormRequest
         $current = $this->user();
         $event = $this->route('event');
 
-        if (! $current) {
+        if (! $event) {
             return false;
+        }
+
+        if (! $current) {
+            $sessionOrganiserId = (int) ($this->session()->get('organiser_id') ?? 0);
+            if ($sessionOrganiserId <= 0) {
+                return false;
+            }
+
+            if ((int) ($event->organiser_id ?? 0) === $sessionOrganiserId) {
+                return true;
+            }
+
+            return $event->organisers()->where('organisers.id', $sessionOrganiserId)->exists();
         }
 
         if ($current->is_super_admin) {

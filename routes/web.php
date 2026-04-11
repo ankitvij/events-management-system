@@ -4,6 +4,8 @@ use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\LoginTokenController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderPaymentMethodsController;
+use App\Http\Controllers\OrganiserProfileController;
+use App\Http\Middleware\EnsureOrganiserAuthenticated;
 
 // Update ticket holder details for an order item
 Route::patch('/orders/{order}/items/{item}/ticket-holder', [OrderController::class, 'updateTicketHolder'])->name('orders.items.updateTicketHolder');
@@ -170,6 +172,12 @@ Route::get('login/token/{token}', [LoginTokenController::class, 'consume'])->mid
 Route::get('events/create', [EventController::class, 'create'])->name('events.create');
 // Public store route so guests can submit event creations
 Route::post('events', [EventController::class, 'store'])->name('events.store');
+Route::get('events/{event:slug}/organiser/edit', [EventController::class, 'editAsOrganiser'])
+    ->middleware([EnsureOrganiserAuthenticated::class])
+    ->name('events.organiser.edit');
+Route::put('events/{event:slug}/organiser', [EventController::class, 'updateAsOrganiser'])
+    ->middleware([EnsureOrganiserAuthenticated::class])
+    ->name('events.organiser.update');
 // Token-based edit routes for organisers (emailed links)
 Route::get('events/{event:slug}/edit-link/{token}', [EventController::class, 'editViaToken'])->middleware('signed')->name('events.edit-link');
 Route::put('events/{event:slug}/edit-link/{token}', [EventController::class, 'updateViaToken'])->middleware('signed')->name('events.update-link');
@@ -242,6 +250,9 @@ Route::get('organisers/login', [\App\Http\Controllers\OrganiserAuthController::c
 Route::post('organisers/login/token', [\App\Http\Controllers\OrganiserAuthController::class, 'sendToken'])->middleware('guest')->name('organisers.login.token.send');
 Route::get('organisers/login/token/{token}', [\App\Http\Controllers\OrganiserAuthController::class, 'consumeToken'])->middleware('guest')->name('organisers.login.token.consume');
 Route::post('organisers/logout', [\App\Http\Controllers\OrganiserAuthController::class, 'logout'])->name('organisers.logout');
+Route::get('organisers/profile', [OrganiserProfileController::class, 'show'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile');
+Route::put('organisers/profile', [OrganiserProfileController::class, 'update'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile.update');
+Route::put('organisers/profile/password', [OrganiserProfileController::class, 'updatePassword'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile.password.update');
 
 Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
 Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])->middleware(['auth'])->name('organisers.active');

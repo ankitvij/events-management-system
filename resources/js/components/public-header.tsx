@@ -7,6 +7,7 @@ import SignInPrompt from '@/components/SignInPrompt';
 
 export default function PublicHeader() {
     const page = usePage();
+    const organiser = page.props?.organiser as { id: number; name?: string | null; email?: string | null } | null;
 
     const toggleGuestMenu = () => {
         window.dispatchEvent(new CustomEvent('guest-menu:toggle'));
@@ -37,11 +38,22 @@ export default function PublicHeader() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <SignInPrompt
-                                        buttonClassName="inline-flex h-10 w-10 items-center justify-center text-white transition-colors hover:text-[#d1d5db]"
-                                        buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
-                                        ariaLabel="Sign in"
-                                    />
+                                    {organiser ? (
+                                        <>
+                                            <Link href="/organisers/profile" className="inline-flex h-10 items-center justify-center px-2 text-xs font-semibold text-white transition-colors hover:text-[#d1d5db]">
+                                                Profile
+                                            </Link>
+                                            <Link href="/organisers/logout" method="post" as="button" className="inline-flex h-10 items-center justify-center px-2 text-xs font-semibold text-white transition-colors hover:text-[#d1d5db]">
+                                                Logout
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <SignInPrompt
+                                            buttonClassName="inline-flex h-10 w-10 items-center justify-center text-white transition-colors hover:text-[#d1d5db]"
+                                            buttonLabel={<User className="h-4 w-4" aria-hidden="true" />}
+                                            ariaLabel="Sign in"
+                                        />
+                                    )}
                                     <CartButton />
                                 </div>
                             </div>
@@ -54,7 +66,12 @@ export default function PublicHeader() {
                         </Link>
 
                         <div className="ml-auto flex items-center gap-1 min-[800px]:gap-2">
-                            {page.props?.customer ? (
+                            {organiser ? (
+                                <>
+                                    <Link href="/organisers/profile" className="btn-primary text-sm">Profile</Link>
+                                    <Link href="/organisers/logout" method="post" as="button" className="btn-primary text-sm">Log out</Link>
+                                </>
+                            ) : page.props?.customer ? (
                                 <>
                                     <Link href="/customer/orders" className="btn-primary text-sm">My orders</Link>
                                     <a

@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class EventController extends Controller
 {
@@ -398,10 +399,11 @@ class EventController extends Controller
         $event->load('promoters');
 
         $current = auth()->user();
+        $sessionOrganiser = $this->resolveSessionOrganiser($request);
 
         // Guests may view only active events
         if (! $current) {
-            if (! $event->active) {
+            if (! $event->active && ! ($sessionOrganiser && $this->eventBelongsToOrganiser($event, $sessionOrganiser->id))) {
                 abort(404);
             }
         } else {
@@ -426,7 +428,6 @@ class EventController extends Controller
             }]);
         }
 
-        $current = auth()->user();
         $canEdit = false;
         if ($current) {
             $canEdit = $current->is_super_admin
@@ -437,6 +438,8 @@ class EventController extends Controller
             if ($current->hasRole('agency') && ! $current->hasRole(['admin', 'super_admin']) && (int) ($event->agency_id ?? 0) !== (int) ($current->agency_id ?? 0)) {
                 abort(404);
             }
+        } elseif ($sessionOrganiser) {
+            $canEdit = $this->eventBelongsToOrganiser($event, $sessionOrganiser->id);
         }
 
         $tickets = $event->tickets->map(function ($t) {
@@ -683,6 +686,51 @@ class EventController extends Controller
         ]);
     }
 
+    public function editAsOrganiser(Request $request, Event $event): Response
+    {
+        $organiser = $this->resolveSessionOrganiser($request);
+        if (! $organiser || ! $this->eventBelongsToOrganiser($event, $organiser->id)) {
+            abort(404);
+        }
+
+        $event->load('organisers', 'organiser', 'user', 'vendors', 'promoters', 'artists', 'ticketControllers');
+
+        $organisers = Organiser::query()->orderBy('name')->get(['id', 'name']);
+        $promoters = User::query()
+            ->where('is_super_admin', false)
+            ->where('active', true)
+            ->where('role', 'user')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        $artists = Artist::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city']);
+        $vendors = Vendor::query()->where('active', true)->orderBy('name')->get(['id', 'name', 'city', 'type']);
+
+        $bookingRequests = BookingRequest::query()
+            ->with('artist')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $vendorBookingRequests = VendorBookingRequest::query()
+            ->with('vendor')
+            ->where('event_id', $event->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return Inertia::render('Events/Edit', [
+            'event' => $event,
+            'organisers' => $organisers,
+            'artists' => $artists,
+            'bookingRequests' => $bookingRequests,
+            'vendors' => $vendors,
+            'vendorBookingRequests' => $vendorBookingRequests,
+            'promoters' => $promoters,
+            'ticketControllers' => $event->ticketControllers,
+            'allowOrganiserChange' => false,
+        ]);
+    }
+
     public function update(UpdateEventRequest $request, Event $event): RedirectResponse
     {
         $current = $request->user();
@@ -754,6 +802,16 @@ class EventController extends Controller
         $this->clearPublicEventsCache();
 
         return redirect()->route('events.show', $event);
+    }
+
+    public function updateAsOrganiser(UpdateEventRequest $request, Event $event): RedirectResponse
+    {
+        $organiser = $this->resolveSessionOrganiser($request);
+        if (! $organiser || ! $this->eventBelongsToOrganiser($event, $organiser->id)) {
+            abort(404);
+        }
+
+        return $this->update($request, $event);
     }
 
     public function updateViaToken(UpdateEventFromLinkRequest $request, Event $event, string $token): RedirectResponse
@@ -1106,5 +1164,28 @@ class EventController extends Controller
         }
 
         return $event->organisers()->whereIn('organisers.id', $organiserIds->all())->exists();
+    }
+
+    protected function resolveSessionOrganiser(Request $request): ?Organiser
+    {
+        $organiserId = (int) ($request->session()->get('organiser_id') ?? 0);
+        if ($organiserId <= 0) {
+            return null;
+        }
+
+        return Organiser::query()->find($organiserId);
+    }
+
+    protected function eventBelongsToOrganiser(Event $event, int $organiserId): bool
+    {
+        if ($organiserId <= 0) {
+            return false;
+        }
+
+        if ((int) ($event->organiser_id ?? 0) === $organiserId) {
+            return true;
+        }
+
+        return $event->organisers()->where('organisers.id', $organiserId)->exists();
     }
 }

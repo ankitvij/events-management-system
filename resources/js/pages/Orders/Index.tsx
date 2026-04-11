@@ -148,6 +148,36 @@ export default function OrdersIndex() {
         });
     }
 
+    function checkInProgress(order: any): { label: string; classes: string } | null {
+        if ((order?.payment_status ?? '') !== 'paid') {
+            return null;
+        }
+
+        const items = Array.isArray(order?.items) ? order.items : [];
+        const totals = items.reduce(
+            (acc: { total: number; checked: number }, item: any) => {
+                const quantity = Math.max(1, Number(item?.quantity) || 1);
+                const checked = Math.min(quantity, Math.max(0, Number(item?.checked_in_quantity ?? 0)));
+
+                return {
+                    total: acc.total + quantity,
+                    checked: acc.checked + checked,
+                };
+            },
+            { total: 0, checked: 0 },
+        );
+
+        if (totals.total > 0 && totals.checked >= totals.total) {
+            return { label: 'Fully checked in', classes: 'text-black' };
+        }
+
+        if (totals.checked > 0) {
+            return { label: 'Partially checked in', classes: 'text-black' };
+        }
+
+        return { label: 'Ready for check in', classes: 'text-black' };
+    }
+
     function selectedOrderStatusValue(order: any): string {
         return order?.payment_status ?? 'pending';
     }
@@ -212,6 +242,10 @@ export default function OrdersIndex() {
                     ) : (
                         orders.data?.map((order: any) => (
                             <Link key={order.id} href={`/orders/${order.id}`} className="box block border-[#c0cbd9] bg-[#eef2f7] !px-2 transition hover:opacity-90">
+                                {(() => {
+                                    const progress = checkInProgress(order);
+
+                                    return (
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center">
                                     <div className="md:col-span-4 px-3">
                                         <span className="font-semibold">{order.booking_code || '—'}</span>
@@ -222,32 +256,40 @@ export default function OrdersIndex() {
                                     <div className="md:col-span-1 px-3 text-sm text-right">€{Number(order.total ?? 0).toFixed(2)}</div>
                                     <div className={`md:col-span-2 px-3 py-2 text-sm font-semibold rounded-md ${orderStatusClasses(order)}`}>
                                         {canManageStatus ? (
-                                            <select
-                                                value={selectedOrderStatusValue(order)}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                }}
-                                                onChange={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    updatePaymentStatus(order.id, e.target.value);
-                                                }}
-                                                className="input h-8 w-full !border-white/40 !bg-white/90 !px-2 !py-0 text-xs !text-[#111827]"
-                                                aria-label={`Change payment status for order ${order.booking_code || order.id}`}
-                                            >
-                                                {orderStatusOptions.map((statusOption) => (
-                                                    <option key={statusOption.value} value={statusOption.value}>
-                                                        {statusOption.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <div className="space-y-1">
+                                                <select
+                                                    value={selectedOrderStatusValue(order)}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                    onChange={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        updatePaymentStatus(order.id, e.target.value);
+                                                    }}
+                                                    className="input h-8 w-full !border-white/40 !bg-white/90 !px-2 !py-0 text-xs !text-[#111827]"
+                                                    aria-label={`Change payment status for order ${order.booking_code || order.id}`}
+                                                >
+                                                    {orderStatusOptions.map((statusOption) => (
+                                                        <option key={statusOption.value} value={statusOption.value}>
+                                                            {statusOption.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                {progress ? <div className={`text-xs font-semibold ${progress.classes}`}>{progress.label}</div> : null}
+                                            </div>
                                         ) : (
-                                            <span>{orderStatusLabel(order)}</span>
+                                            <div className="space-y-1">
+                                                <span>{orderStatusLabel(order)}</span>
+                                                {progress ? <div className={`text-xs font-semibold ${progress.classes}`}>{progress.label}</div> : null}
+                                            </div>
                                         )}
                                     </div>
                                     <div className="md:col-span-1 px-3 text-sm text-right text-muted">{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                                 </div>
+                                    );
+                                })()}
                             </Link>
                         ))
                     )}

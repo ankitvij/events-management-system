@@ -47,6 +47,7 @@ type Event = {
 
 type PageProps = {
     auth?: { user?: { id: number; name?: string | null; email?: string | null; role?: string; is_super_admin?: boolean } | null };
+    organiser?: { id: number; name?: string | null; email?: string | null } | null;
     showHomeHeader?: boolean;
     canEdit?: boolean;
     organisers?: Organiser[];
@@ -69,6 +70,7 @@ export default function Show({ event }: Props) {
     ];
     const page = usePage<PageProps>();
     const current = page.props?.auth?.user;
+    const organiser = page.props?.organiser;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const organisers = page.props?.organisers ?? [];
     const artists = page.props?.artists ?? [];
@@ -142,7 +144,8 @@ export default function Show({ event }: Props) {
 
     function saveLinks(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        linksForm.put(`/events/${event.slug}`, { preserveScroll: true, forceFormData: true });
+        const endpoint = organiser ? `/events/${event.slug}/organiser` : `/events/${event.slug}`;
+        linksForm.put(endpoint, { preserveScroll: true, forceFormData: true });
     }
 
     function getCookie(name: string): string {
@@ -780,7 +783,7 @@ export default function Show({ event }: Props) {
                 <div className="mt-6">
                     <div className="flex items-center gap-3">
                         {page.props?.canEdit ? (
-                            <ActionIcon href={`/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
+                            <ActionIcon href={organiser ? `/events/${event.slug}/organiser/edit` : `/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
                         ) : null}
 
                         {!current && !showHomeHeader && null}
