@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Organiser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class OrganiserProfileAndEventEditTest extends TestCase
@@ -84,6 +85,32 @@ class OrganiserProfileAndEventEditTest extends TestCase
             'email' => $organiser->email,
             'name' => $organiser->name,
         ]);
+    }
+
+    public function test_organiser_password_change_failure_sets_flash_error_and_field_error(): void
+    {
+        $organiser = Organiser::query()->create([
+            'name' => 'Password Organiser',
+            'email' => 'password-failure@example.test',
+            'active' => true,
+        ]);
+
+        User::factory()->create([
+            'email' => $organiser->email,
+            'password' => Hash::make('correct-password-123'),
+        ]);
+
+        $response = $this->withSession(['organiser_id' => $organiser->id])
+            ->from(route('organisers.profile'))
+            ->put(route('organisers.profile.password.update'), [
+                'current_password' => 'wrong-password-123',
+                'password' => 'new-password-123',
+                'password_confirmation' => 'new-password-123',
+            ]);
+
+        $response->assertRedirect(route('organisers.profile'));
+        $response->assertSessionHasErrors('current_password');
+        $response->assertSessionHas('error', 'Password update failed. Please check your current password.');
     }
 
     public function test_organiser_can_update_owned_event_via_organiser_route(): void

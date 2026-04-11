@@ -13,6 +13,7 @@ type Props = {
 };
 
 export default function Profile({ organiser, hasPassword }: Props) {
+    const page = usePage();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Events', href: '/events' },
         { title: 'Organiser profile', href: '/organisers/profile' },
@@ -50,6 +51,18 @@ export default function Profile({ organiser, hasPassword }: Props) {
 
             <div className="mx-auto w-full max-w-3xl p-4">
                 <div className="space-y-6">
+                    {page.props?.flash?.success ? (
+                        <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                            {page.props.flash.success}
+                        </div>
+                    ) : null}
+
+                    {page.props?.flash?.error ? (
+                        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                            {page.props.flash.error}
+                        </div>
+                    ) : null}
+
                     <div className="rounded-xl border bg-white p-5 shadow-sm">
                         <h1 className="text-lg font-semibold text-gray-900">Profile</h1>
                         <p className="mt-1 text-sm text-gray-600">Update your organiser details.</p>

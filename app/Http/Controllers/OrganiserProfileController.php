@@ -73,7 +73,7 @@ class OrganiserProfileController extends Controller
             if ($currentPassword === '' || ! Hash::check($currentPassword, (string) $user->password)) {
                 return redirect()->back()->withErrors([
                     'current_password' => 'Current password is incorrect.',
-                ]);
+                ])->with('error', 'Password update failed. Please check your current password.');
             }
 
             $user->update([
