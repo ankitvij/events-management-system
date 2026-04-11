@@ -16,6 +16,8 @@ class PaymentSetting extends Model
         'paypal_instructions',
         'revolut_id',
         'revolut_instructions',
+        'stripe_id',
+        'stripe_instructions',
     ];
 
     public static function paymentMethods(): array
@@ -41,6 +43,10 @@ class PaymentSetting extends Model
             'revolut_transfer' => [
                 'account_id' => $settings->revolut_id,
                 'instructions' => $settings->revolut_instructions,
+            ],
+            'stripe_transfer' => [
+                'account_id' => $settings->stripe_id,
+                'instructions' => $settings->stripe_instructions,
             ],
         ];
 

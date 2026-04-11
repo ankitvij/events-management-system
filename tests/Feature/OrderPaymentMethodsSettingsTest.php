@@ -58,6 +58,8 @@ class OrderPaymentMethodsSettingsTest extends TestCase
             'paypal_instructions' => 'Send via PayPal',
             'revolut_id' => 'revolut-id',
             'revolut_instructions' => 'Send via Revolut',
+            'stripe_id' => 'stripe-link-id',
+            'stripe_instructions' => 'Pay securely via Stripe',
         ];
 
         $this->actingAs($user)
@@ -69,5 +71,6 @@ class OrderPaymentMethodsSettingsTest extends TestCase
         $this->assertSame('Global Bank', $settings->bank_account_name);
         $this->assertSame('paypal@example.com', $settings->paypal_id);
         $this->assertSame('revolut-id', $settings->revolut_id);
+        $this->assertSame('stripe-link-id', $settings->stripe_id);
     }
 }

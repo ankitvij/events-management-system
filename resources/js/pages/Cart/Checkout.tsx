@@ -408,7 +408,7 @@ export default function CartCheckout() {
                                         {Object.entries(paymentMethods).map(([method, details]: any) => {
                                             if (!details || details.enabled === false) return null;
                                             const isBankTransfer = method === 'bank_transfer';
-                                            const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer';
+                                            const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer' || method === 'stripe_transfer';
                                             const accountId = String(details.account_id ?? '').trim();
                                             const instructionText = removePaymentDeadlineLine(details.instructions);
                                             const instructionWithoutAccountId = accountId

@@ -64,7 +64,7 @@ class CartController extends Controller
             $total = 0;
         }
 
-        $paymentMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer'])
+        $paymentMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer', 'stripe_transfer'])
             ->mapWithKeys(function ($method) {
                 $details = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
 

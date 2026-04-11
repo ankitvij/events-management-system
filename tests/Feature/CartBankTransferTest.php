@@ -78,6 +78,8 @@ class CartBankTransferTest extends TestCase
             'bank_instructions' => 'Pay within 5 days',
             'paypal_id' => 'override-paypal',
             'paypal_instructions' => 'PayPal override instructions',
+            'stripe_id' => 'override-stripe',
+            'stripe_instructions' => 'Stripe override instructions',
         ]);
 
         $event = Event::factory()->create();
@@ -100,6 +102,32 @@ class CartBankTransferTest extends TestCase
                 ->where('payment_methods.bank_transfer.instructions', 'Pay within 5 days')
                 ->where('payment_methods.paypal_transfer.account_id', 'override-paypal')
                 ->where('payment_methods.paypal_transfer.instructions', 'PayPal override instructions')
+                ->where('payment_methods.stripe_transfer.account_id', 'override-stripe')
+                ->where('payment_methods.stripe_transfer.instructions', 'Stripe override instructions')
+            );
+    }
+
+    public function test_checkout_includes_stripe_payment_method(): void
+    {
+        Session::start();
+
+        $stripe = config('payments.stripe_transfer');
+        $event = Event::factory()->create();
+
+        $cart = Cart::create(['session_id' => Session::getId()]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 25.00,
+        ]);
+
+        $this->get(route('cart.checkout.form', ['cart_id' => $cart->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Cart/Checkout')
+                ->where('payment_methods.stripe_transfer.account_id', $stripe['account_id'])
+                ->where('payment_methods.stripe_transfer.instructions', $stripe['instructions'])
             );
     }
 }

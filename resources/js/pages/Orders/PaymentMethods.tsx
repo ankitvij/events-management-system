@@ -12,6 +12,8 @@ type PaymentSettings = {
     paypal_instructions: string | null;
     revolut_id: string | null;
     revolut_instructions: string | null;
+    stripe_id: string | null;
+    stripe_instructions: string | null;
 };
 
 export default function PaymentMethods() {
@@ -28,6 +30,8 @@ export default function PaymentMethods() {
         paypal_instructions: settings?.paypal_instructions ?? '',
         revolut_id: settings?.revolut_id ?? '',
         revolut_instructions: settings?.revolut_instructions ?? '',
+        stripe_id: settings?.stripe_id ?? '',
+        stripe_instructions: settings?.stripe_instructions ?? '',
     });
 
     const submit = (event: FormEvent) => {
@@ -155,6 +159,30 @@ export default function PaymentMethods() {
                                 className="input min-h-[80px]"
                             />
                             {form.errors.revolut_instructions && <div className="text-sm text-destructive mt-1">{form.errors.revolut_instructions}</div>}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-border pt-4 space-y-3">
+                        <h2 className="text-sm font-semibold">Stripe</h2>
+                        <div>
+                            <label className="block text-sm font-medium">Stripe payment link / account ID</label>
+                            <input
+                                name="stripe_id"
+                                value={form.data.stripe_id}
+                                onChange={e => form.setData('stripe_id', e.target.value)}
+                                className="input"
+                            />
+                            {form.errors.stripe_id && <div className="text-sm text-destructive mt-1">{form.errors.stripe_id}</div>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium">Instructions</label>
+                            <textarea
+                                name="stripe_instructions"
+                                value={form.data.stripe_instructions}
+                                onChange={e => form.setData('stripe_instructions', e.target.value)}
+                                className="input min-h-[80px]"
+                            />
+                            {form.errors.stripe_instructions && <div className="text-sm text-destructive mt-1">{form.errors.stripe_instructions}</div>}
                         </div>
                     </div>
 

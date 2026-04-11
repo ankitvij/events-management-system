@@ -31,6 +31,8 @@ class PaymentSettingsRequest extends FormRequest
             'paypal_instructions' => ['nullable', 'string', 'max:1000'],
             'revolut_id' => ['nullable', 'string', 'max:255'],
             'revolut_instructions' => ['nullable', 'string', 'max:1000'],
+            'stripe_id' => ['nullable', 'string', 'max:255'],
+            'stripe_instructions' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

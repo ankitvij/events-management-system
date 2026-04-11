@@ -34,6 +34,7 @@ class OrderPaymentReminder extends Mailable
         $bank = PaymentSetting::paymentMethod('bank_transfer') ?? config('payments.bank_transfer', []);
         $paypal = PaymentSetting::paymentMethod('paypal_transfer') ?? config('payments.paypal_transfer', []);
         $revolut = PaymentSetting::paymentMethod('revolut_transfer') ?? config('payments.revolut_transfer', []);
+        $stripe = PaymentSetting::paymentMethod('stripe_transfer') ?? config('payments.stripe_transfer', []);
 
         return [
             'bank_transfer' => [
@@ -53,6 +54,11 @@ class OrderPaymentReminder extends Mailable
                 'display_name' => $revolut['display_name'] ?? 'Revolut',
                 'account_id' => $revolut['account_id'] ?? null,
                 'instructions' => $revolut['instructions'] ?? null,
+            ],
+            'stripe_transfer' => [
+                'display_name' => $stripe['display_name'] ?? 'Stripe',
+                'account_id' => $stripe['account_id'] ?? null,
+                'instructions' => $stripe['instructions'] ?? null,
             ],
         ];
     }

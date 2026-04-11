@@ -25,6 +25,8 @@ class OrderPaymentMethodsController extends Controller
             'paypal_instructions' => $settings?->paypal_instructions ?? ($defaults['paypal_transfer']['instructions'] ?? null),
             'revolut_id' => $settings?->revolut_id ?? ($defaults['revolut_transfer']['account_id'] ?? null),
             'revolut_instructions' => $settings?->revolut_instructions ?? ($defaults['revolut_transfer']['instructions'] ?? null),
+            'stripe_id' => $settings?->stripe_id ?? ($defaults['stripe_transfer']['account_id'] ?? null),
+            'stripe_instructions' => $settings?->stripe_instructions ?? ($defaults['stripe_transfer']['instructions'] ?? null),
         ];
 
         return Inertia::render('Orders/PaymentMethods', [

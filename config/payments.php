@@ -25,4 +25,11 @@ return [
         'instructions' => env('REVOLUT_TRANSFER_INSTRUCTIONS', 'Send the total via Revolut and include your booking code in the reference.'),
         'account_id' => env('REVOLUT_TRANSFER_ID', 'REVOLUT-ID-HERE'),
     ],
+    'stripe_transfer' => [
+        'enabled' => true,
+        'method' => 'stripe_transfer',
+        'display_name' => 'Stripe',
+        'instructions' => env('STRIPE_TRANSFER_INSTRUCTIONS', 'Complete the payment using Stripe and include your booking code where possible.'),
+        'account_id' => env('STRIPE_TRANSFER_ID', 'STRIPE-LINK-OR-ID-HERE'),
+    ],
 ];

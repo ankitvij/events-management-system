@@ -55,6 +55,18 @@
         @endif
     </div>
 
+    <div style="margin-top: 10px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f8fafc;">
+        <p style="margin: 0 0 8px 0;"><strong>{{ $paymentMethods['stripe_transfer']['display_name'] ?? 'Stripe' }}</strong></p>
+        <ul style="margin: 0 0 8px 18px; padding: 0;">
+            @if(!empty($paymentMethods['stripe_transfer']['account_id']))
+                <li><strong>Payment link / account:</strong> {{ $paymentMethods['stripe_transfer']['account_id'] }}</li>
+            @endif
+        </ul>
+        @if(!empty($paymentMethods['stripe_transfer']['instructions']))
+            <p style="margin: 0;">{{ $paymentMethods['stripe_transfer']['instructions'] }}</p>
+        @endif
+    </div>
+
     <h3>Tickets</h3>
     <ul>
         @foreach($order->items as $item)
