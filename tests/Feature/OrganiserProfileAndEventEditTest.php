@@ -124,6 +124,33 @@ class OrganiserProfileAndEventEditTest extends TestCase
         $this->assertSame('Munich', $event->city);
     }
 
+    public function test_organiser_edit_page_uses_organiser_update_endpoint(): void
+    {
+        $owner = User::factory()->create();
+        $organiser = Organiser::query()->create([
+            'name' => 'Edit Organiser',
+            'email' => 'edit-organiser@example.test',
+            'active' => true,
+        ]);
+
+        $event = Event::factory()->create([
+            'title' => 'Editable Event',
+            'city' => 'Rome',
+            'organiser_id' => $organiser->id,
+            'user_id' => $owner->id,
+        ]);
+        $event->organisers()->sync([$organiser->id]);
+
+        $response = $this->withSession(['organiser_id' => $organiser->id])
+            ->get(route('events.organiser.edit', $event));
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->component('Events/Edit')
+            ->where('editUrl', route('events.organiser.update', $event))
+        );
+    }
+
     public function test_organiser_cannot_update_event_they_do_not_own(): void
     {
         $owner = User::factory()->create();
@@ -157,5 +184,34 @@ class OrganiserProfileAndEventEditTest extends TestCase
             ]);
 
         $response->assertForbidden();
+    }
+
+    public function test_organiser_cannot_view_edit_page_for_event_they_do_not_own(): void
+    {
+        $owner = User::factory()->create();
+        $eventOrganiser = Organiser::query()->create([
+            'name' => 'Owner Organiser',
+            'email' => 'owner-organiser@example.test',
+            'active' => true,
+        ]);
+        $otherOrganiser = Organiser::query()->create([
+            'name' => 'Outside Organiser',
+            'email' => 'outside-organiser@example.test',
+            'active' => true,
+        ]);
+
+        $event = Event::factory()->create([
+            'title' => 'Private Edit Event',
+            'city' => 'Lisbon',
+            'country' => 'Portugal',
+            'organiser_id' => $eventOrganiser->id,
+            'user_id' => $owner->id,
+        ]);
+        $event->organisers()->sync([$eventOrganiser->id]);
+
+        $response = $this->withSession(['organiser_id' => $otherOrganiser->id])
+            ->get(route('events.organiser.edit', $event));
+
+        $response->assertNotFound();
     }
 }

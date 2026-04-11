@@ -94,6 +94,7 @@ export default function Edit({ event }: Props) {
     const ticketControllers = (page.props?.ticketControllers ?? []) as TicketControllerEmail[];
     const canManageTicketControllers = Boolean((page.props as any)?.auth?.user);
     const editUrl = (page.props as any)?.editUrl as string | undefined;
+    const organiser = (page.props as any)?.organiser as { id: number } | undefined;
     const requiresPassword = Boolean((page.props as any)?.requiresPassword);
     const allowOrganiserChange = (page.props as any)?.allowOrganiserChange ?? true;
 
@@ -113,7 +114,8 @@ export default function Edit({ event }: Props) {
 
     function submit(e: FormEvent) {
         e.preventDefault();
-        form.put(editUrl ?? `/events/${event.slug}`, { forceFormData: true });
+        const fallbackUrl = organiser ? `/events/${event.slug}/organiser` : `/events/${event.slug}`;
+        form.put(editUrl ?? fallbackUrl, { forceFormData: true });
     }
 
     return (

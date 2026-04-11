@@ -727,6 +727,7 @@ class EventController extends Controller
             'vendorBookingRequests' => $vendorBookingRequests,
             'promoters' => $promoters,
             'ticketControllers' => $event->ticketControllers,
+            'editUrl' => route('events.organiser.update', $event),
             'allowOrganiserChange' => false,
         ]);
     }
