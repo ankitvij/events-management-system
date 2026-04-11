@@ -51,6 +51,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function EventsIndex({ events }: Props) {
     const page = usePage();
     const current = page.props?.auth?.user;
+    const organiser = page.props?.organiser as { id: number } | null | undefined;
     const flashSuccess = page.props?.flash?.success;
     const showHomeHeader = page.props?.showHomeHeader ?? false;
     const showSignInPromptRow = false;
@@ -288,10 +289,13 @@ export default function EventsIndex({ events }: Props) {
 
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
-                                    <ActionIcon onClick={(e) => {
-                                        e.stopPropagation();
-                                        router.get(`/events/${event.slug}/edit`);
-                                    }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
+                                    {(current || organiser) ? (
+                                        <ActionIcon onClick={(e) => {
+                                            e.stopPropagation();
+                                            const editPath = organiser ? `/events/${event.slug}/organiser/edit` : `/events/${event.slug}/edit`;
+                                            router.get(editPath);
+                                        }} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
+                                    ) : null}
                                 </div>
                                 <div className="md:col-span-1 text-center min-w-max whitespace-nowrap">
                                     <Link href={`/${event.slug}#tickets`} className="text-blue-600" onClick={(e) => e.stopPropagation()}>Ticket types</Link>

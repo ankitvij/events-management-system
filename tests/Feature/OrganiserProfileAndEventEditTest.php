@@ -214,4 +214,46 @@ class OrganiserProfileAndEventEditTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_my_events_list_only_shows_events_for_logged_in_organiser(): void
+    {
+        $owner = User::factory()->create();
+
+        $loggedInOrganiser = Organiser::query()->create([
+            'name' => 'Logged In Organiser',
+            'email' => 'logged-in-organiser@example.test',
+            'active' => true,
+        ]);
+
+        $otherOrganiser = Organiser::query()->create([
+            'name' => 'Other Organiser',
+            'email' => 'other-visible-organiser@example.test',
+            'active' => true,
+        ]);
+
+        $ownedEvent = Event::factory()->create([
+            'title' => 'Owned Event',
+            'slug' => 'owned-event',
+            'organiser_id' => $loggedInOrganiser->id,
+            'user_id' => $owner->id,
+            'active' => false,
+        ]);
+        $ownedEvent->organisers()->sync([$loggedInOrganiser->id]);
+
+        $otherEvent = Event::factory()->create([
+            'title' => 'Other Event',
+            'slug' => 'other-event',
+            'organiser_id' => $otherOrganiser->id,
+            'user_id' => $owner->id,
+            'active' => true,
+        ]);
+        $otherEvent->organisers()->sync([$otherOrganiser->id]);
+
+        $response = $this->withSession(['organiser_id' => $loggedInOrganiser->id])
+            ->get(route('events.index'));
+
+        $response->assertOk();
+        $response->assertJsonPath('events.data.0.slug', 'owned-event');
+        $response->assertJsonCount(1, 'events.data');
+    }
 }

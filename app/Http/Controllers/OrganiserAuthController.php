@@ -47,7 +47,7 @@ class OrganiserAuthController extends Controller
 
             session()->put('organiser_id', $organiser->id);
 
-            return redirect()->route('organisers.index')->with('success', 'You are signed in as organiser.');
+            return redirect()->route('events.index')->with('success', 'You are signed in as organiser.');
         }
 
         $plain = Str::random(64);
@@ -100,7 +100,7 @@ class OrganiserAuthController extends Controller
 
         session()->put('organiser_id', $organiser->id);
 
-        return redirect()->route('organisers.index')->with('success', 'You are signed in as organiser.');
+        return redirect()->route('events.index')->with('success', 'You are signed in as organiser.');
     }
 
     public function logout(Request $request): RedirectResponse

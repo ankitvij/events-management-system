@@ -33,9 +33,11 @@ class EventController extends Controller
 {
     public function index(Request $request)
     {
+        $sessionOrganiser = $this->resolveSessionOrganiser($request);
+
         // Only eager-load organisers for authenticated users
         $query = Event::with('user');
-        if (auth()->check()) {
+        if (auth()->check() || $sessionOrganiser) {
             $query->with('organisers');
         }
         $current = auth()->user();
@@ -70,9 +72,19 @@ class EventController extends Controller
                 }
             }
         } else {
-            // Guests should see public (active) events by default unless an explicit `active` filter is provided
-            if (! request()->has('active')) {
-                $query->where('active', true);
+            if ($sessionOrganiser) {
+                $query->where(function ($builder) use ($sessionOrganiser): void {
+                    $builder
+                        ->where('organiser_id', $sessionOrganiser->id)
+                        ->orWhereHas('organisers', function ($subQuery) use ($sessionOrganiser): void {
+                            $subQuery->where('organisers.id', $sessionOrganiser->id);
+                        });
+                });
+            } else {
+                // Guests should see public (active) events by default unless an explicit `active` filter is provided
+                if (! request()->has('active')) {
+                    $query->where('active', true);
+                }
             }
         }
 
@@ -158,7 +170,7 @@ class EventController extends Controller
             $query->where('country', $country);
         }
 
-        if (! auth()->check()) {
+        if (! auth()->check() && ! $sessionOrganiser) {
             $page = request('page', 1);
             $params = request()->only(['q', 'search', 'city', 'country', 'sort', 'active']);
             $hash = md5(http_build_query($params));

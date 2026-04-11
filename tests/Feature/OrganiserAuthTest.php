@@ -40,7 +40,7 @@ class OrganiserAuthTest extends TestCase
         $this->assertNotNull($loginUrl);
 
         $consume = $this->get($loginUrl);
-        $consume->assertRedirect('/organisers');
+        $consume->assertRedirect('/events');
         $this->assertSame($organiser->id, session('organiser_id'));
     }
 
@@ -96,7 +96,7 @@ class OrganiserAuthTest extends TestCase
             'password' => 'super-secret-password',
         ]);
 
-        $response->assertRedirect('/organisers');
+        $response->assertRedirect('/events');
         $response->assertSessionHas('success', 'You are signed in as organiser.');
         $this->assertSame($organiser->id, session('organiser_id'));
         Mail::assertNothingSent();
