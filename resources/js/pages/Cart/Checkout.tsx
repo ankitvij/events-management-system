@@ -21,6 +21,7 @@ function removePaymentDeadlineLine(text?: string | null): string {
     }
 
     return text
+        .replace(/\s*pay(?:ment)?\s+(?:in|within)\s+7\s+days\.?\s*/gi, ' ')
         .replace(/\s*payment needs to be there at least 1 day before the event\.?\s*/gi, ' ')
         .replace(/\s{2,}/g, ' ')
         .trim();

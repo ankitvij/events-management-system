@@ -62,7 +62,10 @@ export default function GuestLanding({ events }: Props) {
             return null;
         }
 
-        const normalized = value.trim();
+        const normalized = value
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
         if (normalized === '') {
             return null;
         }

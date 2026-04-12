@@ -62,6 +62,18 @@ class PaymentSetting extends Model
             }
         }
 
+        foreach ($methods as $method => $values) {
+            if (! is_array($values)) {
+                continue;
+            }
+
+            foreach (['instructions', 'reference_hint'] as $field) {
+                if (array_key_exists($field, $values)) {
+                    $methods[$method][$field] = self::sanitizePaymentCopy($values[$field] ?? null);
+                }
+            }
+        }
+
         return $methods;
     }
 
@@ -70,5 +82,21 @@ class PaymentSetting extends Model
         $methods = self::paymentMethods();
 
         return $methods[$method] ?? null;
+    }
+
+    protected static function sanitizePaymentCopy(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        $clean = preg_replace([
+            '/\s*pay(?:ment)?\s+(?:in|within)\s+7\s+days\.?\s*/i',
+            '/\s*payment\s+needs\s+to\s+be\s+there\s+at\s+least\s+1\s+day\s+before\s+the\s+event\.?\s*/i',
+        ], ' ', $value);
+
+        $clean = preg_replace('/\s{2,}/', ' ', (string) $clean);
+
+        return trim($clean);
     }
 }

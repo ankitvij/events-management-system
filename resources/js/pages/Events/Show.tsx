@@ -227,8 +227,11 @@ export default function Show({ event }: Props) {
             return `/storage/${path}`;
         };
 
-        const imagePath = event.image_url ?? event.image_thumbnail_url ?? event.image ?? event.image_thumbnail;
-        const imageUrl = imagePath ? toStorageUrl(imagePath) : null;
+        const fullImagePath = event.image_url ?? event.image ?? null;
+        const thumbnailImagePath = event.image_thumbnail_url ?? event.image_thumbnail ?? null;
+        const imageUrl = fullImagePath ? toStorageUrl(fullImagePath) : (thumbnailImagePath ? toStorageUrl(thumbnailImagePath) : null);
+        const thumbnailUrl = thumbnailImagePath ? toStorageUrl(thumbnailImagePath) : null;
+        const fullImageUrl = fullImagePath ? toStorageUrl(fullImagePath) : null;
 
         return (
             <AppLayout breadcrumbs={breadcrumbs}>
@@ -251,6 +254,8 @@ export default function Show({ event }: Props) {
                                     {imageUrl ? (
                                         <img
                                             src={imageUrl}
+                                            srcSet={thumbnailUrl && fullImageUrl ? `${thumbnailUrl} 640w, ${fullImageUrl} 1600w` : undefined}
+                                            sizes="(max-width: 999px) 100vw, 1120px"
                                             alt={event.title}
                                             className="h-[16rem] w-full object-cover object-center min-[1000px]:h-[20rem]"
                                         />
@@ -335,9 +340,7 @@ export default function Show({ event }: Props) {
                                 })}
                             </div>
 
-                            {tickets.length > 2 && (
-                                <div className="pt-2 text-center text-[1.35rem] text-[#f97316]">+ View all ticket types</div>
-                            )}
+
                         </aside>
                     </div>
                 </div>
@@ -484,9 +487,7 @@ export default function Show({ event }: Props) {
                             );
                         })}
 
-                        {tickets.length > 2 && (
-                            <div className="pt-1 text-center text-[1.05rem] text-[#f97316]">+ View all ticket types</div>
-                        )}
+
 
                         {tickets.every((t) => !t.active || t.quantity_available < 1) && (
                             <div className="mt-3 rounded border border-dashed border-border bg-muted/40 p-3 text-sm text-muted">

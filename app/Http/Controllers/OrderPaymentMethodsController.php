@@ -12,21 +12,23 @@ class OrderPaymentMethodsController extends Controller
 {
     public function edit(): Response
     {
-        $settings = PaymentSetting::query()->first();
-        $defaults = config('payments') ?? [];
+        $bank = PaymentSetting::paymentMethod('bank_transfer') ?? config('payments.bank_transfer', []);
+        $paypal = PaymentSetting::paymentMethod('paypal_transfer') ?? config('payments.paypal_transfer', []);
+        $revolut = PaymentSetting::paymentMethod('revolut_transfer') ?? config('payments.revolut_transfer', []);
+        $stripe = PaymentSetting::paymentMethod('stripe_transfer') ?? config('payments.stripe_transfer', []);
 
         $values = [
-            'bank_account_name' => $settings?->bank_account_name ?? ($defaults['bank_transfer']['account_name'] ?? null),
-            'bank_iban' => $settings?->bank_iban ?? ($defaults['bank_transfer']['iban'] ?? null),
-            'bank_bic' => $settings?->bank_bic ?? ($defaults['bank_transfer']['bic'] ?? null),
-            'bank_reference_hint' => $settings?->bank_reference_hint ?? ($defaults['bank_transfer']['reference_hint'] ?? null),
-            'bank_instructions' => $settings?->bank_instructions ?? ($defaults['bank_transfer']['instructions'] ?? null),
-            'paypal_id' => $settings?->paypal_id ?? ($defaults['paypal_transfer']['account_id'] ?? null),
-            'paypal_instructions' => $settings?->paypal_instructions ?? ($defaults['paypal_transfer']['instructions'] ?? null),
-            'revolut_id' => $settings?->revolut_id ?? ($defaults['revolut_transfer']['account_id'] ?? null),
-            'revolut_instructions' => $settings?->revolut_instructions ?? ($defaults['revolut_transfer']['instructions'] ?? null),
-            'stripe_id' => $settings?->stripe_id ?? ($defaults['stripe_transfer']['account_id'] ?? null),
-            'stripe_instructions' => $settings?->stripe_instructions ?? ($defaults['stripe_transfer']['instructions'] ?? null),
+            'bank_account_name' => $bank['account_name'] ?? null,
+            'bank_iban' => $bank['iban'] ?? null,
+            'bank_bic' => $bank['bic'] ?? null,
+            'bank_reference_hint' => $bank['reference_hint'] ?? null,
+            'bank_instructions' => $bank['instructions'] ?? null,
+            'paypal_id' => $paypal['account_id'] ?? null,
+            'paypal_instructions' => $paypal['instructions'] ?? null,
+            'revolut_id' => $revolut['account_id'] ?? null,
+            'revolut_instructions' => $revolut['instructions'] ?? null,
+            'stripe_id' => $stripe['account_id'] ?? null,
+            'stripe_instructions' => $stripe['instructions'] ?? null,
         ];
 
         return Inertia::render('Orders/PaymentMethods', [
