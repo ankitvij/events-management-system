@@ -28,8 +28,9 @@ return [
     'stripe_transfer' => [
         'enabled' => true,
         'method' => 'stripe_transfer',
-        'display_name' => 'Stripe',
+        'display_name' => 'Card payment / Bilk / Stripe / Klarna',
         'instructions' => env('STRIPE_TRANSFER_INSTRUCTIONS', 'Complete the payment using Stripe and include your booking code where possible.'),
         'account_id' => env('STRIPE_TRANSFER_ID', 'STRIPE-LINK-OR-ID-HERE'),
+        'flat_fee' => (float) env('STRIPE_TRANSFER_FLAT_FEE', 2),
     ],
 ];

@@ -52,7 +52,14 @@ class CartStripeCheckoutTest extends TestCase
             'payment_method' => 'stripe_transfer',
             'stripe_checkout_session_id' => 'cs_test_123',
             'paid' => false,
+            'total' => '52.00',
         ]);
+
+        Http::assertSent(function ($request): bool {
+            return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
+                && (string) ($request['line_items[1][price_data][product_data][name]'] ?? '') === 'eCard payment fee'
+                && (string) ($request['line_items[1][price_data][unit_amount]'] ?? '') === '200';
+        });
     }
 
     public function test_stripe_success_marks_order_as_paid(): void

@@ -415,6 +415,9 @@ class OrderAdminActionsTest extends TestCase
 
         $this->actingAs($admin)->post(route('orders.payment-reminder', $order))->assertRedirect();
 
+        $order->refresh();
+        $this->assertNotNull($order->last_payment_reminder_sent_at);
+
         Mail::assertSent(OrderPaymentReminder::class, function (OrderPaymentReminder $mail): bool {
             $mail->build();
             $methods = $mail->viewData['paymentMethods'] ?? [];
@@ -471,6 +474,9 @@ class OrderAdminActionsTest extends TestCase
         ]);
 
         $this->actingAs($organiserUser)->post(route('orders.payment-reminder', $order))->assertRedirect();
+
+        $order->refresh();
+        $this->assertNotNull($order->last_payment_reminder_sent_at);
 
         Mail::assertSent(OrderPaymentReminder::class, function (OrderPaymentReminder $mail): bool {
             return $mail->hasTo('managed@example.test');

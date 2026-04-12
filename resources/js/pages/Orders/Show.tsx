@@ -66,6 +66,7 @@ type Order = {
     checked_in?: boolean | null;
     total?: number | null;
     created_at?: string | null;
+    last_payment_reminder_sent_at?: string | null;
 };
 
 type PageProps = {
@@ -218,6 +219,12 @@ export default function OrdersShow() {
                             <div className="text-muted">
                                 Status: {paymentStatusLabel[paymentStatus] ?? paymentStatus}
                             </div>
+                            <div className="text-muted">
+                                Last payment reminder:{' '}
+                                {order.last_payment_reminder_sent_at
+                                    ? new Date(order.last_payment_reminder_sent_at).toLocaleString()
+                                    : 'Never sent'}
+                            </div>
                         </div>
                     )}
                     {authUser && (
@@ -239,6 +246,7 @@ export default function OrdersShow() {
                                 <div><strong>Checked in:</strong> {order.checked_in ? 'Yes' : 'No'}</div>
                                 <div><strong>Payment method:</strong> {order.payment_method ?? '—'}</div>
                                 <div><strong>Payment status:</strong> {paymentStatusLabel[paymentStatus] ?? paymentStatus}</div>
+                                <div><strong>Last payment reminder sent:</strong> {order.last_payment_reminder_sent_at ? new Date(order.last_payment_reminder_sent_at).toLocaleString() : 'Never sent'}</div>
                                 <div><strong>Created at:</strong> {order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</div>
                             </div>
                         </div>

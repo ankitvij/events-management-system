@@ -60,6 +60,18 @@ export default function CartCheckout() {
         return { count, total };
     }, [items, page.props]);
 
+    const stripeFlatFee = useMemo(() => {
+        const stripeDetails = paymentMethods?.stripe_transfer as any;
+        const configured = Number(stripeDetails?.flat_fee ?? 2);
+        if (paymentMethod !== 'stripe_transfer') {
+            return 0;
+        }
+
+        return Number.isFinite(configured) && configured > 0 ? configured : 0;
+    }, [paymentMethod, paymentMethods]);
+
+    const checkoutTotal = Number(totals.total) + stripeFlatFee;
+
 
     async function removeItem(itemId: number) {
         try {
@@ -417,7 +429,9 @@ export default function CartCheckout() {
                                             const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer' || method === 'stripe_transfer';
                                             const accountId = String(details.account_id ?? '').trim();
                                             const instructionText = removePaymentDeadlineLine(details.instructions);
-                                            const methodDisplayName = removePaymentDeadlineLine(String(details.display_name || method))
+                                            const methodDisplayName = method === 'stripe_transfer'
+                                                ? 'Card payment / Bilk / Stripe / Klarna'
+                                                : removePaymentDeadlineLine(String(details.display_name || method))
                                                 .replace(/\(\s*\)/g, '')
                                                 .trim();
                                             const instructionWithoutAccountId = accountId
@@ -447,7 +461,7 @@ export default function CartCheckout() {
                                                         />
                                                         <span>
                                                             <div className="font-semibold">{methodDisplayName}</div>
-                                                            <div className="text-sm text-[#9aa1af]">You will receive instructions to complete payment.</div>
+                                                            <div className="text-sm text-[#9aa1af]">{method === 'stripe_transfer' ? 'Secure card checkout via Stripe.' : 'You will receive instructions to complete payment.'}</div>
                                                         </span>
                                                     </span>
                                                     {paymentMethod === method && (
@@ -463,7 +477,7 @@ export default function CartCheckout() {
                                                                 <div><strong>Account ID:</strong> {details.account_id}</div>
                                                             )}
                                                             {method === 'stripe_transfer' && (
-                                                                <div className="mt-1 text-sm text-[#2a2f38]">You will be redirected to secure Stripe checkout after confirming.</div>
+                                                                <div className="mt-1 text-sm text-[#2a2f38]">You will be redirected to secure Stripe checkout after confirming. A flat fee of €{stripeFlatFee.toFixed(2)} applies.</div>
                                                             )}
                                                             {method !== 'stripe_transfer' && instructionWithoutAccountId && (
                                                                 <div className="mt-2">{instructionWithoutAccountId}</div>
@@ -489,11 +503,17 @@ export default function CartCheckout() {
                                         <span>Subtotal</span>
                                         <span>€{Number(totals.total).toFixed(2)}</span>
                                     </div>
+                                    {stripeFlatFee > 0 && (
+                                        <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2">
+                                            <span>eCard payment fee</span>
+                                            <span>€{stripeFlatFee.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-2 flex items-center justify-between">
                                     <span className="text-lg font-semibold text-[#2a2f38]">Total</span>
-                                    <span className="text-lg font-semibold text-[#2a2f38]">€{Number(totals.total).toFixed(2)}</span>
+                                    <span className="text-lg font-semibold text-[#2a2f38]">€{checkoutTotal.toFixed(2)}</span>
                                 </div>
 
                                 <div className="mt-6 flex items-center gap-2">

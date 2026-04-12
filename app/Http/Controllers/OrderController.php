@@ -349,6 +349,9 @@ class OrderController extends Controller
             }
         }
 
+        $order->last_payment_reminder_sent_at = now();
+        $order->save();
+
         return redirect()->back()->with('success', 'Payment reminder sent.');
     }
 

@@ -106,7 +106,8 @@ class CartController extends Controller
             'stripe_transfer' => [
                 'enabled' => true,
                 'method' => 'stripe_transfer',
-                'display_name' => 'Stripe',
+                'display_name' => 'Card payment / Bilk / Stripe / Klarna',
+                'flat_fee' => (float) config('payments.stripe_transfer.flat_fee', 2),
             ],
             default => null,
         };
@@ -221,9 +222,11 @@ class CartController extends Controller
                 do {
                     $code = $this->generateBookingCode();
                 } while (\App\Models\Order::where('booking_code', $code)->exists());
-                $total = $cart->items->sum(function ($i) {
+                $subtotal = $cart->items->sum(function ($i) {
                     return $i->quantity * $i->price;
                 });
+                $stripeFlatFee = $paymentMethod === 'stripe_transfer' ? $this->stripeFlatFeeAmount() : 0.0;
+                $total = $subtotal + $stripeFlatFee;
                 $order = Order::create([
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
@@ -413,9 +416,6 @@ class CartController extends Controller
         }
         $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
 
-        // prefer display the order confirmation page with details
-        $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null); // Ensure recipientEmail is defined before use
-
         if ($request->wantsJson() || $request->ajax()) {
             $customerCreated = isset($result['customer_created']) ? (bool) $result['customer_created'] : false;
 
@@ -592,6 +592,15 @@ class CartController extends Controller
             ];
         })->collapse()->all();
 
+        $stripeFlatFeeCents = (int) round($this->stripeFlatFeeAmount() * 100);
+        if ($stripeFlatFeeCents > 0) {
+            $feeIndex = $order->items->count();
+            $lineItems["line_items[{$feeIndex}][price_data][currency]"] = 'eur';
+            $lineItems["line_items[{$feeIndex}][price_data][product_data][name]"] = 'eCard payment fee';
+            $lineItems["line_items[{$feeIndex}][price_data][unit_amount]"] = $stripeFlatFeeCents;
+            $lineItems["line_items[{$feeIndex}][quantity]"] = 1;
+        }
+
         if (empty($lineItems)) {
             throw new \RuntimeException('Unable to create Stripe checkout: order has no line items.');
         }
@@ -644,5 +653,10 @@ class CartController extends Controller
         }
 
         return $checkoutUrl;
+    }
+
+    protected function stripeFlatFeeAmount(): float
+    {
+        return max(0.0, (float) config('payments.stripe_transfer.flat_fee', 2));
     }
 }
