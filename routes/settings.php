@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ModuleSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -28,4 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::get('settings/modules', [ModuleSettingsController::class, 'edit'])
+        ->middleware([\App\Http\Middleware\CheckRole::class.':super_admin'])
+        ->name('settings.modules.edit');
+
+    Route::put('settings/modules', [ModuleSettingsController::class, 'update'])
+        ->middleware([\App\Http\Middleware\CheckRole::class.':super_admin'])
+        ->name('settings.modules.update');
 });

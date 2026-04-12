@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ModuleSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -112,6 +114,17 @@ class HandleInertiaRequests extends Middleware
                 'ticketScan' => $request->session()->get('ticketScan'),
                 'newsletter_success' => $request->session()->get('newsletter_success'),
             ],
+            'module_settings' => (function () {
+                try {
+                    if (! Schema::hasTable('module_settings')) {
+                        return ModuleSetting::defaults();
+                    }
+
+                    return ModuleSetting::modules();
+                } catch (\Throwable $e) {
+                    return ModuleSetting::defaults();
+                }
+            })(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

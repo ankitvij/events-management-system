@@ -7,22 +7,23 @@ type GuestMenuItem = {
     href: string;
     label: string;
     createHref?: string;
+    moduleKey?: 'agencies_enabled' | 'organisers_enabled' | 'artists_enabled' | 'promoters_enabled' | 'vendors_enabled' | 'venues_enabled';
     icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
 };
 
 const commonMenuItems: GuestMenuItem[] = [
     { href: '/', label: 'Events', createHref: '/events/create', icon: Calendar },
-    { href: '/agencies', label: 'Agencies', createHref: '/agencies/create', icon: Users },
-    { href: '/organisers', label: 'Organisers', createHref: '/organisers/create', icon: Users },
-    { href: '/artists', label: 'Artists', createHref: '/artists/create', icon: Mic2 },
-    { href: '/promoters', label: 'Promoters', createHref: '/promoters/create', icon: Megaphone },
-    { href: '/vendors', label: 'Vendors', createHref: '/vendors/create', icon: Store },
-    { href: '/venues', label: 'Venues', createHref: '/venues/create', icon: MapPin },
+    { href: '/agencies', label: 'Agencies', createHref: '/agencies/create', icon: Users, moduleKey: 'agencies_enabled' },
+    { href: '/organisers', label: 'Organisers', createHref: '/organisers/create', icon: Users, moduleKey: 'organisers_enabled' },
+    { href: '/artists', label: 'Artists', createHref: '/artists/create', icon: Mic2, moduleKey: 'artists_enabled' },
+    { href: '/promoters', label: 'Promoters', createHref: '/promoters/create', icon: Megaphone, moduleKey: 'promoters_enabled' },
+    { href: '/vendors', label: 'Vendors', createHref: '/vendors/create', icon: Store, moduleKey: 'vendors_enabled' },
+    { href: '/venues', label: 'Venues', createHref: '/venues/create', icon: MapPin, moduleKey: 'venues_enabled' },
 ];
 
 export default function GuestSidebar() {
     const { resolvedAppearance, updateAppearance } = useAppearance();
-    const page = usePage<{ customer?: { id: number } | null; organiser?: { id: number } | null; auth?: { user?: { id: number; role?: string } | null } }>();
+    const page = usePage<{ customer?: { id: number } | null; organiser?: { id: number } | null; auth?: { user?: { id: number; role?: string } | null }; module_settings?: Record<string, boolean> }>();
     const [isMobile, setIsMobile] = useState(() =>
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
@@ -91,16 +92,27 @@ export default function GuestSidebar() {
     const sidebarWidthClass = isMobile ? 'w-64' : (collapsed ? 'w-24' : 'w-64');
     const isCustomerLoggedIn = !!page.props?.customer;
     const isOrganiserLoggedIn = !!page.props?.organiser || !!page.props?.auth?.user;
+    const customerMenuItems: GuestMenuItem[] = isCustomerLoggedIn
+        ? [
+              { href: '/customer/orders', label: 'My orders', icon: ShoppingCart },
+              { href: '/customer/orders#tickets', label: 'My tickets', icon: Ticket },
+          ]
+        : [];
+    const organiserMenuItems: GuestMenuItem[] = isOrganiserLoggedIn
+        ? [{ href: '/events', label: 'My events', createHref: '/events/create', icon: Calendar }]
+        : [];
+
     const menuItems: GuestMenuItem[] = [
-        ...(isCustomerLoggedIn
-            ? [
-                { href: '/customer/orders', label: 'My orders', icon: ShoppingCart },
-                { href: '/customer/orders#tickets', label: 'My tickets', icon: Ticket },
-            ]
-            : []),
-        ...(isOrganiserLoggedIn ? [{ href: '/events', label: 'My events', createHref: '/events/create', icon: Calendar }] : []),
+        ...customerMenuItems,
+        ...organiserMenuItems,
         ...commonMenuItems,
-    ];
+    ].filter((item) => {
+        if (!item.moduleKey) {
+            return true;
+        }
+
+        return page.props?.module_settings?.[item.moduleKey] !== false;
+    });
 
     const toggleMenuSection = (href: string) => {
         setExpandedMenuHref((current) => (current === href ? null : href));

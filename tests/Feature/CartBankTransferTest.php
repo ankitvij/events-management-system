@@ -178,7 +178,7 @@ class CartBankTransferTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Cart/Checkout')
-                ->where('payment_methods.stripe_transfer.display_name', 'Stripe')
+                ->where('payment_methods.stripe_transfer.display_name', 'Card payment / Bilk / Stripe / Klarna')
                 ->where('payment_methods.stripe_transfer.enabled', true)
             );
     }

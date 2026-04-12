@@ -206,15 +206,22 @@ use App\Http\Controllers\UserController;
 
 Route::resource('users', UserController::class)->middleware(['auth']);
 Route::put('users/{user}/active', [UserController::class, 'toggleActive'])->middleware(['auth'])->name('users.active');
-Route::get('promoters', [UserController::class, 'promoters'])->name('promoters.index');
-Route::get('promoters/{promoter}', [UserController::class, 'showPromoter'])->whereNumber('promoter')->name('promoters.show');
-Route::resource('agencies', AgencyController::class)->only(['index', 'show']);
+Route::get('promoters', [UserController::class, 'promoters'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':promoters_enabled'])
+    ->name('promoters.index');
+Route::get('promoters/{promoter}', [UserController::class, 'showPromoter'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':promoters_enabled'])
+    ->whereNumber('promoter')
+    ->name('promoters.show');
+Route::resource('agencies', AgencyController::class)
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':agencies_enabled'])
+    ->only(['index', 'show']);
 Route::put('agencies/{agency}/active', [AgencyController::class, 'toggleActive'])
-    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin', \App\Http\Middleware\CheckModuleEnabled::class.':agencies_enabled'])
     ->name('agencies.active');
 Route::resource('agencies', AgencyController::class)
     ->except(['index', 'show'])
-    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency']);
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin,super_admin,agency', \App\Http\Middleware\CheckModuleEnabled::class.':agencies_enabled']);
 
 use App\Http\Controllers\Admin\ErrorLogController;
 use App\Http\Controllers\RoleController;
@@ -244,19 +251,43 @@ Route::get('admin/error-logs/data', [ErrorLogController::class, 'data'])
 use App\Http\Controllers\OrganiserController;
 
 // Organiser signup and magic-link login
-Route::get('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'create'])->middleware('guest')->name('organisers.signup');
-Route::post('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'store'])->middleware('guest')->name('organisers.signup.store');
-Route::get('organisers/login', [\App\Http\Controllers\OrganiserAuthController::class, 'showLogin'])->middleware('guest')->name('organisers.login');
-Route::post('organisers/login/token', [\App\Http\Controllers\OrganiserAuthController::class, 'sendToken'])->middleware('guest')->name('organisers.login.token.send');
-Route::get('organisers/login/token/{token}', [\App\Http\Controllers\OrganiserAuthController::class, 'consumeToken'])->middleware('guest')->name('organisers.login.token.consume');
-Route::post('organisers/logout', [\App\Http\Controllers\OrganiserAuthController::class, 'logout'])->name('organisers.logout');
-Route::get('organisers/profile', [OrganiserProfileController::class, 'show'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile');
-Route::put('organisers/profile', [OrganiserProfileController::class, 'update'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile.update');
-Route::put('organisers/profile/password', [OrganiserProfileController::class, 'updatePassword'])->middleware([EnsureOrganiserAuthenticated::class])->name('organisers.profile.password.update');
+Route::get('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'create'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.signup');
+Route::post('organisers/signup', [\App\Http\Controllers\OrganiserSignupController::class, 'store'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.signup.store');
+Route::get('organisers/login', [\App\Http\Controllers\OrganiserAuthController::class, 'showLogin'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.login');
+Route::post('organisers/login/token', [\App\Http\Controllers\OrganiserAuthController::class, 'sendToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.login.token.send');
+Route::get('organisers/login/token/{token}', [\App\Http\Controllers\OrganiserAuthController::class, 'consumeToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.login.token.consume');
+Route::post('organisers/logout', [\App\Http\Controllers\OrganiserAuthController::class, 'logout'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.logout');
+Route::get('organisers/profile', [OrganiserProfileController::class, 'show'])
+    ->middleware([EnsureOrganiserAuthenticated::class, \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.profile');
+Route::put('organisers/profile', [OrganiserProfileController::class, 'update'])
+    ->middleware([EnsureOrganiserAuthenticated::class, \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.profile.update');
+Route::put('organisers/profile/password', [OrganiserProfileController::class, 'updatePassword'])
+    ->middleware([EnsureOrganiserAuthenticated::class, \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.profile.password.update');
 
-Route::resource('organisers', OrganiserController::class)->only(['index', 'show']);
-Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])->middleware(['auth'])->name('organisers.active');
-Route::resource('organisers', OrganiserController::class)->middleware(['auth'])->except(['index', 'show']);
+Route::resource('organisers', OrganiserController::class)
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->only(['index', 'show']);
+Route::put('organisers/{organiser}/active', [OrganiserController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->name('organisers.active');
+Route::resource('organisers', OrganiserController::class)
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':organisers_enabled'])
+    ->except(['index', 'show']);
 
 use App\Http\Controllers\EventTicketControllerController;
 use App\Http\Controllers\TicketController;
@@ -341,71 +372,151 @@ Route::resource('customers', CustomerController::class)->middleware(['auth']);
 Route::put('customers/{customer}/active', [CustomerController::class, 'toggleActive'])->middleware(['auth'])->name('customers.active');
 
 // Public artist signup (from landing page)
-Route::get('artists/signup', [ArtistSignupController::class, 'create'])->middleware('guest')->name('artists.signup.form');
-Route::post('artists/signup', [ArtistSignupController::class, 'store'])->middleware('guest')->name('artists.signup');
-Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])->middleware('signed')->name('artists.verify');
+Route::get('artists/signup', [ArtistSignupController::class, 'create'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.signup.form');
+Route::post('artists/signup', [ArtistSignupController::class, 'store'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.signup');
+Route::get('artists/verify/{artist}/{token}', [ArtistSignupController::class, 'verify'])
+    ->middleware(['signed', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.verify');
 
 // Public promoter signup
-Route::get('promoters/signup', [PromoterSignupController::class, 'create'])->middleware('guest')->name('promoters.signup');
-Route::post('promoters/signup', [PromoterSignupController::class, 'store'])->middleware('guest')->name('promoters.signup.store');
+Route::get('promoters/signup', [PromoterSignupController::class, 'create'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':promoters_enabled'])
+    ->name('promoters.signup');
+Route::post('promoters/signup', [PromoterSignupController::class, 'store'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':promoters_enabled'])
+    ->name('promoters.signup.store');
 
 // Public vendor signup
-Route::get('vendors/signup', [VendorSignupController::class, 'create'])->middleware('guest')->name('vendors.signup');
-Route::post('vendors/signup', [VendorSignupController::class, 'store'])->middleware('guest')->name('vendors.signup.store');
+Route::get('vendors/signup', [VendorSignupController::class, 'create'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.signup');
+Route::post('vendors/signup', [VendorSignupController::class, 'store'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.signup.store');
 
 // Newsletter
 Route::post('newsletter/signup', [NewsletterSignupController::class, 'store'])->middleware('guest')->name('newsletter.signup');
 
 // Artist magic-link login (from landing page)
-Route::post('artists/login/token', [ArtistAuthController::class, 'sendToken'])->middleware('guest')->name('artists.login.token.send');
-Route::get('artists/login/token/{token}', [ArtistAuthController::class, 'consumeToken'])->middleware('guest')->name('artists.login.token.consume');
-Route::post('artists/logout', [ArtistAuthController::class, 'logout'])->name('artists.logout');
+Route::post('artists/login/token', [ArtistAuthController::class, 'sendToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.login.token.send');
+Route::get('artists/login/token/{token}', [ArtistAuthController::class, 'consumeToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.login.token.consume');
+Route::post('artists/logout', [ArtistAuthController::class, 'logout'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.logout');
 
 // Artist portal
-Route::get('artist/calendar', [ArtistCalendarController::class, 'index'])->name('artist.calendar');
-Route::post('artist/calendar', [ArtistCalendarController::class, 'store'])->name('artist.calendar.store');
-Route::delete('artist/calendar/{availability}', [ArtistCalendarController::class, 'destroy'])->name('artist.calendar.destroy');
-Route::get('artist/bookings', [ArtistBookingRequestController::class, 'index'])->name('artist.bookings');
-Route::post('artist/bookings/{bookingRequest}/accept', [ArtistBookingRequestController::class, 'accept'])->name('artist.bookings.accept');
-Route::post('artist/bookings/{bookingRequest}/decline', [ArtistBookingRequestController::class, 'decline'])->name('artist.bookings.decline');
+Route::get('artist/calendar', [ArtistCalendarController::class, 'index'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.calendar');
+Route::post('artist/calendar', [ArtistCalendarController::class, 'store'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.calendar.store');
+Route::delete('artist/calendar/{availability}', [ArtistCalendarController::class, 'destroy'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.calendar.destroy');
+Route::get('artist/bookings', [ArtistBookingRequestController::class, 'index'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.bookings');
+Route::post('artist/bookings/{bookingRequest}/accept', [ArtistBookingRequestController::class, 'accept'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.bookings.accept');
+Route::post('artist/bookings/{bookingRequest}/decline', [ArtistBookingRequestController::class, 'decline'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artist.bookings.decline');
 
 // Vendor magic-link login (from landing page)
-Route::post('vendors/login/token', [VendorAuthController::class, 'sendToken'])->middleware('guest')->name('vendors.login.token.send');
-Route::get('vendors/login/token/{token}', [VendorAuthController::class, 'consumeToken'])->middleware('guest')->name('vendors.login.token.consume');
-Route::post('vendors/logout', [VendorAuthController::class, 'logout'])->name('vendors.logout');
+Route::post('vendors/login/token', [VendorAuthController::class, 'sendToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.login.token.send');
+Route::get('vendors/login/token/{token}', [VendorAuthController::class, 'consumeToken'])
+    ->middleware(['guest', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.login.token.consume');
+Route::post('vendors/logout', [VendorAuthController::class, 'logout'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.logout');
 
 // Vendor portal
-Route::get('vendor/calendar', [VendorCalendarController::class, 'index'])->name('vendor.calendar');
-Route::post('vendor/calendar', [VendorCalendarController::class, 'store'])->name('vendor.calendar.store');
-Route::delete('vendor/calendar/{availability}', [VendorCalendarController::class, 'destroy'])->name('vendor.calendar.destroy');
-Route::post('vendor/equipment', [VendorPortalController::class, 'storeEquipment'])->name('vendor.equipment.store');
-Route::delete('vendor/equipment/{equipment}', [VendorPortalController::class, 'destroyEquipment'])->name('vendor.equipment.destroy');
-Route::post('vendor/services', [VendorPortalController::class, 'storeService'])->name('vendor.services.store');
-Route::delete('vendor/services/{service}', [VendorPortalController::class, 'destroyService'])->name('vendor.services.destroy');
-Route::get('vendor/bookings', [VendorBookingRequestController::class, 'index'])->name('vendor.bookings');
-Route::post('vendor/bookings/{vendorBookingRequest}/accept', [VendorBookingRequestController::class, 'accept'])->name('vendor.bookings.accept');
-Route::post('vendor/bookings/{vendorBookingRequest}/decline', [VendorBookingRequestController::class, 'decline'])->name('vendor.bookings.decline');
+Route::get('vendor/calendar', [VendorCalendarController::class, 'index'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.calendar');
+Route::post('vendor/calendar', [VendorCalendarController::class, 'store'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.calendar.store');
+Route::delete('vendor/calendar/{availability}', [VendorCalendarController::class, 'destroy'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.calendar.destroy');
+Route::post('vendor/equipment', [VendorPortalController::class, 'storeEquipment'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.equipment.store');
+Route::delete('vendor/equipment/{equipment}', [VendorPortalController::class, 'destroyEquipment'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.equipment.destroy');
+Route::post('vendor/services', [VendorPortalController::class, 'storeService'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.services.store');
+Route::delete('vendor/services/{service}', [VendorPortalController::class, 'destroyService'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.services.destroy');
+Route::get('vendor/bookings', [VendorBookingRequestController::class, 'index'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.bookings');
+Route::post('vendor/bookings/{vendorBookingRequest}/accept', [VendorBookingRequestController::class, 'accept'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.bookings.accept');
+Route::post('vendor/bookings/{vendorBookingRequest}/decline', [VendorBookingRequestController::class, 'decline'])
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendor.bookings.decline');
 
 // Organiser: send booking request to artist for an event
-Route::post('events/{event}/booking-requests', [BookingRequestController::class, 'store'])->middleware(['auth'])->name('events.booking-requests.store');
+Route::post('events/{event}/booking-requests', [BookingRequestController::class, 'store'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('events.booking-requests.store');
 
 // Organiser: send booking request to vendor for an event
-Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestController::class, 'store'])->middleware(['auth'])->name('events.vendor-booking-requests.store');
+Route::post('events/{event}/vendor-booking-requests', [VendorBookingRequestController::class, 'store'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('events.vendor-booking-requests.store');
 
 // Admin artists management
-Route::resource('artists', ArtistController::class)->only(['index', 'show']);
-Route::put('artists/{artist}/active', [ArtistController::class, 'toggleActive'])->middleware(['auth'])->name('artists.active');
-Route::resource('artists', ArtistController::class)->middleware(['auth'])->except(['index', 'show']);
+Route::resource('artists', ArtistController::class)
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->only(['index', 'show']);
+Route::put('artists/{artist}/active', [ArtistController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->name('artists.active');
+Route::resource('artists', ArtistController::class)
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':artists_enabled'])
+    ->except(['index', 'show']);
 
 // Admin vendors management
-Route::resource('vendors', VendorController::class)->only(['index', 'show']);
-Route::put('vendors/{vendor}/active', [VendorController::class, 'toggleActive'])->middleware(['auth'])->name('vendors.active');
-Route::resource('vendors', VendorController::class)->middleware(['auth'])->except(['index', 'show']);
+Route::resource('vendors', VendorController::class)
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->only(['index', 'show']);
+Route::put('vendors/{vendor}/active', [VendorController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->name('vendors.active');
+Route::resource('vendors', VendorController::class)
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':vendors_enabled'])
+    ->except(['index', 'show']);
 
 // Admin venues management
-Route::resource('venues', VenueController::class)->only(['index', 'show']);
-Route::put('venues/{venue}/active', [VenueController::class, 'toggleActive'])->middleware(['auth'])->name('venues.active');
-Route::resource('venues', VenueController::class)->middleware(['auth'])->except(['index', 'show']);
+Route::resource('venues', VenueController::class)
+    ->middleware([\App\Http\Middleware\CheckModuleEnabled::class.':venues_enabled'])
+    ->only(['index', 'show']);
+Route::put('venues/{venue}/active', [VenueController::class, 'toggleActive'])
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':venues_enabled'])
+    ->name('venues.active');
+Route::resource('venues', VenueController::class)
+    ->middleware(['auth', \App\Http\Middleware\CheckModuleEnabled::class.':venues_enabled'])
+    ->except(['index', 'show']);
 
 use App\Http\Controllers\Admin\LogController;
 

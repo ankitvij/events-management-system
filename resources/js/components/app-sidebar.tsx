@@ -35,6 +35,20 @@ export function AppSidebar() {
     const page = usePage();
     const isSuper = !!page.props?.auth?.user?.is_super_admin;
     const role = page.props?.auth?.user?.role;
+    const modules = (page.props?.module_settings ?? {}) as {
+        agencies_enabled?: boolean;
+        organisers_enabled?: boolean;
+        artists_enabled?: boolean;
+        promoters_enabled?: boolean;
+        vendors_enabled?: boolean;
+        venues_enabled?: boolean;
+    };
+    const isAgenciesEnabled = modules.agencies_enabled !== false;
+    const isOrganisersEnabled = modules.organisers_enabled !== false;
+    const isArtistsEnabled = modules.artists_enabled !== false;
+    const isPromotersEnabled = modules.promoters_enabled !== false;
+    const isVendorsEnabled = modules.vendors_enabled !== false;
+    const isVenuesEnabled = modules.venues_enabled !== false;
 
     const isManager = !!page.props?.auth?.user && (role === 'admin' || role === 'agency' || page.props.auth.user.is_super_admin);
 
@@ -50,19 +64,29 @@ export function AppSidebar() {
     items.push({ title: 'Events', href: '/events', icon: Calendar });
     if (isManager) {
         items.push({ title: 'Users', href: '/users', icon: Users });
-        items.push({ title: 'Agencies', href: '/agencies', icon: Building2 });
+        if (isAgenciesEnabled) {
+            items.push({ title: 'Agencies', href: '/agencies', icon: Building2 });
+        }
     }
-    if (page.props?.auth?.user) {
+    if (page.props?.auth?.user && isOrganisersEnabled) {
         items.push({ title: 'Organisers', href: '/organisers', icon: Users2 });
     }
     if (isSuper) {
         items.push({ title: 'Roles', href: '/roles', icon: Shield });
     }
     if (isManager) {
-        items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
-        items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
-        items.push({ title: 'Venues', href: '/venues', icon: MapPin });
-        items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
+        if (isArtistsEnabled) {
+            items.push({ title: 'Artists', href: '/artists', icon: Mic2 });
+        }
+        if (isVendorsEnabled) {
+            items.push({ title: 'Vendors', href: '/vendors', icon: Users2 });
+        }
+        if (isVenuesEnabled) {
+            items.push({ title: 'Venues', href: '/venues', icon: MapPin });
+        }
+        if (isPromotersEnabled) {
+            items.push({ title: 'Promoters', href: '/promoters', icon: Megaphone });
+        }
         items.push({ title: 'Customers', href: '/customers', icon: UserSquare2 });
         items.push({ title: 'Pages', href: '/pages', icon: FileText });
     }
