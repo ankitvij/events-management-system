@@ -261,9 +261,6 @@ export default function GuestLanding({ events }: Props) {
                     {events?.links && (
                         <div className="mt-3 flex items-center justify-between gap-3">
                             <CompactPagination links={events.links} className="justify-center min-[800px]:justify-start" />
-                            <Link href="/events/create" className="hidden min-[1000px]:inline-flex h-10 items-center rounded-md bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]">
-                                List your event
-                            </Link>
                         </div>
                     )}
 
