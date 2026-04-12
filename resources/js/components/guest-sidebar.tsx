@@ -93,7 +93,7 @@ export default function GuestSidebar() {
             )}
 
             <aside
-                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[10rem] z-40 min-h-[calc(100svh-10rem)] w-[82vw] max-w-[20rem] border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[10rem] z-50 h-[calc(100svh-10rem)] w-[86vw] max-w-[21rem] overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
                 {!isMobile && (
                     <button
@@ -121,7 +121,7 @@ export default function GuestSidebar() {
                 {isMobile && (
                     <button
                         type="button"
-                        className="absolute -right-9 top-4 inline-flex h-9 w-9 items-center justify-center rounded-r-md rounded-l-none border border-l-0 border-zinc-700 bg-[#111317] text-zinc-200 transition-colors hover:bg-zinc-800"
+                        className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-700 bg-[#111317] text-zinc-200 transition-colors hover:bg-zinc-800"
                         onClick={() => setIsMobileOpen(false)}
                         aria-label="Close guest menu"
                         title="Close"
