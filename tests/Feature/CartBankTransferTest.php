@@ -130,4 +130,32 @@ class CartBankTransferTest extends TestCase
                 ->where('payment_methods.stripe_transfer.instructions', $stripe['instructions'])
             );
     }
+
+    public function test_checkout_exposes_only_stripe_publishable_key(): void
+    {
+        Session::start();
+
+        config()->set('services.stripe.publishable_key', 'pk_test_123');
+        config()->set('services.stripe.secret_key', 'sk_test_456');
+        config()->set('services.stripe.restricted_key', 'rk_test_789');
+
+        $event = Event::factory()->create();
+
+        $cart = Cart::create(['session_id' => Session::getId()]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 25.00,
+        ]);
+
+        $this->get(route('cart.checkout.form', ['cart_id' => $cart->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Cart/Checkout')
+                ->where('stripe.publishable_key', 'pk_test_123')
+                ->missing('stripe.secret_key')
+                ->missing('stripe.restricted_key')
+            );
+    }
 }

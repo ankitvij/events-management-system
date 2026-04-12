@@ -76,6 +76,9 @@ class CartController extends Controller
             'cart_count' => $count,
             'cart_total' => $total,
             'payment_methods' => $paymentMethods,
+            'stripe' => [
+                'publishable_key' => config('services.stripe.publishable_key'),
+            ],
         ]);
     }
 
