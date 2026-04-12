@@ -54,12 +54,14 @@ class OrderPaymentMethodsSettingsTest extends TestCase
             'bank_bic' => 'BANKGB2L',
             'bank_reference_hint' => 'Use booking code',
             'bank_instructions' => 'Pay within 7 days',
+            'bank_enabled' => true,
             'paypal_id' => 'paypal@example.com',
             'paypal_instructions' => 'Send via PayPal',
+            'paypal_enabled' => false,
             'revolut_id' => 'revolut-id',
             'revolut_instructions' => 'Send via Revolut',
-            'stripe_id' => 'stripe-link-id',
-            'stripe_instructions' => 'Pay securely via Stripe',
+            'revolut_enabled' => true,
+            'stripe_enabled' => false,
         ];
 
         $this->actingAs($user)
@@ -71,6 +73,9 @@ class OrderPaymentMethodsSettingsTest extends TestCase
         $this->assertSame('Global Bank', $settings->bank_account_name);
         $this->assertSame('paypal@example.com', $settings->paypal_id);
         $this->assertSame('revolut-id', $settings->revolut_id);
-        $this->assertSame('stripe-link-id', $settings->stripe_id);
+        $this->assertTrue($settings->bank_enabled);
+        $this->assertFalse($settings->paypal_enabled);
+        $this->assertTrue($settings->revolut_enabled);
+        $this->assertFalse($settings->stripe_enabled);
     }
 }

@@ -8,12 +8,14 @@ type PaymentSettings = {
     bank_bic: string | null;
     bank_reference_hint: string | null;
     bank_instructions: string | null;
+    bank_enabled: boolean;
     paypal_id: string | null;
     paypal_instructions: string | null;
+    paypal_enabled: boolean;
     revolut_id: string | null;
     revolut_instructions: string | null;
-    stripe_id: string | null;
-    stripe_instructions: string | null;
+    revolut_enabled: boolean;
+    stripe_enabled: boolean;
 };
 
 export default function PaymentMethods() {
@@ -26,12 +28,14 @@ export default function PaymentMethods() {
         bank_bic: settings?.bank_bic ?? '',
         bank_reference_hint: settings?.bank_reference_hint ?? '',
         bank_instructions: settings?.bank_instructions ?? '',
+        bank_enabled: settings?.bank_enabled ?? true,
         paypal_id: settings?.paypal_id ?? '',
         paypal_instructions: settings?.paypal_instructions ?? '',
+        paypal_enabled: settings?.paypal_enabled ?? true,
         revolut_id: settings?.revolut_id ?? '',
         revolut_instructions: settings?.revolut_instructions ?? '',
-        stripe_id: settings?.stripe_id ?? '',
-        stripe_instructions: settings?.stripe_instructions ?? '',
+        revolut_enabled: settings?.revolut_enabled ?? true,
+        stripe_enabled: settings?.stripe_enabled ?? true,
     });
 
     const submit = (event: FormEvent) => {
@@ -57,7 +61,16 @@ export default function PaymentMethods() {
 
                 <form onSubmit={submit} className="space-y-6">
                     <div className="space-y-3">
-                        <h2 className="text-sm font-semibold">Bank transfer</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold">Bank transfer</h2>
+                            <button
+                                type="button"
+                                onClick={() => form.setData('bank_enabled', !form.data.bank_enabled)}
+                                className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${form.data.bank_enabled ? 'bg-green-600' : 'bg-zinc-600'}`}
+                            >
+                                {form.data.bank_enabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                        </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label className="block text-sm font-medium">Account name</label>
@@ -115,7 +128,16 @@ export default function PaymentMethods() {
                     </div>
 
                     <div className="border-t border-border pt-4 space-y-3">
-                        <h2 className="text-sm font-semibold">PayPal transfer</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold">PayPal transfer</h2>
+                            <button
+                                type="button"
+                                onClick={() => form.setData('paypal_enabled', !form.data.paypal_enabled)}
+                                className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${form.data.paypal_enabled ? 'bg-green-600' : 'bg-zinc-600'}`}
+                            >
+                                {form.data.paypal_enabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                        </div>
                         <div>
                             <label className="block text-sm font-medium">PayPal ID</label>
                             <input
@@ -139,7 +161,16 @@ export default function PaymentMethods() {
                     </div>
 
                     <div className="border-t border-border pt-4 space-y-3">
-                        <h2 className="text-sm font-semibold">Revolut transfer</h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold">Revolut transfer</h2>
+                            <button
+                                type="button"
+                                onClick={() => form.setData('revolut_enabled', !form.data.revolut_enabled)}
+                                className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${form.data.revolut_enabled ? 'bg-green-600' : 'bg-zinc-600'}`}
+                            >
+                                {form.data.revolut_enabled ? 'Enabled' : 'Disabled'}
+                            </button>
+                        </div>
                         <div>
                             <label className="block text-sm font-medium">Revolut ID</label>
                             <input
@@ -163,27 +194,17 @@ export default function PaymentMethods() {
                     </div>
 
                     <div className="border-t border-border pt-4 space-y-3">
-                        <h2 className="text-sm font-semibold">Stripe</h2>
-                        <div>
-                            <label className="block text-sm font-medium">Stripe payment link / account ID</label>
-                            <input
-                                name="stripe_id"
-                                value={form.data.stripe_id}
-                                onChange={e => form.setData('stripe_id', e.target.value)}
-                                className="input"
-                            />
-                            {form.errors.stripe_id && <div className="text-sm text-destructive mt-1">{form.errors.stripe_id}</div>}
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold">Stripe</h2>
+                            <button
+                                type="button"
+                                onClick={() => form.setData('stripe_enabled', !form.data.stripe_enabled)}
+                                className={`rounded-md px-3 py-1 text-xs font-semibold text-white ${form.data.stripe_enabled ? 'bg-green-600' : 'bg-zinc-600'}`}
+                            >
+                                {form.data.stripe_enabled ? 'Enabled' : 'Disabled'}
+                            </button>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium">Instructions</label>
-                            <textarea
-                                name="stripe_instructions"
-                                value={form.data.stripe_instructions}
-                                onChange={e => form.setData('stripe_instructions', e.target.value)}
-                                className="input min-h-[80px]"
-                            />
-                            {form.errors.stripe_instructions && <div className="text-sm text-destructive mt-1">{form.errors.stripe_instructions}</div>}
-                        </div>
+                        <p className="text-sm text-muted">Stripe account details are managed from environment configuration.</p>
                     </div>
 
                     <div>

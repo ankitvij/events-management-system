@@ -27,12 +27,14 @@ class PaymentSettingsRequest extends FormRequest
             'bank_bic' => ['nullable', 'string', 'max:64'],
             'bank_reference_hint' => ['nullable', 'string', 'max:255'],
             'bank_instructions' => ['nullable', 'string', 'max:1000'],
+            'bank_enabled' => ['required', 'boolean'],
             'paypal_id' => ['nullable', 'string', 'max:255'],
             'paypal_instructions' => ['nullable', 'string', 'max:1000'],
+            'paypal_enabled' => ['required', 'boolean'],
             'revolut_id' => ['nullable', 'string', 'max:255'],
             'revolut_instructions' => ['nullable', 'string', 'max:1000'],
-            'stripe_id' => ['nullable', 'string', 'max:255'],
-            'stripe_instructions' => ['nullable', 'string', 'max:1000'],
+            'revolut_enabled' => ['required', 'boolean'],
+            'stripe_enabled' => ['required', 'boolean'],
         ];
     }
 }

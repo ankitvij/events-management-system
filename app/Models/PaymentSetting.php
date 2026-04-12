@@ -12,13 +12,27 @@ class PaymentSetting extends Model
         'bank_bic',
         'bank_reference_hint',
         'bank_instructions',
+        'bank_enabled',
         'paypal_id',
         'paypal_instructions',
+        'paypal_enabled',
         'revolut_id',
         'revolut_instructions',
+        'revolut_enabled',
         'stripe_id',
         'stripe_instructions',
+        'stripe_enabled',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'bank_enabled' => 'boolean',
+            'paypal_enabled' => 'boolean',
+            'revolut_enabled' => 'boolean',
+            'stripe_enabled' => 'boolean',
+        ];
+    }
 
     public static function paymentMethods(): array
     {
@@ -35,18 +49,22 @@ class PaymentSetting extends Model
                 'bic' => $settings->bank_bic,
                 'reference_hint' => $settings->bank_reference_hint,
                 'instructions' => $settings->bank_instructions,
+                'enabled' => $settings->bank_enabled,
             ],
             'paypal_transfer' => [
                 'account_id' => $settings->paypal_id,
                 'instructions' => $settings->paypal_instructions,
+                'enabled' => $settings->paypal_enabled,
             ],
             'revolut_transfer' => [
                 'account_id' => $settings->revolut_id,
                 'instructions' => $settings->revolut_instructions,
+                'enabled' => $settings->revolut_enabled,
             ],
             'stripe_transfer' => [
                 'account_id' => $settings->stripe_id,
                 'instructions' => $settings->stripe_instructions,
+                'enabled' => $settings->stripe_enabled,
             ],
         ];
 

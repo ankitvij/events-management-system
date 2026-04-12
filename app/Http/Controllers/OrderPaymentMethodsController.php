@@ -23,12 +23,14 @@ class OrderPaymentMethodsController extends Controller
             'bank_bic' => $bank['bic'] ?? null,
             'bank_reference_hint' => $bank['reference_hint'] ?? null,
             'bank_instructions' => $bank['instructions'] ?? null,
+            'bank_enabled' => ($bank['enabled'] ?? true) !== false,
             'paypal_id' => $paypal['account_id'] ?? null,
             'paypal_instructions' => $paypal['instructions'] ?? null,
+            'paypal_enabled' => ($paypal['enabled'] ?? true) !== false,
             'revolut_id' => $revolut['account_id'] ?? null,
             'revolut_instructions' => $revolut['instructions'] ?? null,
-            'stripe_id' => $stripe['account_id'] ?? null,
-            'stripe_instructions' => $stripe['instructions'] ?? null,
+            'revolut_enabled' => ($revolut['enabled'] ?? true) !== false,
+            'stripe_enabled' => ($stripe['enabled'] ?? true) !== false,
         ];
 
         return Inertia::render('Orders/PaymentMethods', [
