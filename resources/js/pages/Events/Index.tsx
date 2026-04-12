@@ -18,6 +18,7 @@ type Event = {
     id: number;
     slug: string;
     title: string;
+    description?: string | null;
     image?: string | null;
     image_thumbnail?: string | null;
     active?: boolean;
@@ -93,6 +94,17 @@ export default function EventsIndex({ events }: Props) {
         }, delay);
         return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
     }, [search]);
+
+    function descriptionPreview(value?: string | null): string {
+        if (!value) {
+            return '';
+        }
+
+        return value
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -244,6 +256,9 @@ export default function EventsIndex({ events }: Props) {
                                             )}
                                         </div>
                                         <div className="mt-1 text-sm text-muted md:hidden">{event.city ?? ''}{event.city && event.country ? ', ' : ''}{event.country ?? ''}</div>
+                                        {descriptionPreview(event.description) ? (
+                                            <div className="mt-1 text-sm text-muted">{descriptionPreview(event.description)}</div>
+                                        ) : null}
                                         {event.organisers && event.organisers.length > 0 && (
                                             current ? (
                                                 <div className="text-sm text-muted mt-1">

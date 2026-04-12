@@ -86,14 +86,14 @@ export default function GuestSidebar() {
             {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="fixed inset-x-0 bottom-0 top-[10rem] z-40 bg-black/45 min-[1000px]:hidden"
+                    className="fixed inset-x-0 bottom-0 top-[9.125rem] z-40 bg-black/45 min-[1000px]:hidden"
                     aria-label="Close guest menu overlay"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             <aside
-                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[10rem] z-50 h-[calc(100svh-10rem)] w-[86vw] max-w-[21rem] overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[9.125rem] z-50 h-[calc(100svh-9.125rem)] w-full max-w-none overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
             >
                 {!isMobile && (
                     <button
@@ -108,7 +108,7 @@ export default function GuestSidebar() {
                 )}
 
                 {isMobile && (
-                    <div className="relative mt-3 border-b border-zinc-800 pb-3 pr-0">
+                    <div className="relative border-b border-zinc-800 pb-3 pr-0">
                         <div className="flex items-start gap-3">
                             <div>
                                 <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">Menu</p>
