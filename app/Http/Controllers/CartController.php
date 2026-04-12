@@ -66,7 +66,9 @@ class CartController extends Controller
 
         $paymentMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer', 'stripe_transfer'])
             ->mapWithKeys(function ($method) {
-                $details = PaymentSetting::paymentMethod($method) ?? config('payments.'.$method);
+                $details = PaymentSetting::paymentMethod($method)
+                    ?? config('payments.'.$method)
+                    ?? $this->defaultPaymentMethod($method);
 
                 return [$method => $details];
             })->filter();
@@ -80,6 +82,33 @@ class CartController extends Controller
                 'publishable_key' => config('services.stripe.publishable_key'),
             ],
         ]);
+    }
+
+    protected function defaultPaymentMethod(string $method): ?array
+    {
+        return match ($method) {
+            'bank_transfer' => [
+                'enabled' => true,
+                'method' => 'bank_transfer',
+                'display_name' => 'Bank transfer',
+            ],
+            'paypal_transfer' => [
+                'enabled' => true,
+                'method' => 'paypal_transfer',
+                'display_name' => 'Paypal',
+            ],
+            'revolut_transfer' => [
+                'enabled' => true,
+                'method' => 'revolut_transfer',
+                'display_name' => 'Revolut',
+            ],
+            'stripe_transfer' => [
+                'enabled' => true,
+                'method' => 'stripe_transfer',
+                'display_name' => 'Stripe',
+            ],
+            default => null,
+        };
     }
 
     public function storeItem(Request $request)

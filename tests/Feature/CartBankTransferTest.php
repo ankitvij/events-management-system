@@ -158,4 +158,28 @@ class CartBankTransferTest extends TestCase
                 ->missing('stripe.restricted_key')
             );
     }
+
+    public function test_checkout_still_shows_stripe_when_config_entry_is_missing(): void
+    {
+        Session::start();
+
+        config()->set('payments.stripe_transfer', null);
+
+        $event = Event::factory()->create();
+        $cart = Cart::create(['session_id' => Session::getId()]);
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'event_id' => $event->id,
+            'quantity' => 1,
+            'price' => 25.00,
+        ]);
+
+        $this->get(route('cart.checkout.form', ['cart_id' => $cart->id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Cart/Checkout')
+                ->where('payment_methods.stripe_transfer.display_name', 'Stripe')
+                ->where('payment_methods.stripe_transfer.enabled', true)
+            );
+    }
 }
