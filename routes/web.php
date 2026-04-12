@@ -284,6 +284,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\DiscountCodeController;
 use App\Http\Controllers\NewsletterSignupController;
 use App\Http\Controllers\PromoterSignupController;
+use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\VendorAuthController;
 use App\Http\Controllers\VendorBookingRequestController;
 use App\Http\Controllers\VendorCalendarController;
@@ -304,6 +305,26 @@ Route::delete('cart/items/{item}', [CartController::class, 'destroyItem'])->name
 Route::get('cart/summary', [CartController::class, 'summary'])->name('cart.summary');
 // Checkout (basic reservation + decrement) - POST
 Route::post('cart/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
+// Stripe Connect sample integration routes
+Route::get('stripe/connect', [StripeConnectController::class, 'dashboard'])
+    ->middleware(['auth'])
+    ->name('stripe.connect.dashboard');
+Route::post('stripe/connect/account', [StripeConnectController::class, 'createConnectedAccount'])
+    ->middleware(['auth'])
+    ->name('stripe.connect.account.create');
+Route::post('stripe/connect/onboarding-link', [StripeConnectController::class, 'createOnboardingLink'])
+    ->middleware(['auth'])
+    ->name('stripe.connect.onboarding.link');
+Route::post('stripe/connect/products', [StripeConnectController::class, 'createProduct'])
+    ->middleware(['auth'])
+    ->name('stripe.connect.products.create');
+Route::get('stripe/storefront', [StripeConnectController::class, 'storefront'])->name('stripe.connect.storefront');
+Route::post('stripe/storefront/products/{product}/purchase', [StripeConnectController::class, 'purchase'])->name('stripe.connect.storefront.purchase');
+Route::get('stripe/storefront/success', [StripeConnectController::class, 'storefrontSuccess'])->name('stripe.connect.storefront.success');
+Route::post('stripe/connect/webhook', [StripeConnectController::class, 'webhook'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('stripe.connect.webhook');
 
 // Customer-facing auth (separate from admin/auth)
 Route::post('customer/email-check', [CustomerAuthController::class, 'checkEmail'])->name('customer.email.check');
