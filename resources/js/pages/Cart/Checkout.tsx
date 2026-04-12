@@ -204,6 +204,11 @@ export default function CartCheckout() {
                 return;
             }
             const j = await resp.json();
+            if (j?.checkout_url) {
+                window.location.href = String(j.checkout_url);
+
+                return;
+            }
             if (j.success) {
                 window.dispatchEvent(new CustomEvent('app:toast', { detail: { type: 'success', message: j.message || 'Checkout complete' } }));
                 window.dispatchEvent(new CustomEvent('cart:updated'));
@@ -454,10 +459,13 @@ export default function CartCheckout() {
                                                                     <div><strong>BIC/SWIFT:</strong> {details.bic}</div>
                                                                 </>
                                                             )}
-                                                            {isIdOnlyTransfer && (
+                                                            {isIdOnlyTransfer && accountId && (
                                                                 <div><strong>Account ID:</strong> {details.account_id}</div>
                                                             )}
-                                                            {instructionWithoutAccountId && (
+                                                            {method === 'stripe_transfer' && (
+                                                                <div className="mt-1 text-sm text-[#2a2f38]">You will be redirected to secure Stripe checkout after confirming.</div>
+                                                            )}
+                                                            {method !== 'stripe_transfer' && instructionWithoutAccountId && (
                                                                 <div className="mt-2">{instructionWithoutAccountId}</div>
                                                             )}
                                                             {details.reference_hint && (

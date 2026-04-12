@@ -15,6 +15,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -320,6 +321,8 @@ class CartController extends Controller
                 $order->save();
             }
 
+            $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
+
             if (! empty($result['customer_created']) && $result['customer_created'] === true && $incomingPassword && $incomingEmail && Schema::hasColumn('customers', 'password')) {
                 try {
                     Mail::to($incomingEmail)->send(new CustomerAccountCreated($incomingName, $incomingEmail, route('customer.login')));
@@ -331,6 +334,25 @@ class CartController extends Controller
             // Only auto-login when a new customer was created as part of checkout
             if (! empty($result['customer_created']) && $result['customer_created'] === true && ! empty($result['customer_id'])) {
                 session()->put('customer_id', $result['customer_id']);
+            }
+            if ($paymentMethod === 'stripe_transfer') {
+                $order->loadMissing('items.ticket.event');
+                $checkoutUrl = $this->createStripeCheckoutSession($order, $incomingEmail);
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    $customerCreated = isset($result['customer_created']) ? (bool) $result['customer_created'] : false;
+
+                    return response()->json([
+                        'success' => true,
+                        'order_id' => $order->id,
+                        'email' => $recipientEmail,
+                        'booking_code' => $order->booking_code,
+                        'customer_created' => $customerCreated,
+                        'checkout_url' => $checkoutUrl,
+                    ]);
+                }
+
+                return redirect()->away($checkoutUrl);
             }
             if (isset($order)) {
                 $order->loadMissing('items.ticket.event', 'user');
@@ -389,9 +411,10 @@ class CartController extends Controller
 
             return redirect()->back()->with('error', $e->getMessage());
         }
+        $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
 
         // prefer display the order confirmation page with details
-        $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null);
+        $recipientEmail = $order->contact_email ?: ($order->user->email ?? $incomingEmail ?? null); // Ensure recipientEmail is defined before use
 
         if ($request->wantsJson() || $request->ajax()) {
             $customerCreated = isset($result['customer_created']) ? (bool) $result['customer_created'] : false;
@@ -417,6 +440,65 @@ class CartController extends Controller
 
         // Include booking_code as query param so guests can view their order confirmation
         return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', $message);
+    }
+
+    public function stripeSuccess(Request $request, Order $order)
+    {
+        $sessionId = (string) $request->query('session_id', '');
+        if ($sessionId === '') {
+            return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Missing Stripe session id.');
+        }
+
+        $secretKey = (string) config('services.stripe.secret_key');
+        if ($secretKey === '') {
+            return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Stripe secret key is not configured.');
+        }
+
+        $response = Http::withBasicAuth($secretKey, '')
+            ->get("https://api.stripe.com/v1/checkout/sessions/{$sessionId}", ['expand[]' => 'payment_intent']);
+
+        if (! $response->successful()) {
+            logger()->error('Stripe checkout session retrieval failed.', [
+                'order_id' => $order->id,
+                'session_id' => $sessionId,
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
+
+            return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Unable to verify Stripe payment.');
+        }
+
+        $session = $response->json();
+        $metadataOrderId = (int) ($session['metadata']['order_id'] ?? 0);
+        if ($metadataOrderId !== (int) $order->id) {
+            return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Stripe payment verification failed.');
+        }
+
+        $order->stripe_checkout_session_id = $session['id'] ?? $order->stripe_checkout_session_id;
+        $paymentIntent = $session['payment_intent'] ?? null;
+        if (is_array($paymentIntent)) {
+            $order->stripe_payment_intent_id = $paymentIntent['id'] ?? $order->stripe_payment_intent_id;
+        } elseif (is_string($paymentIntent) && $paymentIntent !== '') {
+            $order->stripe_payment_intent_id = $paymentIntent;
+        }
+
+        if (($session['payment_status'] ?? null) === 'paid') {
+            $order->payment_status = 'paid';
+            $order->status = 'paid';
+            $order->paid = true;
+            $order->save();
+
+            return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('success', 'Stripe payment completed successfully.');
+        }
+
+        $order->save();
+
+        return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Stripe payment is not completed yet.');
+    }
+
+    public function stripeCancel(Order $order)
+    {
+        return redirect()->route('orders.show', ['order' => $order->id, 'booking_code' => $order->booking_code])->with('error', 'Stripe checkout was cancelled.');
     }
 
     protected function resolvePaymentDetailsFromCart(?Cart $cart, string $method): ?array
@@ -486,5 +568,81 @@ class CartController extends Controller
         $letters = preg_replace('/[^A-Z]/', 'A', Str::upper(Str::random(6)) ?? 'AAAAAA');
 
         return Str::upper(str_shuffle($letters.$numbers));
+    }
+
+    protected function createStripeCheckoutSession(Order $order, ?string $email): string
+    {
+        $secretKey = (string) config('services.stripe.secret_key');
+        if ($secretKey === '') {
+            throw new \RuntimeException('Stripe secret key is not configured.');
+        }
+
+        $order->loadMissing('items.ticket.event');
+
+        $lineItems = $order->items->values()->map(function ($item, int $index) {
+            $name = $item->ticket?->name
+                ?? $item->event?->title
+                ?? "Order #{$item->order_id} item #{$index}";
+
+            return [
+                "line_items[{$index}][price_data][currency]" => 'eur',
+                "line_items[{$index}][price_data][product_data][name]" => Str::limit((string) $name, 120, ''),
+                "line_items[{$index}][price_data][unit_amount]" => (int) round(((float) $item->price) * 100),
+                "line_items[{$index}][quantity]" => max(1, (int) $item->quantity),
+            ];
+        })->collapse()->all();
+
+        if (empty($lineItems)) {
+            throw new \RuntimeException('Unable to create Stripe checkout: order has no line items.');
+        }
+
+        $successUrl = route('cart.checkout.stripe.success', ['order' => $order->id], true)
+            .'?session_id={CHECKOUT_SESSION_ID}&booking_code='.urlencode((string) $order->booking_code);
+        $cancelUrl = route('cart.checkout.stripe.cancel', ['order' => $order->id], true)
+            .'?booking_code='.urlencode((string) $order->booking_code);
+
+        $payload = array_merge([
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'client_reference_id' => (string) $order->booking_code,
+            'metadata[order_id]' => (string) $order->id,
+            'metadata[booking_code]' => (string) $order->booking_code,
+        ], $lineItems);
+
+        if ($email) {
+            $payload['customer_email'] = $email;
+        }
+
+        $response = Http::withBasicAuth($secretKey, '')
+            ->asForm()
+            ->post('https://api.stripe.com/v1/checkout/sessions', $payload);
+
+        if (! $response->successful()) {
+            $body = $response->json();
+            logger()->error('Stripe checkout session creation failed.', [
+                'order_id' => $order->id,
+                'status' => $response->status(),
+                'body' => $body,
+            ]);
+
+            $message = $body['error']['message'] ?? 'Unable to create Stripe checkout session.';
+            throw new \RuntimeException((string) $message);
+        }
+
+        $session = $response->json();
+        $order->stripe_checkout_session_id = $session['id'] ?? null;
+        $paymentIntent = $session['payment_intent'] ?? null;
+        if (is_string($paymentIntent) && $paymentIntent !== '') {
+            $order->stripe_payment_intent_id = $paymentIntent;
+        }
+        $order->save();
+
+        $checkoutUrl = $session['url'] ?? null;
+        if (! is_string($checkoutUrl) || $checkoutUrl === '') {
+            throw new \RuntimeException('Stripe did not return a checkout URL.');
+        }
+
+        return $checkoutUrl;
     }
 }
