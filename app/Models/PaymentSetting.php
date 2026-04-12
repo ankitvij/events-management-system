@@ -67,7 +67,7 @@ class PaymentSetting extends Model
                 continue;
             }
 
-            foreach (['instructions', 'reference_hint'] as $field) {
+            foreach (['display_name', 'instructions', 'reference_hint'] as $field) {
                 if (array_key_exists($field, $values)) {
                     $methods[$method][$field] = self::sanitizePaymentCopy($values[$field] ?? null);
                 }

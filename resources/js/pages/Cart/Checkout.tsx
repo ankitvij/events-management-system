@@ -412,6 +412,9 @@ export default function CartCheckout() {
                                             const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer' || method === 'stripe_transfer';
                                             const accountId = String(details.account_id ?? '').trim();
                                             const instructionText = removePaymentDeadlineLine(details.instructions);
+                                            const methodDisplayName = removePaymentDeadlineLine(String(details.display_name || method))
+                                                .replace(/\(\s*\)/g, '')
+                                                .trim();
                                             const instructionWithoutAccountId = accountId
                                                 ? instructionText
                                                     .replace(new RegExp(`\\bThe\\s+${escapeRegExp(accountId)}\\b`, 'gi'), '')
@@ -438,7 +441,7 @@ export default function CartCheckout() {
                                                             }}
                                                         />
                                                         <span>
-                                                            <div className="font-semibold">{details.display_name || method}</div>
+                                                            <div className="font-semibold">{methodDisplayName}</div>
                                                             <div className="text-sm text-[#9aa1af]">You will receive instructions to complete payment.</div>
                                                         </span>
                                                     </span>

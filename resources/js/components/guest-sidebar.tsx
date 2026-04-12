@@ -27,6 +27,7 @@ export default function GuestSidebar() {
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [mobileTopOffset, setMobileTopOffset] = useState(0);
     const [collapsed, setCollapsed] = useState(false);
     const [expandedMenuHref, setExpandedMenuHref] = useState<string | null>(null);
     const wasMobileRef = useRef(isMobile);
@@ -63,6 +64,30 @@ export default function GuestSidebar() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!isMobile) {
+            setMobileTopOffset(0);
+
+            return;
+        }
+
+        const syncHeaderOffset = () => {
+            const headerElement = document.querySelector<HTMLElement>('[data-public-header]');
+            const nextTopOffset = Math.max(0, Math.round(headerElement?.getBoundingClientRect().bottom ?? 0));
+            setMobileTopOffset(nextTopOffset);
+        };
+
+        syncHeaderOffset();
+
+        window.addEventListener('resize', syncHeaderOffset);
+        window.addEventListener('scroll', syncHeaderOffset, { passive: true });
+
+        return () => {
+            window.removeEventListener('resize', syncHeaderOffset);
+            window.removeEventListener('scroll', syncHeaderOffset);
+        };
+    }, [isMobile, isMobileOpen]);
+
     const sidebarWidthClass = isMobile ? 'w-64' : (collapsed ? 'w-24' : 'w-64');
     const isCustomerLoggedIn = !!page.props?.customer;
     const isOrganiserLoggedIn = !!page.props?.organiser || !!page.props?.auth?.user;
@@ -86,14 +111,16 @@ export default function GuestSidebar() {
             {isMobile && isMobileOpen && (
                 <button
                     type="button"
-                    className="fixed inset-x-0 bottom-0 top-[9.125rem] z-40 bg-black/45 min-[1000px]:hidden"
+                    className="fixed inset-x-0 bottom-0 z-40 bg-black/45 min-[1000px]:hidden"
+                    style={{ top: `${mobileTopOffset}px` }}
                     aria-label="Close guest menu overlay"
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             <aside
-                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 top-[9.125rem] z-50 h-[calc(100svh-9.125rem)] w-full max-w-none overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 z-50 w-full max-w-none overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                style={isMobile ? { top: `${mobileTopOffset}px`, height: `calc(100svh - ${mobileTopOffset}px)` } : undefined}
             >
                 {!isMobile && (
                     <button

@@ -15,7 +15,7 @@ export default function PublicHeader() {
 
     return (
         <>
-            <header className="sticky top-0 z-50 border-b-0 max-[999px]:-mx-[5px] min-[1000px]:bg-[#18181b]">
+            <header data-public-header className="sticky top-0 z-50 border-b-0 max-[999px]:-mx-[5px] min-[1000px]:bg-[#18181b]">
                 <div className="w-full px-0 py-0 min-[1000px]:px-3 min-[1000px]:py-2">
                     <div className="flex flex-col gap-1 min-[1000px]:flex-row min-[1000px]:items-center min-[1000px]:justify-between min-[1000px]:gap-0">
                     <div className="w-full bg-[#18181b] px-0 py-0 min-[1000px]:hidden">
