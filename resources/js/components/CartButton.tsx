@@ -94,7 +94,7 @@ export default function CartButton() {
                 type="button"
                 title={`${summary.count} items — €${Number(summary.total).toFixed(2)}`}
                 onClick={() => setOpen((v) => !v)}
-                className="inline-flex h-11 items-center justify-center px-1 text-sm font-semibold text-white transition-colors hover:text-[#d1d5db]"
+                className="inline-flex h-10 items-center justify-center rounded-md bg-[#f97316] px-3 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]"
             >
                 <ShoppingCart className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 <span>€{Number(summary.total).toFixed(2)}</span>

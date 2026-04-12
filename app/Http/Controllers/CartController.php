@@ -92,16 +92,19 @@ class CartController extends Controller
                 'enabled' => true,
                 'method' => 'bank_transfer',
                 'display_name' => 'Bank transfer',
+                'flat_fee' => (float) config('payments.bank_transfer.flat_fee', 0),
             ],
             'paypal_transfer' => [
                 'enabled' => true,
                 'method' => 'paypal_transfer',
                 'display_name' => 'Paypal',
+                'flat_fee' => (float) config('payments.paypal_transfer.flat_fee', 0),
             ],
             'revolut_transfer' => [
                 'enabled' => true,
                 'method' => 'revolut_transfer',
                 'display_name' => 'Revolut',
+                'flat_fee' => (float) config('payments.revolut_transfer.flat_fee', 0),
             ],
             'stripe_transfer' => [
                 'enabled' => true,
@@ -225,8 +228,8 @@ class CartController extends Controller
                 $subtotal = $cart->items->sum(function ($i) {
                     return $i->quantity * $i->price;
                 });
-                $stripeFlatFee = $paymentMethod === 'stripe_transfer' ? $this->stripeFlatFeeAmount() : 0.0;
-                $total = $subtotal + $stripeFlatFee;
+                $paymentFlatFee = $this->paymentFlatFeeAmount($paymentMethod);
+                $total = $subtotal + $paymentFlatFee;
                 $order = Order::create([
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
@@ -592,11 +595,11 @@ class CartController extends Controller
             ];
         })->collapse()->all();
 
-        $stripeFlatFeeCents = (int) round($this->stripeFlatFeeAmount() * 100);
+        $stripeFlatFeeCents = (int) round($this->paymentFlatFeeAmount('stripe_transfer') * 100);
         if ($stripeFlatFeeCents > 0) {
             $feeIndex = $order->items->count();
             $lineItems["line_items[{$feeIndex}][price_data][currency]"] = 'eur';
-            $lineItems["line_items[{$feeIndex}][price_data][product_data][name]"] = 'eCard payment fee';
+            $lineItems["line_items[{$feeIndex}][price_data][product_data][name]"] = 'Card payment fee';
             $lineItems["line_items[{$feeIndex}][price_data][unit_amount]"] = $stripeFlatFeeCents;
             $lineItems["line_items[{$feeIndex}][quantity]"] = 1;
         }
@@ -655,8 +658,14 @@ class CartController extends Controller
         return $checkoutUrl;
     }
 
-    protected function stripeFlatFeeAmount(): float
+    protected function paymentFlatFeeAmount(string $paymentMethod): float
     {
-        return max(0.0, (float) config('payments.stripe_transfer.flat_fee', 2));
+        $details = PaymentSetting::paymentMethod($paymentMethod);
+
+        if (is_array($details) && array_key_exists('flat_fee', $details) && $details['flat_fee'] !== null) {
+            return max(0.0, (float) $details['flat_fee']);
+        }
+
+        return max(0.0, (float) config("payments.{$paymentMethod}.flat_fee", 0));
     }
 }

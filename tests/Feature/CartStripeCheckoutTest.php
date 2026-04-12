@@ -57,7 +57,7 @@ class CartStripeCheckoutTest extends TestCase
 
         Http::assertSent(function ($request): bool {
             return $request->url() === 'https://api.stripe.com/v1/checkout/sessions'
-                && (string) ($request['line_items[1][price_data][product_data][name]'] ?? '') === 'eCard payment fee'
+                && (string) ($request['line_items[1][price_data][product_data][name]'] ?? '') === 'Card payment fee'
                 && (string) ($request['line_items[1][price_data][unit_amount]'] ?? '') === '200';
         });
     }

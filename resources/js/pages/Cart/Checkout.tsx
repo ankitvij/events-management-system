@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Trash } from 'lucide-react';
+import { CreditCard, Landmark, Trash } from 'lucide-react';
 import React, { useMemo, useState } from 'react';
 import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
@@ -60,17 +60,58 @@ export default function CartCheckout() {
         return { count, total };
     }, [items, page.props]);
 
-    const stripeFlatFee = useMemo(() => {
-        const stripeDetails = paymentMethods?.stripe_transfer as any;
-        const configured = Number(stripeDetails?.flat_fee ?? 2);
-        if (paymentMethod !== 'stripe_transfer') {
-            return 0;
-        }
+    const paymentFlatFee = useMemo(() => {
+        const selectedDetails = paymentMethods?.[paymentMethod] as any;
+        const configured = Number(selectedDetails?.flat_fee ?? 0);
 
         return Number.isFinite(configured) && configured > 0 ? configured : 0;
     }, [paymentMethod, paymentMethods]);
 
-    const checkoutTotal = Number(totals.total) + stripeFlatFee;
+    const getPaymentBrandMark = (method: string) => {
+        switch (method) {
+            case 'bank_transfer':
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-[#fed7aa] bg-[#fff7ed] px-2 py-0.5 text-[11px] font-semibold text-[#c2410c]">
+                        <Landmark className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Bank</span>
+                    </span>
+                );
+            case 'paypal_transfer':
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-[#bfdbfe] bg-[#eff6ff] px-2 py-0.5 text-[11px] font-bold text-[#1d4ed8]">
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#1d4ed8] text-[10px] text-white">P</span>
+                        <span>PayPal</span>
+                    </span>
+                );
+            case 'revolut_transfer':
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-[#d4d4d8] bg-[#fafafa] px-2 py-0.5 text-[11px] font-bold text-[#18181b]">
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-sm bg-[#18181b] text-[10px] text-white">R</span>
+                        <span>Revolut</span>
+                    </span>
+                );
+            case 'stripe_transfer':
+                return (
+                    <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center rounded-md border border-[#ddd6fe] bg-[#f5f3ff] px-2 py-0.5 text-[11px] font-bold text-[#6d28d9]">Stripe</span>
+                        <span className="inline-flex items-center rounded-md border border-[#fbcfe8] bg-[#fdf2f8] px-2 py-0.5 text-[11px] font-bold text-[#be185d]">Klarna</span>
+                        <span className="inline-flex items-center gap-1 rounded-md border border-[#dbeafe] bg-[#eff6ff] px-2 py-0.5 text-[11px] font-semibold text-[#1d4ed8]">
+                            <CreditCard className="h-3.5 w-3.5" aria-hidden="true" />
+                            <span>Card</span>
+                        </span>
+                    </span>
+                );
+            default:
+                return (
+                    <span className="inline-flex items-center gap-1 rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-2 py-0.5 text-[11px] font-semibold text-[#374151]">
+                        <CreditCard className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Payment</span>
+                    </span>
+                );
+        }
+    };
+
+    const checkoutTotal = Number(totals.total) + paymentFlatFee;
 
 
     async function removeItem(itemId: number) {
@@ -425,6 +466,7 @@ export default function CartCheckout() {
                                     <div className="mt-3 space-y-2">
                                         {Object.entries(paymentMethods).map(([method, details]: any) => {
                                             if (!details || details.enabled === false) return null;
+                                            const paymentBrandMark = getPaymentBrandMark(method);
                                             const isBankTransfer = method === 'bank_transfer';
                                             const isIdOnlyTransfer = method === 'paypal_transfer' || method === 'revolut_transfer' || method === 'stripe_transfer';
                                             const accountId = String(details.account_id ?? '').trim();
@@ -460,7 +502,10 @@ export default function CartCheckout() {
                                                             }}
                                                         />
                                                         <span>
-                                                            <div className="font-semibold">{methodDisplayName}</div>
+                                                            <div className="flex items-center gap-2 font-semibold">
+                                                                {paymentBrandMark}
+                                                                <span>{methodDisplayName}</span>
+                                                            </div>
                                                             <div className="text-sm text-[#9aa1af]">{method === 'stripe_transfer' ? 'Secure card checkout via Stripe.' : 'You will receive instructions to complete payment.'}</div>
                                                         </span>
                                                     </span>
@@ -477,7 +522,7 @@ export default function CartCheckout() {
                                                                 <div><strong>Account ID:</strong> {details.account_id}</div>
                                                             )}
                                                             {method === 'stripe_transfer' && (
-                                                                <div className="mt-1 text-sm text-[#2a2f38]">You will be redirected to secure Stripe checkout after confirming. A flat fee of €{stripeFlatFee.toFixed(2)} applies.</div>
+                                                                <div className="mt-1 text-sm text-[#2a2f38]">You will be redirected to secure Stripe checkout after confirming. A flat fee of €{paymentFlatFee.toFixed(2)} applies.</div>
                                                             )}
                                                             {method !== 'stripe_transfer' && instructionWithoutAccountId && (
                                                                 <div className="mt-2">{instructionWithoutAccountId}</div>
@@ -503,10 +548,10 @@ export default function CartCheckout() {
                                         <span>Subtotal</span>
                                         <span>€{Number(totals.total).toFixed(2)}</span>
                                     </div>
-                                    {stripeFlatFee > 0 && (
+                                    {paymentFlatFee > 0 && (
                                         <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2">
-                                            <span>eCard payment fee</span>
-                                            <span>€{stripeFlatFee.toFixed(2)}</span>
+                                            <span>Payment fee</span>
+                                            <span>€{paymentFlatFee.toFixed(2)}</span>
                                         </div>
                                     )}
                                 </div>

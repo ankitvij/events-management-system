@@ -76,10 +76,13 @@ class CartBankTransferTest extends TestCase
             'bank_bic' => 'BANKGB2L',
             'bank_reference_hint' => 'Use override reference',
             'bank_instructions' => 'Pay within 5 days',
+            'bank_flat_fee' => 1.50,
             'paypal_id' => 'override-paypal',
             'paypal_instructions' => 'PayPal override instructions',
+            'paypal_flat_fee' => 2.25,
             'stripe_id' => 'override-stripe',
             'stripe_instructions' => 'Stripe override instructions',
+            'stripe_flat_fee' => 3.25,
         ]);
 
         $event = Event::factory()->create();
@@ -102,8 +105,10 @@ class CartBankTransferTest extends TestCase
                 ->where('payment_methods.bank_transfer.instructions', 'Pay within 5 days')
                 ->where('payment_methods.paypal_transfer.account_id', 'override-paypal')
                 ->where('payment_methods.paypal_transfer.instructions', 'PayPal override instructions')
+                ->where('payment_methods.paypal_transfer.flat_fee', '2.25')
                 ->where('payment_methods.stripe_transfer.account_id', 'override-stripe')
                 ->where('payment_methods.stripe_transfer.instructions', 'Stripe override instructions')
+                ->where('payment_methods.stripe_transfer.flat_fee', '3.25')
             );
     }
 

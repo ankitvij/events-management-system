@@ -24,13 +24,17 @@ class OrderPaymentMethodsController extends Controller
             'bank_reference_hint' => $bank['reference_hint'] ?? null,
             'bank_instructions' => $bank['instructions'] ?? null,
             'bank_enabled' => ($bank['enabled'] ?? true) !== false,
+            'bank_flat_fee' => (float) ($bank['flat_fee'] ?? config('payments.bank_transfer.flat_fee', 0)),
             'paypal_id' => $paypal['account_id'] ?? null,
             'paypal_instructions' => $paypal['instructions'] ?? null,
             'paypal_enabled' => ($paypal['enabled'] ?? true) !== false,
+            'paypal_flat_fee' => (float) ($paypal['flat_fee'] ?? config('payments.paypal_transfer.flat_fee', 0)),
             'revolut_id' => $revolut['account_id'] ?? null,
             'revolut_instructions' => $revolut['instructions'] ?? null,
             'revolut_enabled' => ($revolut['enabled'] ?? true) !== false,
+            'revolut_flat_fee' => (float) ($revolut['flat_fee'] ?? config('payments.revolut_transfer.flat_fee', 0)),
             'stripe_enabled' => ($stripe['enabled'] ?? true) !== false,
+            'stripe_flat_fee' => (float) ($stripe['flat_fee'] ?? config('payments.stripe_transfer.flat_fee', 2)),
         ];
 
         return Inertia::render('Orders/PaymentMethods', [

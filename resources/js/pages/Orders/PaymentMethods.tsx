@@ -9,13 +9,17 @@ type PaymentSettings = {
     bank_reference_hint: string | null;
     bank_instructions: string | null;
     bank_enabled: boolean;
+    bank_flat_fee: number;
     paypal_id: string | null;
     paypal_instructions: string | null;
     paypal_enabled: boolean;
+    paypal_flat_fee: number;
     revolut_id: string | null;
     revolut_instructions: string | null;
     revolut_enabled: boolean;
+    revolut_flat_fee: number;
     stripe_enabled: boolean;
+    stripe_flat_fee: number;
 };
 
 export default function PaymentMethods() {
@@ -29,13 +33,17 @@ export default function PaymentMethods() {
         bank_reference_hint: settings?.bank_reference_hint ?? '',
         bank_instructions: settings?.bank_instructions ?? '',
         bank_enabled: settings?.bank_enabled ?? true,
+        bank_flat_fee: settings?.bank_flat_fee ?? 0,
         paypal_id: settings?.paypal_id ?? '',
         paypal_instructions: settings?.paypal_instructions ?? '',
         paypal_enabled: settings?.paypal_enabled ?? true,
+        paypal_flat_fee: settings?.paypal_flat_fee ?? 0,
         revolut_id: settings?.revolut_id ?? '',
         revolut_instructions: settings?.revolut_instructions ?? '',
         revolut_enabled: settings?.revolut_enabled ?? true,
+        revolut_flat_fee: settings?.revolut_flat_fee ?? 0,
         stripe_enabled: settings?.stripe_enabled ?? true,
+        stripe_flat_fee: settings?.stripe_flat_fee ?? 2,
     });
 
     const submit = (event: FormEvent) => {
@@ -125,6 +133,19 @@ export default function PaymentMethods() {
                             />
                             {form.errors.bank_instructions && <div className="text-sm text-destructive mt-1">{form.errors.bank_instructions}</div>}
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium">Flat fee (€)</label>
+                            <input
+                                name="bank_flat_fee"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={form.data.bank_flat_fee}
+                                onChange={e => form.setData('bank_flat_fee', Number(e.target.value || 0))}
+                                className="input"
+                            />
+                            {form.errors.bank_flat_fee && <div className="text-sm text-destructive mt-1">{form.errors.bank_flat_fee}</div>}
+                        </div>
                     </div>
 
                     <div className="border-t border-border pt-4 space-y-3">
@@ -157,6 +178,19 @@ export default function PaymentMethods() {
                                 className="input min-h-[80px]"
                             />
                             {form.errors.paypal_instructions && <div className="text-sm text-destructive mt-1">{form.errors.paypal_instructions}</div>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium">Flat fee (€)</label>
+                            <input
+                                name="paypal_flat_fee"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={form.data.paypal_flat_fee}
+                                onChange={e => form.setData('paypal_flat_fee', Number(e.target.value || 0))}
+                                className="input"
+                            />
+                            {form.errors.paypal_flat_fee && <div className="text-sm text-destructive mt-1">{form.errors.paypal_flat_fee}</div>}
                         </div>
                     </div>
 
@@ -191,6 +225,19 @@ export default function PaymentMethods() {
                             />
                             {form.errors.revolut_instructions && <div className="text-sm text-destructive mt-1">{form.errors.revolut_instructions}</div>}
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium">Flat fee (€)</label>
+                            <input
+                                name="revolut_flat_fee"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={form.data.revolut_flat_fee}
+                                onChange={e => form.setData('revolut_flat_fee', Number(e.target.value || 0))}
+                                className="input"
+                            />
+                            {form.errors.revolut_flat_fee && <div className="text-sm text-destructive mt-1">{form.errors.revolut_flat_fee}</div>}
+                        </div>
                     </div>
 
                     <div className="border-t border-border pt-4 space-y-3">
@@ -205,6 +252,19 @@ export default function PaymentMethods() {
                             </button>
                         </div>
                         <p className="text-sm text-muted">Stripe account details are managed from environment configuration.</p>
+                        <div>
+                            <label className="block text-sm font-medium">Flat fee (€)</label>
+                            <input
+                                name="stripe_flat_fee"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={form.data.stripe_flat_fee}
+                                onChange={e => form.setData('stripe_flat_fee', Number(e.target.value || 0))}
+                                className="input"
+                            />
+                            {form.errors.stripe_flat_fee && <div className="text-sm text-destructive mt-1">{form.errors.stripe_flat_fee}</div>}
+                        </div>
                     </div>
 
                     <div>

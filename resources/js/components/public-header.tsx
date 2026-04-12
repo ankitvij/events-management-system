@@ -38,6 +38,13 @@ export default function PublicHeader() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
+                                    <Link
+                                        href="/events/create"
+                                        className="inline-flex h-9 items-center justify-center rounded-md bg-[#f97316] px-3 text-xs font-semibold text-white transition-colors hover:bg-[#ea580c]"
+                                    >
+                                        List your event
+                                    </Link>
+
                                     {organiser ? (
                                         <>
                                             <Link href="/organisers/profile" className="inline-flex h-10 items-center justify-center px-2 text-xs font-semibold text-white transition-colors hover:text-[#d1d5db]">
@@ -66,6 +73,13 @@ export default function PublicHeader() {
                         </Link>
 
                         <div className="ml-auto flex items-center gap-1 min-[800px]:gap-2">
+                            <Link
+                                href="/events/create"
+                                className="inline-flex h-10 items-center justify-center rounded-md bg-[#f97316] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]"
+                            >
+                                List your event
+                            </Link>
+
                             {organiser ? (
                                 <>
                                     <Link href="/organisers/profile" className="btn-primary text-sm">Profile</Link>

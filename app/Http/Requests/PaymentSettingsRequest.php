@@ -28,13 +28,17 @@ class PaymentSettingsRequest extends FormRequest
             'bank_reference_hint' => ['nullable', 'string', 'max:255'],
             'bank_instructions' => ['nullable', 'string', 'max:1000'],
             'bank_enabled' => ['required', 'boolean'],
+            'bank_flat_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'paypal_id' => ['nullable', 'string', 'max:255'],
             'paypal_instructions' => ['nullable', 'string', 'max:1000'],
             'paypal_enabled' => ['required', 'boolean'],
+            'paypal_flat_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'revolut_id' => ['nullable', 'string', 'max:255'],
             'revolut_instructions' => ['nullable', 'string', 'max:1000'],
             'revolut_enabled' => ['required', 'boolean'],
+            'revolut_flat_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
             'stripe_enabled' => ['required', 'boolean'],
+            'stripe_flat_fee' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ];
     }
 }

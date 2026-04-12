@@ -55,13 +55,17 @@ class OrderPaymentMethodsSettingsTest extends TestCase
             'bank_reference_hint' => 'Use booking code',
             'bank_instructions' => 'Pay within 7 days',
             'bank_enabled' => true,
+            'bank_flat_fee' => 1.50,
             'paypal_id' => 'paypal@example.com',
             'paypal_instructions' => 'Send via PayPal',
             'paypal_enabled' => false,
+            'paypal_flat_fee' => 2.75,
             'revolut_id' => 'revolut-id',
             'revolut_instructions' => 'Send via Revolut',
             'revolut_enabled' => true,
+            'revolut_flat_fee' => 1.25,
             'stripe_enabled' => false,
+            'stripe_flat_fee' => 3.00,
         ];
 
         $this->actingAs($user)
@@ -77,5 +81,9 @@ class OrderPaymentMethodsSettingsTest extends TestCase
         $this->assertFalse($settings->paypal_enabled);
         $this->assertTrue($settings->revolut_enabled);
         $this->assertFalse($settings->stripe_enabled);
+        $this->assertSame('1.50', (string) $settings->bank_flat_fee);
+        $this->assertSame('2.75', (string) $settings->paypal_flat_fee);
+        $this->assertSame('1.25', (string) $settings->revolut_flat_fee);
+        $this->assertSame('3.00', (string) $settings->stripe_flat_fee);
     }
 }

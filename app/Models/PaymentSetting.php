@@ -13,24 +13,32 @@ class PaymentSetting extends Model
         'bank_reference_hint',
         'bank_instructions',
         'bank_enabled',
+        'bank_flat_fee',
         'paypal_id',
         'paypal_instructions',
         'paypal_enabled',
+        'paypal_flat_fee',
         'revolut_id',
         'revolut_instructions',
         'revolut_enabled',
+        'revolut_flat_fee',
         'stripe_id',
         'stripe_instructions',
         'stripe_enabled',
+        'stripe_flat_fee',
     ];
 
     protected function casts(): array
     {
         return [
             'bank_enabled' => 'boolean',
+            'bank_flat_fee' => 'decimal:2',
             'paypal_enabled' => 'boolean',
+            'paypal_flat_fee' => 'decimal:2',
             'revolut_enabled' => 'boolean',
+            'revolut_flat_fee' => 'decimal:2',
             'stripe_enabled' => 'boolean',
+            'stripe_flat_fee' => 'decimal:2',
         ];
     }
 
@@ -50,21 +58,25 @@ class PaymentSetting extends Model
                 'reference_hint' => $settings->bank_reference_hint,
                 'instructions' => $settings->bank_instructions,
                 'enabled' => $settings->bank_enabled,
+                'flat_fee' => $settings->bank_flat_fee,
             ],
             'paypal_transfer' => [
                 'account_id' => $settings->paypal_id,
                 'instructions' => $settings->paypal_instructions,
                 'enabled' => $settings->paypal_enabled,
+                'flat_fee' => $settings->paypal_flat_fee,
             ],
             'revolut_transfer' => [
                 'account_id' => $settings->revolut_id,
                 'instructions' => $settings->revolut_instructions,
                 'enabled' => $settings->revolut_enabled,
+                'flat_fee' => $settings->revolut_flat_fee,
             ],
             'stripe_transfer' => [
                 'account_id' => $settings->stripe_id,
                 'instructions' => $settings->stripe_instructions,
                 'enabled' => $settings->stripe_enabled,
+                'flat_fee' => $settings->stripe_flat_fee,
             ],
         ];
 
