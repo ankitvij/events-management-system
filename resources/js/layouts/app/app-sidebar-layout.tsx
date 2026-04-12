@@ -26,7 +26,7 @@ export default function AppSidebarLayout({
                         <div className="mx-auto w-full max-w-screen-2xl px-0 sm:px-4 lg:px-6">
                             <div className="mt-0 rounded-2xl bg-[#f3f4f6] max-[999px]:rounded-none">
                                 <PublicHeader />
-                                <div className="flex items-start gap-0">
+                                <div className="min-[1000px]:flex min-[1000px]:items-start gap-0">
                                     <GuestSidebar />
                                     <div className="min-w-0 flex-1 max-[999px]:[&_.pagination]:ml-14">
                                     <div className="p-0 min-[1000px]:p-4">{children}</div>

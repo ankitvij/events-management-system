@@ -31,35 +31,41 @@ class OrderPaymentReminder extends Mailable
 
     protected function paymentMethods(): array
     {
-        $bank = PaymentSetting::paymentMethod('bank_transfer') ?? config('payments.bank_transfer', []);
-        $paypal = PaymentSetting::paymentMethod('paypal_transfer') ?? config('payments.paypal_transfer', []);
-        $revolut = PaymentSetting::paymentMethod('revolut_transfer') ?? config('payments.revolut_transfer', []);
-        $stripe = PaymentSetting::paymentMethod('stripe_transfer') ?? config('payments.stripe_transfer', []);
+        $methods = PaymentSetting::paymentMethods();
 
-        return [
-            'bank_transfer' => [
-                'display_name' => $bank['display_name'] ?? 'Bank transfer',
-                'account_name' => $bank['account_name'] ?? null,
-                'iban' => $bank['iban'] ?? null,
-                'bic' => $bank['bic'] ?? null,
-                'reference_hint' => $bank['reference_hint'] ?? null,
-                'instructions' => $bank['instructions'] ?? null,
-            ],
-            'paypal_transfer' => [
-                'display_name' => $paypal['display_name'] ?? 'PayPal',
-                'account_id' => $paypal['account_id'] ?? null,
-                'instructions' => $paypal['instructions'] ?? null,
-            ],
-            'revolut_transfer' => [
-                'display_name' => $revolut['display_name'] ?? 'Revolut',
-                'account_id' => $revolut['account_id'] ?? null,
-                'instructions' => $revolut['instructions'] ?? null,
-            ],
-            'stripe_transfer' => [
-                'display_name' => $stripe['display_name'] ?? 'Stripe',
-                'account_id' => $stripe['account_id'] ?? null,
-                'instructions' => $stripe['instructions'] ?? null,
-            ],
-        ];
+        $allowedMethods = collect(['bank_transfer', 'paypal_transfer', 'revolut_transfer'])
+            ->filter(function (string $method) use ($methods): bool {
+                $details = $methods[$method] ?? null;
+
+                return is_array($details) && (($details['enabled'] ?? true) !== false);
+            })
+            ->values();
+
+        $payload = [];
+
+        foreach ($allowedMethods as $method) {
+            $details = is_array($methods[$method] ?? null) ? $methods[$method] : [];
+
+            if ($method === 'bank_transfer') {
+                $payload[$method] = [
+                    'display_name' => $details['display_name'] ?? 'Bank transfer',
+                    'account_name' => $details['account_name'] ?? null,
+                    'iban' => $details['iban'] ?? null,
+                    'bic' => $details['bic'] ?? null,
+                    'reference_hint' => $details['reference_hint'] ?? null,
+                    'instructions' => $details['instructions'] ?? null,
+                ];
+
+                continue;
+            }
+
+            $payload[$method] = [
+                'display_name' => $details['display_name'] ?? ($method === 'paypal_transfer' ? 'PayPal' : 'Revolut'),
+                'account_id' => $details['account_id'] ?? null,
+                'instructions' => $details['instructions'] ?? null,
+            ];
+        }
+
+        return $payload;
     }
 }

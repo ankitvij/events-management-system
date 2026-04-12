@@ -27,7 +27,7 @@ export default function GuestSidebar() {
         typeof window !== 'undefined' ? window.innerWidth < 1000 : false,
     );
     const [isMobileOpen, setIsMobileOpen] = useState(false);
-    const [mobileTopOffset, setMobileTopOffset] = useState(0);
+    const [mobileTopOffset, setMobileTopOffset] = useState(150);
     const [collapsed, setCollapsed] = useState(false);
     const [expandedMenuHref, setExpandedMenuHref] = useState<string | null>(null);
     const wasMobileRef = useRef(isMobile);
@@ -73,8 +73,8 @@ export default function GuestSidebar() {
 
         const syncHeaderOffset = () => {
             const headerElement = document.querySelector<HTMLElement>('[data-public-header]');
-            const nextTopOffset = Math.max(0, Math.round(headerElement?.getBoundingClientRect().bottom ?? 0));
-            setMobileTopOffset(nextTopOffset);
+            const measuredTop = Math.round(headerElement?.getBoundingClientRect().bottom ?? 150);
+            setMobileTopOffset(Math.max(0, measuredTop));
         };
 
         syncHeaderOffset();
@@ -119,7 +119,7 @@ export default function GuestSidebar() {
             )}
 
             <aside
-                className={`guest-sidebar-shell relative self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed bottom-0 left-0 z-50 w-full max-w-none overflow-y-auto overscroll-contain border-r border-zinc-800' : 'sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
+                className={`guest-sidebar-shell self-start p-3 transition-all duration-200 ${sidebarWidthClass} ${isMobile ? 'fixed left-0 z-50 !w-[70vw] max-w-[70vw] overflow-y-auto overscroll-contain border-r border-zinc-800 shadow-2xl' : 'relative sticky top-[4.25rem] z-40 shrink-0 min-h-[calc(100svh-4.25rem)]'} ${isMobile && !isMobileOpen ? 'hidden' : ''} min-[1000px]:block`}
                 style={isMobile ? { top: `${mobileTopOffset}px`, height: `calc(100svh - ${mobileTopOffset}px)` } : undefined}
             >
                 {!isMobile && (

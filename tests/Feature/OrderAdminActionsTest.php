@@ -427,7 +427,7 @@ class OrderAdminActionsTest extends TestCase
                 && isset($methods['bank_transfer'])
                 && isset($methods['paypal_transfer'])
                 && isset($methods['revolut_transfer'])
-                && isset($methods['stripe_transfer']);
+                && ! isset($methods['stripe_transfer']);
         });
     }
 
