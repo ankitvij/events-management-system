@@ -58,6 +58,31 @@ export default function ArtistsEdit({ artist }: Props) {
                         </div>
                     )}
 
+                    <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                            <div className="w-full md:max-w-xl">
+                                <label htmlFor="photo" className="block text-sm font-semibold text-[#9a3412]">Artist photo</label>
+                                <input
+                                    id="photo"
+                                    name="photo"
+                                    type="file"
+                                    onChange={e => form.setData('photo', e.target.files?.[0] ?? null)}
+                                    accept="image/*"
+                                    className="mt-2 block w-full rounded-md border border-[#fdba74] bg-white px-3 py-2 text-sm"
+                                />
+                                {artist.photo_url && (
+                                    <div className="mt-2">
+                                        <img src={artist.photo_url} alt={artist.name} className="h-20 w-20 rounded object-cover" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="shrink-0">
+                                <ActionButton type="submit" disabled={form.processing}>Save artist changes</ActionButton>
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                         <input id="name" name="name" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
@@ -94,24 +119,10 @@ export default function ArtistsEdit({ artist }: Props) {
                     </div>
 
                     <div>
-                        <label htmlFor="photo" className="block text-sm font-medium">Photo</label>
-                        <input id="photo" name="photo" type="file" onChange={e => form.setData('photo', e.target.files?.[0] ?? null)} accept="image/*" />
-                        {artist.photo_url && (
-                            <div className="mt-2">
-                                <img src={artist.photo_url} alt={artist.name} className="h-20 w-20 rounded object-cover" />
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
                         <label className="flex items-center gap-2">
                             <input name="active" type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
                             <span className="text-sm">Active</span>
                         </label>
-                    </div>
-
-                    <div>
-                        <ActionButton type="submit" disabled={form.processing}>Save</ActionButton>
                     </div>
                 </form>
             </div>

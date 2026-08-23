@@ -32,6 +32,16 @@ export default function Create() {
             <Head title="Create Organiser" />
 
             <form onSubmit={submit} className="p-4 space-y-4">
+                <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="text-sm font-semibold text-[#9a3412]">Creating organiser profile</div>
+                            <div className="text-xs text-[#9a3412]">Complete details and save the organiser from here.</div>
+                        </div>
+                        <ActionButton type="submit" disabled={form.processing}>Create organiser</ActionButton>
+                    </div>
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium">Name</label>
                     <input name="name" value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
@@ -100,10 +110,6 @@ export default function Create() {
                         <input name="active" type="checkbox" checked={!!form.data.active} onChange={e => form.setData('active', e.target.checked)} />
                         <span className="text-sm">Active</span>
                     </label>
-                </div>
-
-                <div>
-                    <ActionButton type="submit">Create</ActionButton>
                 </div>
             </form>
         </AppLayout>

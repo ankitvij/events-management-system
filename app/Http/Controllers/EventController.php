@@ -251,7 +251,6 @@ class EventController extends Controller
 
             if ($request->hasFile('image')) {
                 $local['image'] = $request->file('image')->store('events', 'public');
-                $this->resizeImageToMaxHeight($local['image']);
                 $thumb = $this->generateThumbnail($local['image']);
                 if ($thumb) {
                     $local['image_thumbnail'] = $thumb;
@@ -765,7 +764,6 @@ class EventController extends Controller
                 Storage::disk('public')->delete($event->image_thumbnail);
             }
             $data['image'] = $request->file('image')->store('events', 'public');
-            $this->resizeImageToMaxHeight($data['image']);
             $thumb = $this->generateThumbnail($data['image']);
             if ($thumb) {
                 $data['image_thumbnail'] = $thumb;
@@ -850,7 +848,6 @@ class EventController extends Controller
                 Storage::disk('public')->delete($event->image_thumbnail);
             }
             $data['image'] = $request->file('image')->store('events', 'public');
-            $this->resizeImageToMaxHeight($data['image']);
             $thumb = $this->generateThumbnail($data['image']);
             if ($thumb) {
                 $data['image_thumbnail'] = $thumb;

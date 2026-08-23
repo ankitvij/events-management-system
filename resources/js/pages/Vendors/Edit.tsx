@@ -36,6 +36,19 @@ export default function VendorsEdit({ vendor, types }: Props) {
             <Head title={`Edit ${vendor.name}`} />
 
             <form onSubmit={submit} className="p-4 space-y-4">
+                <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="text-sm font-semibold text-[#9a3412]">Editing vendor profile</div>
+                            <div className="text-xs text-[#9a3412]">Update details and save changes here.</div>
+                        </div>
+                        <div className="flex gap-2">
+                            <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Save vendor changes</ActionButton>
+                            <ActionButton href={`/vendors/${vendor.id}`} className="btn-secondary">Cancel</ActionButton>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                     <input className="input" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} />
@@ -76,11 +89,6 @@ export default function VendorsEdit({ vendor, types }: Props) {
                         <span className="text-sm text-muted">Active</span>
                     </label>
                     {form.errors.active && <p className="mt-1 text-sm text-red-600">{form.errors.active}</p>}
-                </div>
-
-                <div className="flex gap-2">
-                    <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Save</ActionButton>
-                    <ActionButton href={`/vendors/${vendor.id}`} className="btn-secondary">Cancel</ActionButton>
                 </div>
             </form>
         </AppLayout>

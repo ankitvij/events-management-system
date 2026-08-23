@@ -89,6 +89,29 @@ export default function Create() {
                     </div>
                 )}
 
+                <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div className="w-full md:max-w-xl">
+                            <label htmlFor="image" className="block text-sm font-semibold text-[#9a3412]">Event image <span className="text-red-600">*</span></label>
+                            <input
+                                id="image"
+                                required
+                                name="image"
+                                type="file"
+                                onChange={e => form.setData('image', e.target.files?.[0] ?? null)}
+                                accept="image/*"
+                                className="mt-2 block w-full rounded-md border border-[#fdba74] bg-white px-3 py-2 text-sm"
+                            />
+                            <p className="mt-2 text-xs text-[#9a3412]">Start by uploading artwork, then complete the rest of the event details.</p>
+                            {form.errors.image && <p className="mt-1 text-sm text-red-600">{form.errors.image}</p>}
+                        </div>
+
+                        <div className="shrink-0">
+                            <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Create event</ActionButton>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label htmlFor="title" className="block text-sm font-medium">Title <span className="text-red-600">*</span></label>
                     <input id="title" name="title" required value={form.data.title} onChange={e => form.setData('title', e.target.value)} className="input" />
@@ -105,12 +128,6 @@ export default function Create() {
                     <label htmlFor="start_at" className="block text-sm font-medium">Start date <span className="text-red-600">*</span></label>
                     <input id="start_at" name="start_at" type="date" required value={form.data.start_at} onChange={e => form.setData('start_at', e.target.value)} className="input" />
                     {form.errors.start_at && <p className="mt-1 text-sm text-red-600">{form.errors.start_at}</p>}
-                </div>
-
-                <div>
-                    <label htmlFor="image" className="block text-sm font-medium">Image <span className="text-red-600">*</span></label>
-                    <input id="image" required name="image" type="file" onChange={e => form.setData('image', e.target.files?.[0] ?? null)} accept="image/*" />
-                    {form.errors.image && <p className="mt-1 text-sm text-red-600">{form.errors.image}</p>}
                 </div>
 
                 <div>
@@ -219,9 +236,6 @@ export default function Create() {
                     )}
                 </div>
 
-                <div>
-                    <ActionButton type="submit">Create</ActionButton>
-                </div>
                 </form>
             </div>
         </AppLayout>

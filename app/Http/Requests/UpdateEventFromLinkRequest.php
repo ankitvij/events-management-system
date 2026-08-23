@@ -16,7 +16,7 @@ class UpdateEventFromLinkRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'image' => ['nullable', 'image', 'max:10240'],
             'start_at' => ['required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
             'city' => ['required', 'string', 'max:100'],
@@ -50,8 +50,8 @@ class UpdateEventFromLinkRequest extends FormRequest
     {
         return [
             'image.image' => 'Please upload a valid image (jpg, png, webp, etc.).',
-            'image.max' => 'Image must be 5MB or smaller.',
-            'image.uploaded' => 'The image failed to upload. Try a smaller file (max 5MB).',
+            'image.max' => 'Image must be 10MB or smaller.',
+            'image.uploaded' => 'The image failed to upload. Try a smaller file (max 10MB).',
             'edit_password.min' => 'Password must be at least 6 characters.',
         ];
     }

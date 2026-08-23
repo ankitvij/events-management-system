@@ -41,6 +41,19 @@ export default function VendorsCreate({ types }: Props) {
                     </div>
                 )}
 
+                <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div className="text-sm font-semibold text-[#9a3412]">Creating vendor profile</div>
+                            <div className="text-xs text-[#9a3412]">Fill details below and save when ready.</div>
+                        </div>
+                        <div className="flex gap-2">
+                            <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Create vendor</ActionButton>
+                            <ActionButton href="/vendors" className="btn-secondary">Cancel</ActionButton>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
                     <label className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                     <input className="input" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} />
@@ -81,11 +94,6 @@ export default function VendorsCreate({ types }: Props) {
                         <span className="text-sm text-muted">Active</span>
                     </label>
                     {form.errors.active && <p className="mt-1 text-sm text-red-600">{form.errors.active}</p>}
-                </div>
-
-                <div className="flex gap-2">
-                    <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>Create</ActionButton>
-                    <ActionButton href="/vendors" className="btn-secondary">Cancel</ActionButton>
                 </div>
             </form>
         </AppLayout>

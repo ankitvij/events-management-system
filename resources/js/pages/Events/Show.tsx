@@ -3,7 +3,6 @@ import DOMPurify from 'dompurify';
 import { ArrowLeft, CalendarDays, MapPin, Pencil } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
-import ActionIcon from '@/components/action-icon';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import TicketCreateForm from '@/components/TicketCreateForm';
@@ -382,6 +381,24 @@ export default function Show({ event }: Props) {
             </Head>
 
             <div className={showHomeHeader ? 'mx-auto w-full max-w-7xl px-0 min-[1000px]:px-6 lg:px-8' : 'p-4'}>
+                {page.props?.canEdit && (
+                    <div className="mb-4 rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-3 shadow-sm">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <div className="text-sm font-semibold text-[#9a3412]">Editing mode</div>
+                                <div className="text-xs text-[#9a3412]">Quick access to full edit form and event image controls.</div>
+                            </div>
+                            <a
+                                href={organiser ? `/events/${event.slug}/organiser/edit` : `/events/${event.slug}/edit`}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#f97316] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]"
+                            >
+                                <Pencil className="h-4 w-4" />
+                                <span>Edit event</span>
+                            </a>
+                        </div>
+                    </div>
+                )}
+
                 {(() => {
                     const toStorageUrl = (path: string) => {
                         if (path.startsWith('http')) return path;
@@ -782,17 +799,9 @@ export default function Show({ event }: Props) {
                     </div>
                 )}
 
-                <div className="mt-6">
-                    <div className="flex items-center gap-3">
-                        {page.props?.canEdit ? (
-                            <ActionIcon href={organiser ? `/events/${event.slug}/organiser/edit` : `/events/${event.slug}/edit`} aria-label="Edit event" title="Edit event"><Pencil className="h-4 w-4" /></ActionIcon>
-                        ) : null}
-
-                        {!current && !showHomeHeader && null}
-                    </div>
-
-                    {page.props?.canEdit && (
-                        <form onSubmit={saveLinks} className="mt-4 space-y-4">
+                {page.props?.canEdit && (
+                    <div className="mt-6">
+                        <form onSubmit={saveLinks} className="space-y-4">
                             <div>
                                 <label htmlFor="main-organiser" className="block text-sm font-medium">Main organiser</label>
                                 <select
@@ -900,8 +909,8 @@ export default function Show({ event }: Props) {
                                 <button type="submit" className="btn-primary" disabled={linksForm.processing}>Save linked people</button>
                             </div>
                         </form>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

@@ -70,6 +70,28 @@ export default function ArtistsSignup() {
                         </div>
                     )}
 
+                    <div className="rounded-xl border-2 border-[#f97316] bg-[#fff7ed] p-4 shadow-sm">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                            <div className="w-full md:max-w-xl">
+                                <label htmlFor="photo" className="block text-sm font-semibold text-[#9a3412]">Photo <span className="text-red-600">*</span></label>
+                                <input
+                                    id="photo"
+                                    name="photo"
+                                    type="file"
+                                    required
+                                    onChange={e => form.setData('photo', e.target.files?.[0] ?? null)}
+                                    accept="image/*"
+                                    className="mt-2 block w-full rounded-md border border-[#fdba74] bg-white px-3 py-2 text-sm"
+                                />
+                                {form.errors.photo && <div className="mt-1 text-sm text-red-600">{form.errors.photo}</div>}
+                            </div>
+
+                            <div className="shrink-0">
+                                <ActionButton type="submit" disabled={form.processing}>Sign Up</ActionButton>
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium">Name <span className="text-red-600">*</span></label>
                         <input id="name" name="name" required value={form.data.name} onChange={e => form.setData('name', e.target.value)} className="input" />
@@ -132,15 +154,6 @@ export default function ArtistsSignup() {
                         <textarea id="description" name="description" value={form.data.description} onChange={e => form.setData('description', e.target.value)} className="input" rows={4} />
                     </div>
 
-                    <div>
-                        <label htmlFor="photo" className="block text-sm font-medium">Photo <span className="text-red-600">*</span></label>
-                        <input id="photo" name="photo" type="file" required onChange={e => form.setData('photo', e.target.files?.[0] ?? null)} accept="image/*" />
-                        {form.errors.photo && <div className="mt-1 text-sm text-red-600">{form.errors.photo}</div>}
-                    </div>
-
-                    <div>
-                        <ActionButton type="submit" disabled={form.processing}>Sign Up</ActionButton>
-                    </div>
                 </form>
             </div>
         </AppLayout>

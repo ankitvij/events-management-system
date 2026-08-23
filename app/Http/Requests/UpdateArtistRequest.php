@@ -35,7 +35,7 @@ class UpdateArtistRequest extends FormRequest
             'artist_types.*' => ['string', Rule::in(['dj', 'teacher', 'performer', 'public_speaker', 'other'])],
             'description' => ['nullable', 'string', 'max:5000'],
             'equipment' => ['nullable', 'string', 'max:5000'],
-            'photo' => ['nullable', 'image', 'max:5120'],
+            'photo' => ['nullable', 'image', 'max:10240'],
             'active' => ['nullable', 'boolean'],
         ];
     }
@@ -44,8 +44,8 @@ class UpdateArtistRequest extends FormRequest
     {
         return [
             'photo.image' => 'Please upload a valid image (jpg, png, webp, etc.).',
-            'photo.max' => 'Image must be 5MB or smaller.',
-            'photo.uploaded' => 'The image failed to upload. Try a smaller file (max 5MB).',
+            'photo.max' => 'Image must be 10MB or smaller.',
+            'photo.uploaded' => 'The image failed to upload. Try a smaller file (max 10MB).',
         ];
     }
 }
