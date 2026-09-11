@@ -15,6 +15,44 @@ export default function CartIndex() {
     const initialCount = page.props?.cart_count ?? (initialItems.reduce((s: number, it: any) => s + (it.quantity || 0), 0));
 
     const [summary, setSummary] = React.useState<{ items: any[]; total: number; count: number }>({ items: groupItems(initialItems), total: initialTotal, count: initialCount });
+    const [discountCode, setDiscountCode] = React.useState('');
+    const [appliedDiscount, setAppliedDiscount] = React.useState<{ code: string; amount: number } | null>(null);
+    const [discountError, setDiscountError] = React.useState('');
+    const [applyingDiscount, setApplyingDiscount] = React.useState(false);
+
+    async function applyDiscount() {
+        const code = discountCode.trim();
+        if (! code) {
+            setDiscountError('Enter a discount code.');
+
+            return;
+        }
+
+        setApplyingDiscount(true);
+        try {
+            const resp = await fetch('/cart/discount', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+                credentials: 'same-origin',
+                body: JSON.stringify({ discount_code: code }),
+            });
+            const json = await resp.json().catch(() => ({}));
+            if (! resp.ok) {
+                setAppliedDiscount(null);
+                setDiscountError(json?.errors?.discount_code?.[0] ?? json?.message ?? 'Unable to apply discount code.');
+
+                return;
+            }
+
+            setDiscountCode(json.code);
+            setAppliedDiscount({ code: json.code, amount: Number(json.discount_amount ?? 0) });
+            setDiscountError('');
+        } catch (_error) {
+            setDiscountError('Unable to apply discount code.');
+        } finally {
+            setApplyingDiscount(false);
+        }
+    }
 
     async function refreshSummary() {
         try {
@@ -136,6 +174,32 @@ export default function CartIndex() {
                 )}
 
                 <div className="rounded-2xl border border-[#d8dbe1] bg-[#f3f4f6] p-4">
+                    <div className="mb-4 border-b border-[#dde0e6] pb-4">
+                        <label className="block text-sm font-medium text-[#2a2f38]">Discount code</label>
+                        <div className="mt-2 flex gap-2">
+                            <input
+                                type="text"
+                                value={discountCode}
+                                onChange={(e) => {
+                                    setDiscountCode(e.target.value.toUpperCase());
+                                    setAppliedDiscount(null);
+                                    setDiscountError('');
+                                }}
+                                className="h-10 min-w-0 flex-1 rounded-lg border border-[#d8dbe1] bg-white px-3 text-sm uppercase text-[#2a2f38]"
+                                placeholder="Optional discount code"
+                            />
+                            <button
+                                type="button"
+                                onClick={applyDiscount}
+                                disabled={applyingDiscount || !discountCode.trim()}
+                                className="h-10 rounded-lg bg-[#2a2f38] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                {applyingDiscount ? 'Applying...' : 'Apply'}
+                            </button>
+                        </div>
+                        {discountError && <p className="mt-1 text-sm text-red-600">{discountError}</p>}
+                        {appliedDiscount && <p className="mt-1 text-sm text-green-700">{appliedDiscount.code} applied. You save €{appliedDiscount.amount.toFixed(2)}.</p>}
+                    </div>
                     <div className="space-y-1 text-sm text-[#9aa1af]">
                         <div className="flex items-center justify-between">
                             <span>Items</span>
@@ -145,17 +209,23 @@ export default function CartIndex() {
                             <span>Subtotal</span>
                             <span>€{Number(summary.total).toFixed(2)}</span>
                         </div>
+                        {appliedDiscount && appliedDiscount.amount > 0 && (
+                            <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2 text-green-700">
+                                <span>Discount</span>
+                                <span>-€{appliedDiscount.amount.toFixed(2)}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-2 flex items-center justify-between">
                         <span className="text-lg font-semibold text-[#2a2f38]">Total</span>
-                        <span className="text-lg font-semibold text-[#2a2f38]">€{Number(summary.total).toFixed(2)}</span>
+                        <span className="text-lg font-semibold text-[#2a2f38]">€{Math.max(0, Number(summary.total) - (appliedDiscount?.amount ?? 0)).toFixed(2)}</span>
                     </div>
                 </div>
 
                 <div>
                     <div className="mt-2">
-                        <Link href="/cart/checkout" className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#f97316] text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]">Checkout →</Link>
+                        <Link href={appliedDiscount ? `/cart/checkout?discount_code=${encodeURIComponent(appliedDiscount.code)}` : '/cart/checkout'} className="inline-flex h-12 w-full items-center justify-center rounded-2xl bg-[#f97316] text-sm font-semibold text-white transition-colors hover:bg-[#ea580c]">Checkout →</Link>
                     </div>
                 </div>
             </div>

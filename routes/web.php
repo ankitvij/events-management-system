@@ -327,6 +327,7 @@ use App\Http\Controllers\VenueController;
 // Shopping cart
 Route::get('cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('cart/checkout', [CartController::class, 'checkoutForm'])->name('cart.checkout.form');
+Route::post('cart/discount', [CartController::class, 'applyDiscount'])->name('cart.discount.apply');
 Route::get('cart/checkout/stripe/{order}/success', [CartController::class, 'stripeSuccess'])->name('cart.checkout.stripe.success');
 Route::get('cart/checkout/stripe/{order}/cancel', [CartController::class, 'stripeCancel'])->name('cart.checkout.stripe.cancel');
 Route::post('cart/items', [CartController::class, 'storeItem'])->name('cart.items.store');

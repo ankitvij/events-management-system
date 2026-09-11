@@ -1,6 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { CreditCard, Landmark, Trash } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ActionIcon from '@/components/action-icon';
 import AppLayout from '@/layouts/app-layout';
 
@@ -42,7 +42,9 @@ export default function CartCheckout() {
     const [customerName, setCustomerName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [discountCode, setDiscountCode] = useState('');
+    const [discountCode, setDiscountCode] = useState(() => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('discount_code') ?? '' : '');
+    const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number } | null>(null);
+    const [applyingDiscount, setApplyingDiscount] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [guestFieldErrors, setGuestFieldErrors] = useState<Record<string, string>>({});
     const [sameAsCustomer, setSameAsCustomer] = useState<Record<number, boolean>>({});
@@ -112,7 +114,52 @@ export default function CartCheckout() {
         }
     };
 
-    const checkoutTotal = Number(totals.total) + paymentFlatFee;
+    const discountAmount = appliedDiscount?.amount ?? 0;
+    const checkoutTotal = Math.max(0, Number(totals.total) - discountAmount) + paymentFlatFee;
+
+    async function applyDiscount() {
+        const code = discountCode.trim();
+        if (! code) {
+            setFormErrors((prev) => ({ ...prev, discount_code: 'Enter a discount code.' }));
+
+            return;
+        }
+
+        setApplyingDiscount(true);
+        try {
+            const response = await fetch('/cart/discount', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': getCsrf() },
+                credentials: 'same-origin',
+                body: JSON.stringify({ discount_code: code }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (! response.ok) {
+                setAppliedDiscount(null);
+                setFormErrors((prev) => ({ ...prev, discount_code: result?.errors?.discount_code?.[0] ?? result?.message ?? 'Unable to apply discount code.' }));
+
+                return;
+            }
+
+            setDiscountCode(result.code);
+            setAppliedDiscount({ code: result.code, amount: Number(result.discount_amount ?? 0) });
+            setFormErrors((prev) => {
+                const next = { ...prev };
+                delete next.discount_code;
+                return next;
+            });
+        } catch (_error) {
+            setFormErrors((prev) => ({ ...prev, discount_code: 'Unable to apply discount code.' }));
+        } finally {
+            setApplyingDiscount(false);
+        }
+    }
+
+    useEffect(() => {
+        if (discountCode.trim()) {
+            void applyDiscount();
+        }
+    }, []);
 
 
     async function removeItem(itemId: number) {
@@ -369,6 +416,7 @@ export default function CartCheckout() {
                                     value={discountCode}
                                     onChange={(e) => {
                                         setDiscountCode(e.target.value.toUpperCase());
+                                        setAppliedDiscount(null);
                                         setFormErrors((prev) => {
                                             const next = { ...prev };
                                             delete next.discount_code;
@@ -378,7 +426,16 @@ export default function CartCheckout() {
                                     className="mt-1 h-10 w-full rounded-xl border border-[#d8dbe1] bg-white px-3 text-sm uppercase text-[#2a2f38]"
                                     placeholder="Optional discount code"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={applyDiscount}
+                                    disabled={applyingDiscount || !discountCode.trim()}
+                                    className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-[#2a2f38] px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {applyingDiscount ? 'Applying...' : 'Apply'}
+                                </button>
                                 {formErrors.discount_code && <p className="mt-1 text-sm text-red-600">{formErrors.discount_code}</p>}
+                                {appliedDiscount && <p className="mt-1 text-sm text-green-700">{appliedDiscount.code} applied. You save €{appliedDiscount.amount.toFixed(2)}.</p>}
                                 <p className="mt-1 text-xs text-[#9aa1af]">The discount is applied after the code is validated against your tickets.</p>
                             </div>
                         </div>
@@ -570,6 +627,12 @@ export default function CartCheckout() {
                                         <span>Subtotal</span>
                                         <span>€{Number(totals.total).toFixed(2)}</span>
                                     </div>
+                                    {discountAmount > 0 && (
+                                        <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2 text-green-700">
+                                            <span>Discount</span>
+                                            <span>-€{discountAmount.toFixed(2)}</span>
+                                        </div>
+                                    )}
                                     {paymentFlatFee > 0 && (
                                         <div className="flex items-center justify-between border-b border-[#dde0e6] pb-2">
                                             <span>Payment fee</span>

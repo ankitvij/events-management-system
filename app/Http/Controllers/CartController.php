@@ -183,6 +183,45 @@ class CartController extends Controller
         ]);
     }
 
+    public function applyDiscount(Request $request)
+    {
+        $data = $request->validate([
+            'discount_code' => ['required', 'string', 'max:80'],
+        ]);
+        $cart = $this->getCart($request);
+        if (! $cart || $cart->items()->count() === 0) {
+            return response()->json(['message' => 'Cart is empty.'], 422);
+        }
+
+        $cart->load('items');
+        $discountCode = DiscountCode::query()
+            ->whereRaw('UPPER(code) = ?', [strtoupper(trim($data['discount_code']))])
+            ->where('active', true)
+            ->with('discounts')
+            ->first();
+
+        if (! $discountCode) {
+            return response()->json(['errors' => ['discount_code' => ['This discount code is invalid or inactive.']]], 422);
+        }
+
+        $hasMatch = $cart->items->contains(fn ($item): bool => $discountCode->discounts->contains(fn ($discount): bool => (int) $discount->ticket_id === (int) $item->ticket_id
+            && (int) $discount->event_id === (int) $item->event_id
+        ));
+        if (! $hasMatch) {
+            return response()->json(['errors' => ['discount_code' => ['This discount code does not apply to anything in your cart.']]], 422);
+        }
+
+        $subtotal = (float) $cart->items->sum(fn ($item): float => $item->quantity * (float) $item->price);
+        $discountedSubtotal = (float) $cart->items->sum(fn ($item): float => $item->quantity * $this->discountedUnitPrice($item, $discountCode));
+
+        return response()->json([
+            'code' => $discountCode->code,
+            'subtotal' => round($subtotal, 2),
+            'discount_amount' => round(max(0, $subtotal - $discountedSubtotal), 2),
+            'total' => round($discountedSubtotal, 2),
+        ]);
+    }
+
     public function checkout(CheckoutRequest $request)
     {
         $cart = $this->getCart($request);

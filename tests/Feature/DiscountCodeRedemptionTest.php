@@ -75,6 +75,23 @@ class DiscountCodeRedemptionTest extends TestCase
         $inapplicable->assertStatus(422)->assertJsonValidationErrors('discount_code');
     }
 
+    public function test_discount_code_can_be_applied_before_checkout(): void
+    {
+        [$cart, $ticket, $discountCode] = $this->cartWithDiscount('APPLY10', 'percentage', 10, 30);
+
+        $response = $this->postJson('/cart/discount', [
+            'discount_code' => 'apply10',
+            'cart_id' => $cart->id,
+        ]);
+
+        $response->assertOk()->assertJson([
+            'code' => $discountCode->code,
+            'subtotal' => 30,
+            'discount_amount' => 3,
+            'total' => 27,
+        ]);
+    }
+
     /**
      * @return array{0: Cart, 1: Ticket, 2: DiscountCode}
      */
