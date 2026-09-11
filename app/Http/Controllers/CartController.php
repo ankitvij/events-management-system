@@ -8,6 +8,7 @@ use App\Mail\OrderConfirmed;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
+use App\Models\DiscountCode;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentSetting;
@@ -198,6 +199,7 @@ class CartController extends Controller
         $incomingName = $validated['name'] ?? null;
         $incomingPassword = $validated['password'] ?? null;
         $paymentMethod = $validated['payment_method'] ?? 'bank_transfer';
+        $discountCodeInput = trim((string) ($validated['discount_code'] ?? ''));
         $ticketGuests = $validated['ticket_guests'] ?? [];
         if (! is_array($ticketGuests)) {
             $ticketGuests = [];
@@ -207,8 +209,21 @@ class CartController extends Controller
         })->keyBy('cart_item_id');
 
         try {
-            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem, $paymentMethod) {
+            $result = DB::transaction(function () use ($cart, $incomingEmail, $incomingName, $incomingPassword, $ticketGuestsByItem, $paymentMethod, $discountCodeInput) {
                 $cart->load('items');
+                $discountCode = null;
+                if ($discountCodeInput !== '') {
+                    $discountCode = DiscountCode::query()
+                        ->whereRaw('UPPER(code) = ?', [strtoupper($discountCodeInput)])
+                        ->where('active', true)
+                        ->with('discounts')
+                        ->first();
+
+                    if (! $discountCode) {
+                        throw new \Exception('This discount code is invalid or inactive.');
+                    }
+                }
+
                 foreach ($cart->items as $item) {
                     if ($item->ticket_id) {
                         $ticket = Ticket::lockForUpdate()->find($item->ticket_id);
@@ -228,8 +243,12 @@ class CartController extends Controller
                 $subtotal = $cart->items->sum(function ($i) {
                     return $i->quantity * $i->price;
                 });
+                $discountedSubtotal = $cart->items->sum(function ($item) use ($discountCode): float {
+                    return $item->quantity * $this->discountedUnitPrice($item, $discountCode);
+                });
+                $discountAmount = max(0, round($subtotal - $discountedSubtotal, 2));
                 $paymentFlatFee = $this->paymentFlatFeeAmount($paymentMethod);
-                $total = $subtotal + $paymentFlatFee;
+                $total = $discountedSubtotal + $paymentFlatFee;
                 $order = Order::create([
                     'booking_code' => $code,
                     'user_id' => $cart->user_id ?? null,
@@ -241,6 +260,8 @@ class CartController extends Controller
                     'contact_name' => null,
                     'contact_email' => null,
                     'paid' => false,
+                    'discount_code_id' => $discountCode?->id,
+                    'discount_amount' => $discountAmount,
                 ]);
 
                 foreach ($cart->items as $item) {
@@ -275,7 +296,7 @@ class CartController extends Controller
                         'ticket_id' => $item->ticket_id,
                         'event_id' => $item->event_id,
                         'quantity' => $item->quantity,
-                        'price' => $item->price,
+                        'price' => $this->discountedUnitPrice($item, $discountCode),
                         'guest_details' => $guestDetails,
                     ]);
                 }
@@ -656,6 +677,28 @@ class CartController extends Controller
         }
 
         return $checkoutUrl;
+    }
+
+    protected function discountedUnitPrice(CartItem $item, ?DiscountCode $discountCode): float
+    {
+        $price = max(0.0, (float) $item->price);
+        if (! $discountCode) {
+            return round($price, 2);
+        }
+
+        $discount = $discountCode->discounts->first(fn ($row) => (int) $row->ticket_id === (int) $item->ticket_id
+            && (int) $row->event_id === (int) $item->event_id
+        );
+        if (! $discount) {
+            return round($price, 2);
+        }
+
+        $value = max(0.0, (float) $discount->discount_value);
+        $discountedPrice = $discount->discount_type === 'percentage'
+            ? $price * (1 - min(100.0, $value) / 100)
+            : $price - min($price, $value);
+
+        return round(max(0.0, $discountedPrice), 2);
     }
 
     protected function paymentFlatFeeAmount(string $paymentMethod): float

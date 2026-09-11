@@ -42,6 +42,7 @@ export default function CartCheckout() {
     const [customerName, setCustomerName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [discountCode, setDiscountCode] = useState('');
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [guestFieldErrors, setGuestFieldErrors] = useState<Record<string, string>>({});
     const [sameAsCustomer, setSameAsCustomer] = useState<Record<number, boolean>>({});
@@ -226,6 +227,7 @@ export default function CartCheckout() {
                 email: email.trim(),
                 name: customerName.trim(),
                 password: password.trim() || null,
+                discount_code: discountCode.trim() || null,
                 payment_method: paymentMethod,
                 ticket_guests: ticketGuests.map((entry) => ({
                     cart_item_id: entry.cart_item_id,
@@ -358,6 +360,26 @@ export default function CartCheckout() {
                                     placeholder="Create a password"
                                 />
                                 <div className="mt-1 text-xs text-[#9aa1af]">Add a password to create or secure your customer account.</div>
+                            </div>
+
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm font-medium text-[#2a2f38]">Discount code</label>
+                                <input
+                                    type="text"
+                                    value={discountCode}
+                                    onChange={(e) => {
+                                        setDiscountCode(e.target.value.toUpperCase());
+                                        setFormErrors((prev) => {
+                                            const next = { ...prev };
+                                            delete next.discount_code;
+                                            return next;
+                                        });
+                                    }}
+                                    className="mt-1 h-10 w-full rounded-xl border border-[#d8dbe1] bg-white px-3 text-sm uppercase text-[#2a2f38]"
+                                    placeholder="Optional discount code"
+                                />
+                                {formErrors.discount_code && <p className="mt-1 text-sm text-red-600">{formErrors.discount_code}</p>}
+                                <p className="mt-1 text-xs text-[#9aa1af]">The discount is applied after the code is validated against your tickets.</p>
                             </div>
                         </div>
                     </div>

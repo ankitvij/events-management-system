@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Cart;
+use App\Models\DiscountCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -28,6 +29,7 @@ class CheckoutRequest extends FormRequest
             'name' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'min:8'],
             'payment_method' => ['required', 'string', 'in:bank_transfer,paypal_transfer,revolut_transfer,stripe_transfer'],
+            'discount_code' => ['nullable', 'string', 'max:80'],
             'ticket_guests' => ['nullable', 'array'],
             'ticket_guests.*.cart_item_id' => ['required', 'integer'],
             'ticket_guests.*.guests' => ['nullable', 'array'],
@@ -55,6 +57,25 @@ class CheckoutRequest extends FormRequest
             }
 
             $cart->load('items');
+
+            $discountCodeInput = trim((string) $this->input('discount_code', ''));
+            if ($discountCodeInput !== '') {
+                $discountCode = DiscountCode::query()
+                    ->whereRaw('UPPER(code) = ?', [strtoupper($discountCodeInput)])
+                    ->where('active', true)
+                    ->with('discounts')
+                    ->first();
+
+                if (! $discountCode) {
+                    $validator->errors()->add('discount_code', 'This discount code is invalid or inactive.');
+                } elseif (! $cart->items->contains(function ($item) use ($discountCode): bool {
+                    return $discountCode->discounts->contains(fn ($discount) => (int) $discount->ticket_id === (int) $item->ticket_id
+                        && (int) $discount->event_id === (int) $item->event_id
+                    );
+                })) {
+                    $validator->errors()->add('discount_code', 'This discount code does not apply to anything in your cart.');
+                }
+            }
 
             $ticketGuests = collect($this->input('ticket_guests', []))
                 ->filter(fn ($entry) => is_array($entry) && isset($entry['cart_item_id']))
