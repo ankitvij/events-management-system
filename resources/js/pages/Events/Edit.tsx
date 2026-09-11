@@ -1,5 +1,5 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import ActionButton from '@/components/ActionButton';
 import OrganiserMultiSelect from '@/components/organiser-multi-select';
 import RichEditor from '@/components/RichEditor';
@@ -112,7 +112,7 @@ export default function Edit({ event }: Props) {
         email: '',
     });
 
-    function submit(e: FormEvent) {
+    function submit(e: FormEvent | MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
         const fallbackUrl = organiser ? `/events/${event.slug}/organiser` : `/events/${event.slug}`;
         form.transform(data => ({ ...data, _method: 'PUT' })).post(editUrl ?? fallbackUrl, { forceFormData: true });
@@ -122,7 +122,7 @@ export default function Edit({ event }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit ${event.title}`} />
 
-            <form onSubmit={submit} noValidate className="p-4 space-y-4">
+            <div className="p-4 space-y-4">
                 {Object.keys(form.errors).length > 0 && (
                     <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
                         <p className="font-semibold">Please fix the following:</p>
@@ -150,7 +150,7 @@ export default function Edit({ event }: Props) {
                         </div>
 
                         <div className="shrink-0">
-                            <ActionButton type="submit" className={form.processing ? 'opacity-60 pointer-events-none' : ''}>
+                            <ActionButton type="button" onClick={submit} className={form.processing ? 'opacity-60 pointer-events-none' : ''}>
                                 Save event changes
                             </ActionButton>
                         </div>
@@ -509,7 +509,7 @@ export default function Edit({ event }: Props) {
                         </div>
                     </div>
                 )}
-            </form>
+            </div>
         </AppLayout>
     );
 }
