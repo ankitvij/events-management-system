@@ -122,7 +122,7 @@ export default function Edit({ event }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit ${event.title}`} />
 
-            <form onSubmit={submit} className="p-4 space-y-4">
+            <form onSubmit={submit} noValidate className="p-4 space-y-4">
                 {Object.keys(form.errors).length > 0 && (
                     <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">
                         <p className="font-semibold">Please fix the following:</p>
