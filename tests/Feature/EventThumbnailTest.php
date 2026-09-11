@@ -154,6 +154,55 @@ class EventThumbnailTest extends TestCase
         $this->assertSame(2000, $size[1]);
     }
 
+    public function test_updating_event_image_only_does_not_require_other_event_fields(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $organiserId = \App\Models\Organiser::create([
+            'name' => 'Image Only Org',
+            'email' => 'image-only@example.test',
+            'active' => true,
+        ])->id;
+
+        $this->post(route('events.store'), [
+            'title' => 'Image Only Update Event',
+            'description' => 'Initial event',
+            'start_at' => now()->addDay()->toDateString(),
+            'end_at' => now()->addDays(2)->toDateString(),
+            'city' => 'Zurich',
+            'organiser_id' => $organiserId,
+            'image' => UploadedFile::fake()->image('initial.jpg', 800, 600),
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
+        ])->assertRedirect(route('events.index'));
+
+        $event = Event::where('title', 'Image Only Update Event')->firstOrFail();
+        $oldTitle = $event->title;
+        $oldStartAt = optional($event->start_at)->toDateString();
+        $oldCity = $event->city;
+        $oldOrganiserId = $event->organiser_id;
+
+        $response = $this->put(route('events.update', $event), [
+            'image' => UploadedFile::fake()->image('replacement.jpg', 1024, 768),
+        ]);
+
+        $response->assertRedirect(route('events.show', $event));
+        $response->assertSessionHasNoErrors();
+
+        $event->refresh();
+
+        $this->assertSame($oldTitle, $event->title);
+        $this->assertSame($oldStartAt, optional($event->start_at)->toDateString());
+        $this->assertSame($oldCity, $event->city);
+        $this->assertSame($oldOrganiserId, $event->organiser_id);
+        $this->assertNotNull($event->image);
+        $this->assertNotNull($event->image_thumbnail);
+    }
+
     public function test_event_requires_an_image_on_create(): void
     {
         Storage::fake('public');

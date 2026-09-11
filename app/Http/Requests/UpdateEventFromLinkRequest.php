@@ -14,12 +14,12 @@ class UpdateEventFromLinkRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:10240'],
-            'start_at' => ['required', 'date'],
+            'start_at' => ['sometimes', 'required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
-            'city' => ['required', 'string', 'max:100'],
+            'city' => ['sometimes', 'required', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:255'],

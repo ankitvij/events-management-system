@@ -63,12 +63,12 @@ class UpdateEventRequest extends FormRequest
         $isAgencyManager = $this->user()?->hasRole(Role::AGENCY->value) && ! $this->user()?->hasRole([Role::ADMIN->value, Role::SUPER_ADMIN->value]);
 
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:10240'],
-            'start_at' => ['required', 'date'],
+            'start_at' => ['sometimes', 'required', 'date'],
             'end_at' => ['nullable', 'date', 'after_or_equal:start_at'],
-            'city' => ['required', 'string', 'max:100'],
+            'city' => ['sometimes', 'required', 'string', 'max:100'],
             'country' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
@@ -76,6 +76,7 @@ class UpdateEventRequest extends FormRequest
             'whatsapp_url' => ['nullable', 'string', 'max:255'],
             'active' => ['nullable', 'boolean'],
             'organiser_id' => [
+                'sometimes',
                 'required',
                 'integer',
                 Rule::exists('organisers', 'id')->when($isAgencyManager, function ($rule) use ($agencyId) {

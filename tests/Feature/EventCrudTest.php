@@ -373,6 +373,55 @@ class EventCrudTest extends TestCase
         Mail::assertSent(EventOrganiserCreated::class);
     }
 
+    public function test_guest_can_update_event_image_only_via_signed_link_with_password(): void
+    {
+        Mail::fake();
+        Storage::fake('public');
+
+        $this->post(route('events.store'), [
+            'title' => 'Guest Image Update Event',
+            'start_at' => now()->addDay()->toDateString(),
+            'city' => 'Madrid',
+            'image' => UploadedFile::fake()->image('initial.jpg', 1200, 800),
+            'organiser_name' => 'Guest Org',
+            'organiser_email' => 'guest-image@org.test',
+            'edit_password' => 'secret123',
+            'tickets' => [
+                ['name' => 'Standard', 'price' => 0, 'quantity_total' => 10],
+            ],
+        ])->assertRedirect(route('events.index'));
+
+        $event = Event::query()->where('title', 'Guest Image Update Event')->firstOrFail();
+        $oldTitle = $event->title;
+        $oldStartAt = optional($event->start_at)->toDateString();
+        $oldCity = $event->city;
+
+        $signedUpdateUrl = URL::signedRoute('events.update-link', [
+            'event' => $event->slug,
+            'token' => $event->edit_token,
+        ]);
+
+        $response = $this->put($signedUpdateUrl, [
+            'image' => UploadedFile::fake()->image('replacement.jpg', 1600, 900),
+            'edit_password' => 'secret123',
+        ]);
+
+        $signedEditUrl = URL::signedRoute('events.edit-link', [
+            'event' => $event->slug,
+            'token' => $event->edit_token,
+        ]);
+
+        $response->assertRedirect($signedEditUrl);
+        $response->assertSessionHasNoErrors();
+
+        $event->refresh();
+        $this->assertSame($oldTitle, $event->title);
+        $this->assertSame($oldStartAt, optional($event->start_at)->toDateString());
+        $this->assertSame($oldCity, $event->city);
+        $this->assertNotNull($event->image);
+        $this->assertNotNull($event->image_thumbnail);
+    }
+
     public function test_organiser_cannot_use_their_link_on_another_event(): void
     {
         $eventA = Event::factory()->create([
