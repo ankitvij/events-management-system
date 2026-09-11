@@ -115,7 +115,7 @@ export default function Edit({ event }: Props) {
     function submit(e: FormEvent) {
         e.preventDefault();
         const fallbackUrl = organiser ? `/events/${event.slug}/organiser` : `/events/${event.slug}`;
-        form.put(editUrl ?? fallbackUrl, { forceFormData: true });
+        form.transform(data => ({ ...data, _method: 'PUT' })).post(editUrl ?? fallbackUrl, { forceFormData: true });
     }
 
     return (
