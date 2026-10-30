@@ -1,8 +1,5 @@
 # Events Management System
 
-[![tests](https://github.com/ankitvij/events-management-system/actions/workflows/tests.yml/badge.svg)](https://github.com/ankitvij/events-management-system/actions/workflows/tests.yml)
-[![linter](https://github.com/ankitvij/events-management-system/actions/workflows/lint.yml/badge.svg)](https://github.com/ankitvij/events-management-system/actions/workflows/lint.yml)
-
 A multi-vendor platform for creating, managing and selling tickets for events. Organisers publish events and ticket types, customers buy tickets online, and vendors, artists and agencies offer their services and take bookings. It is the platform behind ChancePass.
 
 ## Features
@@ -21,7 +18,7 @@ A multi-vendor platform for creating, managing and selling tickets for events. O
 - **Backend:** PHP 8.2+, Laravel 12, Laravel Fortify (authentication), MySQL
 - **Frontend:** React 19 with TypeScript via Inertia.js, Tailwind CSS 4, Vite
 - **Payments and documents:** Stripe and Stripe Connect, DomPDF
-- **Quality:** PHPUnit feature tests (65+ test files), Laravel Pint, ESLint and Prettier, GitHub Actions for tests, linting and tag-based deploys
+- **Quality:** PHPUnit feature tests (65+ test files), Laravel Pint, ESLint and Prettier, GitHub Actions workflows
 
 ## Getting started
 
