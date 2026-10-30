@@ -1,4 +1,39 @@
-# events-management-system
+# Events Management System
+
+[![tests](https://github.com/ankitvij/events-management-system/actions/workflows/tests.yml/badge.svg)](https://github.com/ankitvij/events-management-system/actions/workflows/tests.yml)
+[![linter](https://github.com/ankitvij/events-management-system/actions/workflows/lint.yml/badge.svg)](https://github.com/ankitvij/events-management-system/actions/workflows/lint.yml)
+
+A multi-vendor platform for creating, managing and selling tickets for events. Organisers publish events and ticket types, customers buy tickets online, and vendors, artists and agencies offer their services and take bookings. It is the platform behind ChancePass.
+
+## Features
+
+- **Events and tickets** – event pages with slugs, ticket types with limited quantities, venues, cities and countries, public search and filtering
+- **Cart and checkout** – Stripe checkout and bank transfer, concurrency-safe stock handling, discount codes
+- **Payouts to organisers** – Stripe Connect accounts and products
+- **Orders** – confirmation emails with PDF tickets, ticket-holder updates, booking-code and magic-link login for customers
+- **Multi-vendor portals** – separate sign-up, login and dashboards for organisers, vendors, artists, agencies and promoters
+- **Bookings** – availability calendars and booking requests for artists and vendors (services and equipment)
+- **Entry control** – ticket controller accounts for checking tickets at the door
+- **Administration** – users, roles with an audit log, customers, CMS pages, module and payment settings, newsletter sign-ups
+
+## Tech stack
+
+- **Backend:** PHP 8.2+, Laravel 12, Laravel Fortify (authentication), MySQL
+- **Frontend:** React 19 with TypeScript via Inertia.js, Tailwind CSS 4, Vite
+- **Payments and documents:** Stripe and Stripe Connect, DomPDF
+- **Quality:** PHPUnit feature tests (65+ test files), Laravel Pint, ESLint and Prettier, GitHub Actions for tests, linting and tag-based deploys
+
+## Getting started
+
+```bash
+git clone https://github.com/ankitvij/events-management-system.git
+cd events-management-system
+cp .env.example .env          # then set your database and Stripe keys
+composer run setup            # composer install, key, migrations, npm install and build
+composer run dev              # app server, queue worker and Vite together
+```
+
+See [PRODUCTION.md](PRODUCTION.md) for deployment and [docs/](docs) for the shopping cart and mail setup.
 
 ## Running tests / CI
 
